@@ -1,0 +1,35 @@
+//SPDX-License-Identifier: LGPL-2.0-or-later
+
+/*
+
+   Copyright (c) 2014-2019 Cyril Hrubis <metan@ucw.cz>
+
+ */
+
+#include <string.h>
+#include <core/GP_Debug.h>
+#include <core/GP_Common.h>
+#include <gp_widget.h>
+#include <gp_widget_ops.h>
+#include <gp_widget_grid.h>
+#include <gp_widget_tabs.h>
+
+gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size)
+{
+	size_t size = sizeof(gp_widget) + payload_size;
+	gp_widget *ret = malloc(size);
+
+	GP_DEBUG(1, "Allocating widget %s payload_size=%zu size=%zu",
+	         gp_widget_type_name(type), payload_size, size);
+
+	if (!ret) {
+		GP_WARN("Malloc failed :-(");
+		return NULL;
+	}
+
+	memset(ret, 0, size);
+	ret->payload = ret->buf;
+	ret->type = type;
+
+	return ret;
+}

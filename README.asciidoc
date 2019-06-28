@@ -1,0 +1,11 @@
+About
+=====
+
+WARNING: This library is still experimental and work-in-progress, mind that the
+         API is not 100% stabilized.
+
+This project implements modern and minimalistic widget library in C, which is
+something I wanted to have more than 10 years ago but haven't been able to make
+it happen sooner. Sometimes late is better than never.
+
+If you are interested you can have a look at the link:doc/[Documentation].

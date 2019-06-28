@@ -1,0 +1,45 @@
+{
+  "rows": 3,
+  "align": "fill",
+  "widgets": [
+  {
+   "type": "label",
+   "label": "Please log in."
+  },
+  {
+   "cols": 2,
+   "rows": 2,
+   "widgets": [
+     {
+       "type": "label",
+       "label": "Username:",
+       "halign": "right"
+     },
+     {
+       "type": "label",
+       "label": "Password:",
+       "halign": "right"
+     },
+     {
+       "type": "textbox",
+       "text": "admin",
+       "size": 10,
+       "uid": "uname",
+       "on_event": "login_callback"
+     },
+     {
+       "type": "textbox",
+       "size": 10,
+       "hidden": true,
+       "uid": "pass",
+       "on_event": "login_callback"
+     }
+   ]
+  },
+  {
+    "type": "button",
+    "label": "Ok",
+    "on_event": "login_callback"
+  }
+  ]
+}

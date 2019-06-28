@@ -1,0 +1,498 @@
+#!/usr/bin/python
+
+import sys
+
+if len(sys.argv) != 2:
+    print("Usage: ", sys.argv[0], "foo.wl")
+    sys.exit(1)
+
+class buffer:
+    def __init__(self, filename):
+        f = open(filename, 'r')
+        self.lines = f.readlines()
+        self.line = 0
+        self.line_pos = 0
+
+        while (self.curch() == '#'):
+            self.line += 1
+
+    def nextch(self):
+        ret = self.curch()
+
+        self.line_pos += 1
+
+        if self.line_pos >= len(self.lines[self.line]):
+            self.line += 1
+            self.line_pos = 0
+            while (self.curch() == '#'):
+                self.line += 1
+            if self.line >= len(self.lines):
+                return None
+
+        return ret
+
+    def curch(self):
+        if self.line >= len(self.lines):
+            return None
+        return self.lines[self.line][self.line_pos]
+
+    def eat_ws(self):
+        while self.curch() and self.curch().isspace():
+            self.nextch()
+
+    def get_word(self):
+        ret = ""
+
+        self.eat_ws()
+
+        while self.curch().isalpha() or self.curch() == '_':
+            ret += self.nextch()
+
+        return ret
+
+    def get_string(self):
+        ret = ""
+
+        self.eat_ws()
+
+        self.assertch('"')
+
+        while self.curch() != '"':
+            ret += self.nextch()
+
+        self.nextch()
+
+        return ret
+
+    def get_int(self):
+        ret = ""
+
+        self.eat_ws()
+
+        while self.curch().isdigit():
+            ret += self.nextch()
+
+        if ret == '':
+            self.error("Expected number");
+
+        return int(ret)
+
+    def assertch(self, char, hint=None):
+        self.eat_ws()
+
+        if self.curch() is None:
+            sys.stderr.write("Parse Error: End of file reached while looking for '%s'\n" % char)
+            exit(1)
+
+        if self.curch() != char:
+            self.error("Expected '%s' (Hint: %s)" % (char, hint))
+
+        self.nextch()
+
+    def error(self, message):
+        sys.stderr.write("Parse Error: " + self.lines[self.line])
+        sys.stderr.write(" " * (self.line_pos + 13))
+        sys.stderr.write("^\n")
+        sys.stderr.write("%i: %i: %s\n\n" % (self.line+1, self.line_pos, message))
+        sys.exit(1)
+
+class outbufc:
+    def __init__(self):
+        self._level = 0
+        self._line_start = True
+        self._outbuf = ''
+
+    def p(self, string):
+        if self._line_start:
+            self._outbuf += ' ' * self._level
+
+        self._line_start = string[-1:] == '\n'
+        self._outbuf += string
+
+    def inc_level(self):
+        self._level+=1
+
+    def dec_level(self):
+        self._level-=1
+
+    def empty(self):
+        return self._outbuf == ''
+
+    def level(self):
+        return self._level
+
+    def flush(self):
+        sys.stdout.write(self._outbuf)
+
+def parse_label(inbuf, outbuf):
+    label = inbuf.get_string()
+    outbuf.p(".type = GP_WIDGET_LABEL, .label = &(struct gp_widget_label) {\n")
+    outbuf.inc_level()
+    outbuf.p(".text = \"%s\",\n" % label)
+
+    inbuf.eat_ws()
+    if inbuf.curch() != '}':
+        w = inbuf.get_word()
+
+        if (w == 'bold'):
+            outbuf.p(".bold = 1\n")
+        else:
+            inbuf.error("Invalid keyword: %s" % w)
+
+    outbuf.dec_level()
+    outbuf.p("}\n")
+
+def parse_bool(wtype, inbuf, outbuf):
+    inbuf.eat_ws()
+    outbuf.p(".type = GP_WIDGET_%s,\n" % wtype)
+
+    # The bool structure is passed by a pointer
+    if inbuf.curch() == '&':
+        inbuf.nextch()
+        name = inbuf.get_word()
+        outbuf.p(".b = &%s\n" % name)
+        return
+
+    # Otherwise we expect a label, callback and possibly initial value
+    label = inbuf.get_string()
+    callback = None
+    value = None
+
+    inbuf.eat_ws()
+    if inbuf.curch() != '}':
+        callback = inbuf.get_word()
+
+    inbuf.eat_ws()
+    if inbuf.curch() != '}':
+        value = inbuf.get_int()
+
+    outbuf.p(".b = &(struct gp_widget_bool) {\n")
+    outbuf.inc_level()
+    outbuf.p(".label = \"%s\",\n" % label)
+
+    if callback:
+        outbuf.p(".on_event = %s,\n" % callback)
+
+    if value:
+        outbuf.p(".val = %i\n" % value)
+
+    outbuf.dec_level()
+
+    outbuf.p("}\n")
+
+def parse_void(inbuf, outbuf):
+    inbuf.eat_ws()
+
+    hfill = inbuf.get_int()
+    inbuf.assertch('x')
+    vfill = inbuf.get_int()
+
+    outbuf.p(".type = GP_WIDGET_VOID,\n")
+    outbuf.p(".align = GP_FILL(%i, %i)\n" % (hfill, vfill))
+
+def parse_progressbar(inbuf, outbuf):
+    inbuf.eat_ws()
+    minv = inbuf.get_int()
+    maxv = inbuf.get_int()
+    val = inbuf.get_int()
+    outbuf.p(".type = GP_WIDGET_PROGRESSBAR,\n")
+    outbuf.p(".i = &(struct gp_widget_int) {\n")
+    outbuf.inc_level()
+    outbuf.p(".min = %i, .max = %i, .val = %i,\n" % (minv, maxv, val))
+    outbuf.p("}\n")
+    outbuf.dec_level()
+
+def parse_spinner(inbuf, outbuf):
+    inbuf.eat_ws()
+    minv = inbuf.get_int()
+    maxv = inbuf.get_int()
+    val = inbuf.get_int()
+    outbuf.p(".type = GP_WIDGET_SPINNER,\n")
+    outbuf.p(".i = &(struct gp_widget_int) {\n")
+    outbuf.inc_level()
+    outbuf.p(".min = %i, .max = %i, .val = %i,\n" % (minv, maxv, val))
+    outbuf.p("}\n")
+    outbuf.dec_level()
+
+def parse_textbox(inbuf, outbuf):
+    inbuf.eat_ws()
+    str_len = inbuf.get_int()
+    inbuf.eat_ws()
+    outbuf.p(".type = GP_WIDGET_TEXTBOX,\n")
+    outbuf.p(".tbox = &(struct gp_widget_textbox) {\n")
+    outbuf.inc_level()
+    outbuf.p(".buf_len = %i,\n" % str_len)
+    callback = None
+    init_val = None
+    char_filter = None
+    hidden = False
+
+    while inbuf.curch() != '}':
+        if inbuf.curch() == '"':
+            init_val = inbuf.get_string()
+            if str_len < len(init_val):
+                inbuf.error("Textbox size too small")
+            continue
+
+        if inbuf.curch() == '[':
+            inbuf.nextch()
+            char_filter = inbuf.get_string()
+            inbuf.assertch(']');
+
+        if inbuf.curch() == '*':
+            inbuf.nextch()
+            hidden = True
+
+        if not callback:
+            callback = inbuf.get_word()
+            continue
+
+        break
+
+    if hidden:
+        outbuf.p(".hidden = 1,\n")
+    if char_filter:
+        outbuf.p(".char_filter = \"%s\",\n" % char_filter)
+    if init_val:
+        outbuf.p(".cur_pos = %i,\n" % len(init_val))
+    if callback:
+        outbuf.p(".on_event = %s,\n" % callback)
+    outbuf.p(".buf = (char []){")
+    for i in range(0, str_len + 1):
+        if init_val and i < len(init_val):
+            outbuf.p("'%s', " % init_val[i])
+        else:
+            outbuf.p("0, ")
+    outbuf.p("}\n");
+    outbuf.p("}\n")
+    outbuf.dec_level()
+
+def parse_radiobutton(inbuf, outbuf):
+    inbuf.eat_ws()
+    choices = []
+    callback = None
+    selected = None
+
+    while inbuf.curch() != '}':
+        inbuf.eat_ws()
+        if inbuf.curch() == '>':
+            selected = len(choices)
+            inbuf.nextch()
+
+        if inbuf.curch() == '"':
+            s = inbuf.get_string()
+            choices.append(s)
+            continue
+
+        callback = inbuf.get_word()
+        break;
+
+    outbuf.p(".type = GP_WIDGET_RADIOBUTTON,\n")
+    outbuf.p(".choice = &(struct gp_widget_choice) {\n")
+    outbuf.inc_level()
+    outbuf.p(".max = %i,\n" % len(choices))
+    if selected:
+        outbuf.p(".selected = %i,\n" % selected)
+    if callback:
+        outbuf.p(".on_event = %s,\n" % callback)
+    outbuf.p(".choices = (char *[]){\n")
+    outbuf.inc_level()
+    for item in choices:
+        outbuf.p('"%s",\n' % item)
+    outbuf.dec_level()
+    outbuf.p("}\n")
+    outbuf.dec_level()
+    outbuf.p("}\n")
+
+def try_parse_aligment(inbuf, outbuf):
+    if inbuf.curch() == '<':
+        inbuf.assertch('<')
+        outbuf.p(".align = GP_LEFT, ")
+        return
+
+    if inbuf.curch() == '>':
+        inbuf.assertch('>')
+        outbuf.p(".align = GP_RIGHT, ")
+        return
+
+    if inbuf.curch() == '*':
+        inbuf.assertch('*')
+        inbuf.eat_ws()
+        hfill = inbuf.get_int()
+        inbuf.assertch('x')
+        vfill = inbuf.get_int()
+        outbuf.p(".align = GP_FILL(%i, %i), " % (hfill, vfill))
+
+    inbuf.eat_ws()
+
+def parse_grid(inbuf, outbuf):
+    outbuf.inc_level()
+    outbuf.p(".type = GP_WIDGET_GRID,\n")
+
+    cols = inbuf.get_int()
+    if cols == 0:
+        inbuf.error("Number of columns must be > 0")
+
+    inbuf.assertch('x')
+
+    rows = inbuf.get_int()
+    if cols == 0:
+        inbuf.error("Number of rows must be > 0")
+
+    inbuf.assertch("{")
+    inbuf.eat_ws()
+    try_parse_aligment(inbuf, outbuf)
+
+    if inbuf.curch() == '@':
+        outer = 1
+        inbuf.nextch()
+    else:
+        outer = 0
+
+    outbuf.p(".grid = &(struct gp_widget_grid) {\n")
+    outbuf.inc_level()
+    outbuf.p(".cols = %s, .rows = %s,\n" % (cols, rows))
+    outbuf.p(".cols_w = (unsigned int []){" + "0, " * (cols - 1) + "0},\n")
+    outbuf.p(".rows_h = (unsigned int []){" + "0, " * (rows - 1) + "0},\n")
+    outbuf.p(".cols_off = (unsigned int []){" + "0, " * (cols - 1) + "0},\n")
+    outbuf.p(".rows_off = (unsigned int []){" + "0, " * (rows - 1) + "0},\n")
+    outbuf.p((".col_padds = (uint8_t []){%i, " + "1, " * (cols - 1) + "%i},\n") % (outer, outer))
+    outbuf.p((".row_padds = (uint8_t []){%i, " + "1, " * (rows - 1) + "%i},\n") % (outer, outer))
+    outbuf.p((".col_pfills = (uint8_t []){" + "0, " * cols + "0},\n"))
+    outbuf.p((".row_pfills = (uint8_t []){" + "0, " * rows + "0},\n"))
+    outbuf.p((".col_fills = (uint8_t []){" + "0, " * (cols-1) + "0},\n"))
+    outbuf.p((".row_fills = (uint8_t []){" + "0, " * (rows-1) + "0},\n"))
+    outbuf.p(".widgets = (gp_widget* []) {\n")
+
+    outbuf.inc_level()
+    for i in range(0, cols * rows):
+        parse_widget(inbuf, outbuf)
+    outbuf.dec_level()
+
+    inbuf.assertch("}", "Grid too small for widgets?")
+    outbuf.p("}\n")
+    outbuf.dec_level()
+    outbuf.p("}\n")
+    outbuf.dec_level()
+
+def parse_tabs(inbuf, outbuf):
+    outbuf.inc_level()
+    outbuf.p(".type = GP_WIDGET_TABS,\n")
+    outbuf.p(".tabs = &(struct gp_widget_tabs) {\n")
+
+    tabs = [];
+
+    while inbuf.curch() == '"':
+        tabs.append(inbuf.get_string())
+        inbuf.eat_ws()
+
+    outbuf.inc_level()
+    outbuf.p(".count = %i,\n" % len(tabs))
+    outbuf.p(".labels = (char *[]){\"" + '",  "'.join(tabs) + "\"},\n")
+    outbuf.p(".widgets = (gp_widget* []) {\n")
+    inbuf.assertch("{")
+
+    outbuf.inc_level()
+    for i in range(0, len(tabs)):
+        parse_widget(inbuf, outbuf)
+    outbuf.dec_level()
+    outbuf.p("}\n");
+    outbuf.dec_level()
+
+    inbuf.eat_ws()
+    inbuf.assertch("}")
+    outbuf.p("}\n");
+    outbuf.dec_level()
+
+def parse_pointer(inbuf, outbuf):
+    inbuf.nextch()
+    name = inbuf.get_word()
+    outbuf.p("&%s,\n" % name)
+
+def parse_widget(inbuf, outbuf):
+    oldoutbuf = outbuf
+    inbuf.eat_ws()
+    if inbuf.curch().isalpha():
+        name = inbuf.get_word()
+        # non-anonymous structures in the middle of a structure needs to be
+        # declared separately
+        if outbuf.level() > 0:
+            outbuf.p("&%s,\n" % name);
+            outbuf = outbufc()
+
+        #TODO: Append ("gp_widget *%s = &%s__;\n" % (name, name))
+        outbuf.p("gp_widget %s = {\n" % name)
+    else:
+        if inbuf.curch() == '&':
+            parse_pointer(inbuf, outbuf)
+            return
+        else:
+            outbuf.p("&(gp_widget) {\n")
+
+    inbuf.eat_ws()
+
+    if inbuf.curch().isdigit():
+        parse_grid(inbuf, outbuf)
+    elif inbuf.curch() == '"':
+        parse_tabs(inbuf, outbuf)
+    else:
+        inbuf.assertch("{", "Not enough widgets for grid?")
+
+        outbuf.inc_level()
+
+        try_parse_aligment(inbuf, outbuf)
+        inbuf.eat_ws()
+
+        if inbuf.curch() == '"':
+            parse_label(inbuf, outbuf)
+        else:
+            keyword = inbuf.get_word()
+
+            if keyword == "BUTTON" or keyword == "CHECKBOX":
+                parse_bool(keyword, inbuf, outbuf)
+            elif keyword == "VOID":
+                parse_void(inbuf, outbuf)
+            elif keyword == "PROGRESSBAR":
+                parse_progressbar(inbuf, outbuf)
+            elif keyword == "SPINNER":
+                parse_spinner(inbuf, outbuf)
+            elif keyword == "TEXTBOX":
+                parse_textbox(inbuf, outbuf)
+            elif keyword == "RADIOBUTTON":
+                parse_radiobutton(inbuf, outbuf)
+            elif keyword == "":
+                pass
+            else:
+               while inbuf.curch() != '}':
+                     inbuf.nextch()
+               outbuf.p("TODO\n")
+
+        outbuf.dec_level()
+        inbuf.assertch("}")
+
+    if outbuf.level() == 0:
+        outbuf.p("};\n\n")
+    else:
+        outbuf.p("},\n")
+
+    if outbuf != oldoutbuf:
+        outbuf.flush()
+
+inbuf  = buffer(sys.argv[1])
+outbuf = outbufc()
+
+print("/*")
+print(" * Generated from %s, DO NOT EDIT DIRECTLY" % sys.argv[1])
+print(" */\n")
+
+guard = sys.argv[1].upper().replace('.', '_')
+
+print("#ifndef %s" % guard)
+print("#define %s\n" % guard)
+
+while (inbuf.curch()):
+    parse_widget(inbuf, outbuf)
+    inbuf.eat_ws()
+outbuf.flush()
+
+print("#endif /* %s */\n" % guard)

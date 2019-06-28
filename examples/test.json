@@ -1,0 +1,50 @@
+{
+  "rows": 6,
+  "widgets": [
+    {
+      "type": "label",
+      "label": "Heading",
+      "bold": true
+    },
+    {
+      "type": "label",
+      "label": "--- Hello World! ---"
+    },
+    {
+      "type": "checkbox",
+      "label": "CheckBox",
+      "set": true
+    },
+    {
+      "type": "textbox",
+      "text": "0123456789",
+      "on_event": "textbox_filter"
+    },
+    {
+      "type": "radiobutton",
+      "buttons": [
+        "First",
+	"Second"
+      ],
+      "on_event": "radiobutton_callback"
+    },
+    {
+      "cols": 2,
+      "cpadf": "0, 1, 0",
+      "halign": "fill",
+      "border": "none",
+      "widgets": [
+        {
+          "type": "button",
+          "label": "Cancel",
+	  "on_event": "btn_cancel_callback"
+	},
+        {
+          "type": "button",
+          "label": "Ok",
+	  "on_event": "btn_ok_callback"
+	}
+      ]
+    }
+  ]
+}

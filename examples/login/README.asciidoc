@@ -1,0 +1,17 @@
+Simple login window
+===================
+
+.A simple login application code
+[source,c]
+-------------------------------------------------------------------------------
+include::example_login.c[]
+-------------------------------------------------------------------------------
+
+.JSON layout for the application
+[source,json]
+-------------------------------------------------------------------------------
+include::example_login.json[]
+-------------------------------------------------------------------------------
+
+.Running application
+image::example_login.png[Simple login application]

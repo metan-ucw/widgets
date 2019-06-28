@@ -1,0 +1,4 @@
+*.o
+libgfxprim-widgets.so
+libgfxprim-widgets.so.1
+libgfxprim-widgets.so.1.0.0
