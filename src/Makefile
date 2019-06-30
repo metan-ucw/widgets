@@ -1,4 +1,4 @@
-CFLAGS+=-W -Wall -Wextra -O0 -ggdb -fPIC -I../include/ `gfxprim-config --cflags`
+CFLAGS+=-W -Wall -Wextra -O2 -ggdb -fPIC -I../include/ `gfxprim-config --cflags`
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -ldl -ljson-c
 SRC=$(shell echo gp_*.c)
 OBJ=$(SRC:.c=.o)

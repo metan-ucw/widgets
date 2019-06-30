@@ -1,4 +1,4 @@
-CFLAGS+=-W -Wall -I../include/ `gfxprim-config --cflags` -ggdb
+CFLAGS+=-W -Wall -Wextra -O2 -I../include/ `gfxprim-config --cflags` -ggdb
 LDFLAGS+=-L../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl -ljson-c
 BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout #sysinfo t1 t2 imp
