@@ -1,5 +1,5 @@
 {
-  "rows": 6,
+  "rows": 7,
   "widgets": [
     {
       "type": "label",
@@ -27,6 +27,13 @@
 	"Second"
       ],
       "on_event": "radiobutton_callback"
+    },
+    {
+     "type": "slider",
+     "min": 0,
+     "max": 100,
+     "val": 50,
+     "on_event": "slider_event"
     },
     {
       "cols": 2,

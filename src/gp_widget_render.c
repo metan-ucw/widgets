@@ -174,79 +174,95 @@ void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires)
 	gp_backend_add_timer(backend, &tmr->tmr);
 }
 
-void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
-                        void (*init)(void))
+static struct gp_widget_render buf;
+
+void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 {
 	gp_widget_render_init();
 	gp_widget_calc_size(layout, 0, 0, 1);
 
-	backend = gp_x11_init(NULL, 0, 0, layout->w, layout->h, label, 0);
+	backend = gp_x11_init(NULL, 0, 0, layout->w, layout->h, win_tittle, 0);
 	if (!backend)
 		exit(1);
 
-	struct gp_widget_render buf = {backend->pixmap};
+	buf.buf = backend->pixmap;
 
 	app_layout = layout;
 
 	gp_widget_render(layout, &buf, 0);
 	gp_backend_flip(backend);
+}
+
+int gp_widgets_event(gp_event *ev, gp_widget *layout)
+{
+	int handled = 0;
+
+	switch (ev->type) {
+	case GP_EV_KEY:
+		if (gp_event_get_key(ev, GP_KEY_LEFT_CTRL) &&
+		    ev->code == GP_EV_KEY_DOWN) {
+			switch (ev->val.val) {
+			case GP_KEY_UP:
+				gp_widget_render_zoom(1);
+				handled = 1;
+			break;
+			case GP_KEY_DOWN:
+				gp_widget_render_zoom(-1);
+				handled = 1;
+			break;
+			}
+		}
+		switch (ev->val.val) {
+		case GP_KEY_ESC:
+			return 1;
+		break;
+		}
+	break;
+	case GP_EV_SYS:
+		switch (ev->code) {
+		case GP_EV_SYS_RESIZE:
+			gp_backend_resize_ack(backend);
+			buf.buf = backend->pixmap;
+			gp_fill(backend->pixmap, 0x444444);
+			gp_widget_render(layout, &buf, 1);
+			handled = 1;
+		break;
+		case GP_EV_SYS_QUIT:
+			return 1;
+		break;
+		}
+	break;
+	case GP_EV_TMR:
+		timer_event(ev);
+		handled = 1;
+	break;
+	}
+
+	if (!handled)
+		gp_widget_input_event(layout, ev);
+
+	gp_widgets_redraw(layout);
+
+	return 0;
+}
+
+void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
+                        void (*init)(void))
+{
+	gp_widgets_layout_init(layout, label);
 
 	if (init)
 		init();
 
 	for (;;) {
 		gp_event ev;
-		int handled = 0;
 
 		gp_backend_wait_event(backend, &ev);
 
-		switch (ev.type) {
-		case GP_EV_KEY:
-			if (gp_event_get_key(&ev, GP_KEY_LEFT_CTRL) &&
-			    ev.code == GP_EV_KEY_DOWN) {
-				switch (ev.val.val) {
-				case GP_KEY_UP:
-					gp_widget_render_zoom(1);
-					handled = 1;
-				break;
-				case GP_KEY_DOWN:
-					gp_widget_render_zoom(-1);
-					handled = 1;
-				break;
-				}
-			}
-			switch (ev.val.val) {
-			case GP_KEY_ESC:
-				gp_backend_exit(backend);
-				return;
-			break;
-			}
-		break;
-		case GP_EV_SYS:
-			switch (ev.code) {
-			case GP_EV_SYS_RESIZE:
-				gp_backend_resize_ack(backend);
-				buf.buf = backend->pixmap;
-				gp_fill(backend->pixmap, 0x444444);
-				gp_widget_render(layout, &buf, 1);
-				handled = 1;
-			break;
-			case GP_EV_SYS_QUIT:
-				gp_backend_exit(backend);
-				return;
-			break;
-			}
-		break;
-		case GP_EV_TMR:
-			timer_event(&ev);
-			handled = 1;
-		break;
+		if (gp_widgets_event(&ev, layout)) {
+			gp_backend_exit(backend);
+			return;
 		}
-
-		if (!handled)
-			gp_widget_input_event(layout, &ev);
-
-		gp_widgets_redraw(layout);
 	}
 }
 

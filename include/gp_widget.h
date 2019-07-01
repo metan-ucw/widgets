@@ -40,6 +40,7 @@ typedef struct gp_widget {
 		struct gp_widget_int *i;
 		struct gp_widget_int *pbar;
 		struct gp_widget_int *spin;
+		struct gp_widget_int *slider;
 
 		struct gp_widget_misc *misc;
 
@@ -65,6 +66,7 @@ enum gp_widget_type {
 	GP_WIDGET_LABEL,
 	GP_WIDGET_PROGRESSBAR,
 	GP_WIDGET_SPINNER,
+	GP_WIDGET_SLIDER,
 	GP_WIDGET_TEXTBOX,
 	GP_WIDGET_RADIOBUTTON,
 	GP_WIDGET_TABLE,

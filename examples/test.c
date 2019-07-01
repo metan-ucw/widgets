@@ -55,6 +55,16 @@ int radiobutton_callback(gp_widget_event *ev)
 	return 0;
 }
 
+int slider_event(gp_widget_event *ev)
+{
+	if (ev->type == GP_WIDGET_EVENT_NEW)
+		return 0;
+
+	printf("Slider value=%i\n", ev->self->slider->val);
+
+	return 0;
+}
+
 int main(void)
 {
 	gp_widget *layout = gp_widget_layout_json("test.json", NULL);

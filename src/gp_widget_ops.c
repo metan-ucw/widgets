@@ -21,6 +21,7 @@ extern struct gp_widget_ops gp_widget_label_ops;
 extern struct gp_widget_ops gp_widget_check_box_ops;
 extern struct gp_widget_ops gp_widget_progress_bar_ops;
 extern struct gp_widget_ops gp_widget_spinner_ops;
+extern struct gp_widget_ops gp_widget_slider_ops;
 extern struct gp_widget_ops gp_widget_textbox_ops;
 extern struct gp_widget_ops gp_widget_radio_button_ops;
 extern struct gp_widget_ops gp_widget_table_ops;
@@ -34,6 +35,7 @@ static struct gp_widget_ops *widget_ops[] = {
 	[GP_WIDGET_CHECKBOX]    = &gp_widget_check_box_ops,
 	[GP_WIDGET_LABEL]       = &gp_widget_label_ops,
 	[GP_WIDGET_SPINNER]     = &gp_widget_spinner_ops,
+	[GP_WIDGET_SLIDER]      = &gp_widget_slider_ops,
 	[GP_WIDGET_PROGRESSBAR] = &gp_widget_progress_bar_ops,
 	[GP_WIDGET_TEXTBOX]     = &gp_widget_textbox_ops,
 	[GP_WIDGET_RADIOBUTTON] = &gp_widget_radio_button_ops,

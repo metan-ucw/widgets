@@ -9,15 +9,22 @@
 #ifndef GP_WIDGET_INT_H__
 #define GP_WIDGET_INT_H__
 
+enum gp_widget_int_flags {
+	GP_WIDGET_HORIZ = 0,
+	GP_WIDGET_VERT = 1
+};
+
 struct gp_widget_int {
 	int min, max, val;
 	int alert:1;
+	int dir:2;
 
 	void *event_ptr;
 	int (*on_event)(gp_widget_event *);
+
+	char payload[];
 };
 
-gp_widget *gp_widget_int_new(int min, int max, int val,
-                             int (*on_event)(gp_widget_event *), void *event_ptr);
+void gp_widget_int_set(gp_widget *self, int val);
 
 #endif /* GP_WIDGET_INT_H__ */
