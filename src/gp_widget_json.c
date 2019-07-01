@@ -64,6 +64,10 @@ gp_widget *gp_widget_from_json(json_object *json, void **uids)
 		} else if (!strcmp(align_str, "fill")) {
 			halign = GP_HFILL;
 			valign = GP_VFILL;
+		} else if (!strcmp(align_str, "hfill")) {
+			halign = GP_HFILL;
+		} else if (!strcmp(align_str, "vfill")) {
+			valign = GP_VFILL;
 		} else {
 			GP_WARN("Invalid align=%s.", align_str);
 		}
