@@ -531,16 +531,19 @@ static int coord_to_val(gp_widget *self, int coord, unsigned int size)
 static void slider_set_val(gp_widget *self, gp_event *ev)
 {
 	int val = 0;
+	int coord;
 
 	if (!gp_event_get_key(ev, GP_BTN_LEFT))
 		return;
 
 	switch (self->slider->dir) {
 	case GP_WIDGET_HORIZ:
-		val = coord_to_val(self, (int)ev->cursor_x - (int)self->x, self->w);
+		coord = (int)ev->cursor_x - (int)self->x;
+		val = coord_to_val(self, coord, self->w);
 	break;
 	case GP_WIDGET_VERT:
-		val = coord_to_val(self, (int)ev->cursor_y - (int)self->y, self->h);
+		coord = (int)self->h - ((int)ev->cursor_y - (int)self->y);
+		val = coord_to_val(self, coord, self->h);
 	break;
 	}
 
