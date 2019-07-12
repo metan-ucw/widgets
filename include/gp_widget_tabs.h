@@ -25,4 +25,7 @@ struct gp_widget_tabs {
 gp_widget *gp_widget_tabs_new(unsigned int tabs, unsigned int active_tab,
                               const char *tab_labels[]);
 
+gp_widget *gp_widget_tabs_put(gp_widget *self, unsigned int tab,
+                              gp_widget *content);
+
 #endif /* GP_WIDGET_TABS_H__ */

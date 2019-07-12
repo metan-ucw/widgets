@@ -94,6 +94,10 @@ static void distribute_size(gp_widget *self, int new_wh)
 	unsigned int h = payload_h(self);
 
 	for (i = 0; i < self->tabs->count; i++) {
+
+		if (!self->tabs->widgets[i])
+			continue;
+
 		gp_widget_ops_distribute_size(self->tabs->widgets[i],
 		                           x, y, w, h, new_wh);
 	}
@@ -119,8 +123,13 @@ static void render(gp_widget *self,
 	unsigned int tab_h = gp_text_ascent(cfg->font) + 2 * cfg->padd;
 	unsigned int act_x, act_w;
 
-	gp_fill_rect_xywh(render->buf, self->x, self->y,
-	                  self->w, widget->y - self->y, cfg->bg_color);
+	if (!widget) {
+		gp_fill_rect_xywh(render->buf, self->x, self->y,
+				  self->w, self->h, cfg->bg_color);
+	} else {
+		gp_fill_rect_xywh(render->buf, self->x, self->y,
+		                  self->w, widget->y - self->y, cfg->bg_color);
+	}
 
 	for (i = 0; i < self->tabs->count; i++) {
 		const char *label = self->tabs->labels[i];
@@ -158,6 +167,9 @@ static void render(gp_widget *self,
 		gp_hline_xxy(render->buf, act_x + act_w-1, self->x + self->w-2,
 			     self->y + tab_h, cfg->text_color);
 	}
+
+	if (!widget)
+		return;
 
 	gp_fill_rect_xyxy(render->buf, self->x, widget->y + widget->h,
 	                  self->x + self->w-1, self->y + self->h-1, cfg->bg_color);
@@ -486,6 +498,37 @@ gp_widget *gp_widget_tabs_new(unsigned int tabs, unsigned int active_tab,
 	ret->tabs->widgets = payload;
 	payload += tabs * sizeof(void*);
 	ret->tabs->labels = gp_string_arr_copy(tab_labels, tabs, payload);
+
+	return ret;
+}
+
+gp_widget *gp_widget_tabs_put(gp_widget *self, unsigned int tab,
+                              gp_widget *widget)
+{
+	gp_widget *ret;
+
+	GP_WIDGET_ASSERT(self, GP_WIDGET_TABS, NULL);
+
+	if (tab >= self->tabs->count) {
+		GP_WARN("Invalid tabs index %u", tab);
+		return NULL;
+	}
+
+	if (widget && widget->parent) {
+		//TODO: remove from parent!!!
+		return NULL;
+	}
+
+	ret = self->tabs->widgets[tab];
+	if (ret)
+		ret->parent = NULL;
+
+	self->tabs->widgets[tab] = widget;
+	if (widget)
+		widget->parent = self;
+
+	gp_widget_resize(self);
+	//TODO: Redraw as well?
 
 	return ret;
 }
