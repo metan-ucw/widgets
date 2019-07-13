@@ -13,7 +13,7 @@ struct gp_widget_choice {
 	int (*on_event)(gp_widget_event *self);
 	void *priv;
 
-	unsigned int selected;
+	unsigned int sel;
 	unsigned int max;
 	char **choices;
 

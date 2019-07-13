@@ -58,7 +58,7 @@ static void render(gp_widget *self,
 		gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
 		gp_circle(render->buf, cx, cy, r, color);
 
-		if (i == self->choice->selected) {
+		if (i == self->choice->sel) {
 			gp_fill_circle(render->buf, cx, cy, r - 3,
 			              cfg->text_color);
 		}
@@ -75,7 +75,7 @@ static void render(gp_widget *self,
 
 static void select_choice(gp_widget *self, unsigned int select)
 {
-	if (self->choice->selected == select)
+	if (self->choice->sel == select)
 		return;
 
 	if (select >= self->choice->max) {
@@ -84,7 +84,7 @@ static void select_choice(gp_widget *self, unsigned int select)
 		return;
 	}
 
-	self->choice->selected = select;
+	self->choice->sel = select;
 
 	gp_widget_redraw(self);
 
@@ -94,18 +94,18 @@ static void select_choice(gp_widget *self, unsigned int select)
 
 static void key_up(gp_widget *self)
 {
-	if (self->choice->selected > 0)
-		select_choice(self, self->choice->selected - 1);
+	if (self->choice->sel > 0)
+		select_choice(self, self->choice->sel - 1);
 	else
 		select_choice(self, self->choice->max - 1);
 }
 
 static void key_down(gp_widget *self)
 {
-	if (self->choice->selected + 1 >= self->choice->max)
+	if (self->choice->sel + 1 >= self->choice->max)
 		select_choice(self, 0);
 	else
-		select_choice(self, self->choice->selected + 1);
+		select_choice(self, self->choice->sel + 1);
 }
 
 static void radio_click(gp_widget *self, gp_event *ev)
@@ -235,7 +235,7 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
 		return NULL;
 
 
-	ret->choice->selected = selected;
+	ret->choice->sel = selected;
 	ret->choice->choices = gp_string_arr_copy(choices, choice_cnt, ret->choice->payload);
 	ret->choice->max = choice_cnt;
 	ret->choice->on_event = on_event;
