@@ -62,8 +62,7 @@ static void set(gp_widget *self)
 
 	gp_widget_redraw(self);
 
-	gp_widget_send_event(self->b->on_event, self, self->b->event_ptr,
-	                     GP_WIDGET_EVENT_ACTION);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 }
 
 static void click(gp_widget *self, gp_event *ev)
@@ -112,28 +111,17 @@ static int event(gp_widget *self, gp_event *ev)
 static gp_widget *json_to_button(json_object *json, void **uids)
 {
 	const char *label = NULL;
-	const char *on_event = NULL;
-	void *on_event_fn = NULL;
 
 	(void)uids;
 
 	json_object_object_foreach(json, key, val) {
 		if (!strcmp(key, "label"))
 			label = json_object_get_string(val);
-		else if (!strcmp(key, "on_event"))
-			on_event = json_object_get_string(val);
 		else
 			GP_WARN("Invalid button key '%s'", key);
 	}
 
-	if (on_event) {
-		on_event_fn = gp_widget_callback_addr(on_event);
-
-		if (!on_event_fn)
-			GP_WARN("No on_event function '%s' defined", on_event);
-	}
-
-	return gp_widget_button_new(label, on_event_fn, NULL);
+	return gp_widget_button_new(label, NULL, NULL);
 }
 
 struct gp_widget_ops gp_widget_button_ops = {
@@ -157,12 +145,10 @@ struct gp_widget *gp_widget_button_new(const char *label,
 		return NULL;
 
 	ret->btn->label = ret->btn->payload;
-	ret->btn->on_event = on_event;
-	ret->btn->event_ptr = event_ptr;
+	ret->on_event = on_event;
+	ret->on_event_ptr = event_ptr;
 
 	strcpy(ret->btn->payload, label);
-
-	gp_widget_send_event(on_event, ret, event_ptr, GP_WIDGET_EVENT_NEW);
 
 	return ret;
 }

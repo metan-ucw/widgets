@@ -16,12 +16,12 @@ static int callback(gp_widget_event *ev)
 	return 0;
 }
 
-#include "t5.h"
+//#include "t5.h"
 
 int main(void)
 {
-	gp_widgets_init(&layout);
-	gp_widgets_main_loop(&layout, "t0", NULL);
+//	gp_widgets_init(&layout);
+//	gp_widgets_main_loop(&layout, "t0", NULL);
 
 	return 0;
 }

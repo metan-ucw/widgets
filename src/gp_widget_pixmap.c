@@ -41,9 +41,7 @@ static void render(gp_widget *self,
 
 		self->pixmap->pixmap = p;
 
-		gp_widget_send_event(self->pixmap->on_event, self,
-		                     self->pixmap->event_ptr,
-		                     GP_WIDGET_EVENT_REDRAW);
+		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW);
 	}
 
 	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
@@ -58,10 +56,7 @@ static int event(gp_widget *self, gp_event *ev)
 	ev->cursor_x -= self->x;
 	ev->cursor_y -= self->y;
 
-	ret = gp_widget_send_event(self->pixmap->on_event, self,
-	                           self->pixmap->event_ptr,
-	                           GP_WIDGET_EVENT_INPUT,
-	                           (long)ev);
+	ret = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, (long)ev);
 
 	ev->cursor_x += self->x;
 	ev->cursor_y += self->y;
@@ -71,17 +66,13 @@ static int event(gp_widget *self, gp_event *ev)
 
 static gp_widget *json_to_pixmap(json_object *json, void **uids)
 {
-	const char *on_event = NULL;
 	unsigned int w = 0;
 	unsigned int h = 0;
-	void *on_event_fn = NULL;
 
 	(void)uids;
 
 	json_object_object_foreach(json, key, val) {
-		if (!strcmp(key, "on_event"))
-			on_event = json_object_get_string(val);
-		else if (!strcmp(key, "w"))
+		if (!strcmp(key, "w"))
 			w = json_object_get_int(val);
 		else if (!strcmp(key, "h"))
 			h = json_object_get_int(val);
@@ -89,19 +80,12 @@ static gp_widget *json_to_pixmap(json_object *json, void **uids)
 			GP_WARN("Invalid pixmap key '%s'", key);
 	}
 
-	if (on_event) {
-		on_event_fn = gp_widget_callback_addr(on_event);
-
-		if (!on_event_fn)
-			GP_WARN("No on_event function '%s' defined", on_event);
-	}
-
 	if (w == 0 || h == 0) {
 		GP_WARN("Invalid pixmap size %ux%u\n", w, h);
 		return NULL;
 	}
 
-	return gp_widget_pixmap_new(w, h, on_event_fn, NULL);
+	return gp_widget_pixmap_new(w, h, NULL, NULL);
 }
 
 struct gp_widget_ops gp_widget_pixmap_ops = {
@@ -123,13 +107,11 @@ struct gp_widget *gp_widget_pixmap_new(unsigned int w, unsigned int h,
 	if (!ret)
 		return NULL;
 
-	ret->pixmap->on_event = on_event;
-	ret->pixmap->event_ptr = event_ptr;
+	ret->on_event = on_event;
+	ret->on_event_ptr = event_ptr;
 	ret->pixmap->w = w;
 	ret->pixmap->h = h;
 	ret->pixmap->pixmap = NULL;
-
-	gp_widget_send_event(on_event, ret, event_ptr, GP_WIDGET_EVENT_NEW);
 
 	return ret;
 }

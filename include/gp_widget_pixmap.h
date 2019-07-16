@@ -10,10 +10,8 @@
 #define GP_WIDGET_PIXMAP_H__
 
 struct gp_widget_pixmap {
-	int (*on_event)(gp_widget_event *ev);
 	unsigned int w, h;
 	gp_pixmap *pixmap;
-	void *event_ptr;
 };
 
 struct gp_widget *gp_widget_pixmap_new(unsigned int w, unsigned int h,

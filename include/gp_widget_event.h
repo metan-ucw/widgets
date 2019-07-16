@@ -52,7 +52,6 @@ const char *gp_widget_event_type_name(enum gp_widget_event_type ev_type);
  */
 typedef struct gp_widget_event {
 	struct gp_widget *self;
-	void *priv;
 	enum gp_widget_event_type type;
 	union {
 		void *ptr;
@@ -71,17 +70,14 @@ void gp_widget_event_dump(gp_widget_event *ev);
 /**
  * @brief Helper function to send a widget event to application.
  *
- * @on_event Pointer to application event handler or NULL.
  * @self Pointer to the widget sending this event.
- * @priv Application private pointer, set by application on widget creation.
  * @type Event type see gp_widget_event_type enum.
  * @return The return value from application event handler.
  */
-static inline int gp_widget_send_event(int (*on_event)(gp_widget_event *),
-                                       struct gp_widget *self, void *priv,
+static inline int gp_widget_send_event(gp_widget *self,
 				       enum gp_widget_event_type type, ...)
 {
-	if (!on_event)
+	if (!self->on_event)
 		return 0;
 
 	va_list va;
@@ -91,12 +87,11 @@ static inline int gp_widget_send_event(int (*on_event)(gp_widget_event *),
 
 	gp_widget_event ev = {
 		.self = self,
-		.priv = priv,
 		.type = type,
 		.val = val,
 	};
 
-	return on_event(&ev);
+	return self->on_event(&ev);
 }
 
 #endif /* GP_WIDGET_EVENT_H__ */

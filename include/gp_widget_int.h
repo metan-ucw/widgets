@@ -19,9 +19,6 @@ struct gp_widget_int {
 	int alert:1;
 	int dir:2;
 
-	void *event_ptr;
-	int (*on_event)(gp_widget_event *);
-
 	char payload[];
 };
 

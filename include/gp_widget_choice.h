@@ -10,9 +10,6 @@
 #define GP_WIDGET_CHOICE_H__
 
 struct gp_widget_choice {
-	int (*on_event)(gp_widget_event *self);
-	void *priv;
-
 	unsigned int sel;
 	unsigned int max;
 	char **choices;
@@ -24,6 +21,6 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
                                        unsigned int choice_cnt,
                                        unsigned int selected,
 				       int (*on_event)(gp_widget_event *self),
-				       void *priv);
+				       void *event_ptr);
 
 #endif /* GP_WIDGET_CHOICE_H__ */

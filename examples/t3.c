@@ -14,7 +14,7 @@ static int button_callback(gp_widget_event *ev)
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
-	gp_widget *layout = ev->priv;
+	gp_widget *layout = ev->self->on_event_ptr;
 
 	gp_widget *w1 = gp_widget_grid_rem(layout, 0, 0);
 	gp_widget *w2 = gp_widget_grid_rem(layout, 1, 0);

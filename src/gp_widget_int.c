@@ -53,10 +53,8 @@ static gp_widget *widget_int_new(enum gp_widget_type type,
 	ret->i->max = max;
 	ret->i->val = val;
 
-	ret->i->event_ptr = event_ptr;
-	ret->i->on_event = on_event;
-
-	gp_widget_send_event(on_event, ret, event_ptr, GP_WIDGET_EVENT_NEW);
+	ret->on_event_ptr = event_ptr;
+	ret->on_event = on_event;
 
 	return ret;
 }
@@ -113,18 +111,14 @@ static void pbar_render(gp_widget *self,
 
 static gp_widget *json_to_int(enum gp_widget_type type, json_object *json, void **uids)
 {
-	const char *on_event = NULL;
 	const char *dir = NULL;
-	void *on_event_fn = NULL;
 	int min = 0, max = 0, ival = 0;
 	gp_widget *ret;
 
 	(void)uids;
 
 	json_object_object_foreach(json, key, val) {
-		if (!strcmp(key, "on_event"))
-			on_event = json_object_get_string(val);
-		else if (!strcmp(key, "min"))
+		if (!strcmp(key, "min"))
 			min = json_object_get_int(val);
 		else if (!strcmp(key, "max"))
 			max = json_object_get_int(val);
@@ -142,14 +136,7 @@ static gp_widget *json_to_int(enum gp_widget_type type, json_object *json, void 
 	if (check_val(min, max, ival))
 		return NULL;
 
-	if (on_event) {
-		on_event_fn = gp_widget_callback_addr(on_event);
-
-		if (!on_event_fn)
-			GP_WARN("No on_event function '%s' defined", on_event);
-	}
-
-	ret = widget_int_new(type, min, max, ival, on_event_fn, NULL);
+	ret = widget_int_new(type, min, max, ival, NULL, NULL);
 
 	if (dir) {
 		if (!strcmp(dir, "horiz"))
@@ -337,8 +324,7 @@ static void spin_inc(gp_widget *self)
 
 	self->spin->val++;
 
-	gp_widget_send_event(self->i->on_event, self, self->i->event_ptr,
-	                     GP_WIDGET_EVENT_ACTION);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 	gp_widget_redraw(self);
 }
 
@@ -351,8 +337,7 @@ static void spin_dec(gp_widget *self)
 
 	self->spin->val--;
 
-	gp_widget_send_event(self->i->on_event, self, self->i->event_ptr,
-	                     GP_WIDGET_EVENT_ACTION);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 	gp_widget_redraw(self);
 }
 
@@ -555,8 +540,7 @@ static void slider_set_val(gp_widget *self, gp_event *ev)
 
 	self->i->val = val;
 
-	gp_widget_send_event(self->i->on_event, self, self->i->event_ptr,
-	                     GP_WIDGET_EVENT_ACTION);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 
 	gp_widget_redraw(self);
 }

@@ -135,6 +135,50 @@ Widgets
 |==============================================================================
 
 
+Widget events
+~~~~~~~~~~~~~
+
+Widget events is how the library interacts with the application code, e.g. if
+button is pressed the button `on_event` callback handler is called with the
+`gp_widget_event` structure pointer that holds the information about the event
+type.
+
+.Widget event handle and event structure
+[source,c]
+-------------------------------------------------------------------------------
+
+struct gp_widget {
+...
+	int (*on_event)(gp_widget_event *);
+	void *on_event_ptr;
+...
+};
+
+struct gp_widget_event {
+	gp_widget *self;
+	enum gp_widget_event_type type;
+	union {
+		void *ptr;
+		long val;
+		gp_event *input_ev;
+	};
+};
+-------------------------------------------------------------------------------
+
+The event handler is part of the widget structure, the `on_event_ptr` is a user
+pointer that is not touched by the widget library.
+
+The event handler is passed `gp_widget_event` structure and returns integer, in
+most cases the value is not used though.
+
+.Generic widget events
+[cols=",3",options="header"]
+|============================================================================
+| Event name | Description
+|     NEW    | Emitted after widget has been created from a json description.
+|   ACTION   | Default action, e.g. button pressed, checkbox changed, etc.
+|============================================================================
+
 Label widget
 ~~~~~~~~~~~~
 

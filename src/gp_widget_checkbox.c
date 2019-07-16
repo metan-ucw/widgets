@@ -78,8 +78,7 @@ static void set(gp_widget *self, int val)
 
 	gp_widget_redraw(self);
 
-	gp_widget_send_event(self->b->on_event, self, self->b->event_ptr,
-	                     GP_WIDGET_EVENT_ACTION);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 }
 
 static void toggle(gp_widget *self)
@@ -202,11 +201,9 @@ struct gp_widget *gp_widget_checkbox_new(const char *label,
 		strcpy(ret->b->payload, label);
 	}
 
-	ret->b->on_event = on_event;
+	ret->on_event = on_event;
+	ret->on_event_ptr = event_ptr;
 	ret->b->val = !!set;
-	ret->b->event_ptr = event_ptr;
-
-	gp_widget_send_event(on_event, ret, event_ptr, GP_WIDGET_EVENT_NEW);
 
 	return ret;
 }

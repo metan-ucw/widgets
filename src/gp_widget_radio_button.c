@@ -88,8 +88,7 @@ static void select_choice(gp_widget *self, unsigned int select)
 
 	gp_widget_redraw(self);
 
-	gp_widget_send_event(self->choice->on_event, self, self->choice->priv,
-	                     GP_WIDGET_EVENT_ACTION);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 }
 
 static void key_up(gp_widget *self)
@@ -225,7 +224,7 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
                                        unsigned int choice_cnt,
                                        unsigned int selected,
 				       int (*on_event)(gp_widget_event *self),
-				       void *priv)
+				       void *event_ptr)
 {
 	size_t size = sizeof(struct gp_widget_choice)
 	              + gp_string_arr_size(choices, choice_cnt);
@@ -238,10 +237,8 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
 	ret->choice->sel = selected;
 	ret->choice->choices = gp_string_arr_copy(choices, choice_cnt, ret->choice->payload);
 	ret->choice->max = choice_cnt;
-	ret->choice->on_event = on_event;
-	ret->choice->priv = priv;
-
-	gp_widget_send_event(on_event, ret, priv, GP_WIDGET_EVENT_NEW);
+	ret->on_event = on_event;
+	ret->on_event_ptr = event_ptr;
 
 	return ret;
 }

@@ -91,12 +91,6 @@ static void schedule_alert(gp_widget *self)
 	gp_widget_redraw(self);
 }
 
-static void on_event(gp_widget *self, enum gp_widget_event_type ev_type)
-{
-	gp_widget_send_event(self->tbox->on_event, self,
-	                     self->tbox->event_ptr, ev_type);
-}
-
 static int filter(const char *filter, char ch)
 {
 	if (!filter)
@@ -119,9 +113,7 @@ static void ascii_key(gp_widget *self, char ch)
 		return;
 	}
 
-	int ret = gp_widget_send_event(self->tbox->on_event, self,
-	                               self->tbox->event_ptr,
-	                               GP_WIDGET_EVENT_FILTER, (long)ch);
+	int ret = gp_widget_send_event(self, GP_WIDGET_EVENT_FILTER, (long)ch);
 
 	if (ret || filter(self->tbox->filter, ch)) {
 		schedule_alert(self);
@@ -140,7 +132,7 @@ static void ascii_key(gp_widget *self, char ch)
 
 	self->tbox->buf[self->tbox->cur_pos++] = ch;
 
-	on_event(self, GP_WIDGET_EVENT_EDIT);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
 
 	gp_widget_redraw(self);
 }
@@ -159,7 +151,7 @@ static void key_backspace(gp_widget *self)
 	for (i = self->tbox->cur_pos; i < self->tbox->buf_len-1; i++)
 		self->tbox->buf[i] = self->tbox->buf[i + 1];
 
-	on_event(self, GP_WIDGET_EVENT_EDIT);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
 
 	gp_widget_redraw(self);
 }
@@ -212,7 +204,7 @@ static int event(gp_widget *self, gp_event *ev)
 			return 0;
 		case GP_KEY_ENTER:
 			if (ev->code == GP_EV_KEY_DOWN)
-				on_event(self, GP_WIDGET_EVENT_ACTION);
+				gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 			return 1;
 		case GP_KEY_LEFT:
 			key_left(self);
@@ -249,8 +241,6 @@ static int event(gp_widget *self, gp_event *ev)
 static gp_widget *json_to_textbox(json_object *json, void **uid)
 {
 	const char *text = NULL;
-	const char *on_event = NULL;
-	void *on_event_fn = NULL;
 	int flags = 0;
 	int len = 0;
 
@@ -261,8 +251,6 @@ static gp_widget *json_to_textbox(json_object *json, void **uid)
 			text = json_object_get_string(val);
 		else if (!strcmp(key, "size"))
 			len = json_object_get_int(val);
-		else if (!strcmp(key, "on_event"))
-			on_event = json_object_get_string(val);
 		else if (!strcmp(key, "hidden"))
 			flags |= json_object_get_boolean(val) ? GP_WIDGET_TEXT_BOX_HIDDEN : 0;
 		else
@@ -277,14 +265,7 @@ static gp_widget *json_to_textbox(json_object *json, void **uid)
 	if (len <= 0)
 		len = strlen(text);
 
-	if (on_event) {
-		on_event_fn = gp_widget_callback_addr(on_event);
-
-		if (!on_event_fn)
-			GP_WARN("No callback function '%s' defined", on_event);
-	}
-
-	return gp_widget_textbox_new(text, len, NULL, on_event_fn, NULL, flags);
+	return gp_widget_textbox_new(text, len, NULL, NULL, NULL, flags);
 }
 
 struct gp_widget_ops gp_widget_textbox_ops = {
@@ -308,8 +289,8 @@ struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
 	if (!ret)
 		return NULL;
 
-	ret->tbox->on_event = on_event;
-	ret->tbox->event_ptr = event_ptr;
+	ret->on_event = on_event;
+	ret->on_event_ptr = event_ptr;
 	ret->tbox->buf_len = str_len + 1;
 	ret->tbox->buf = ret->tbox->payload;
 	ret->tbox->filter = filter;
@@ -322,8 +303,6 @@ struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
 		strncpy(ret->tbox->buf, text, str_len);
 		ret->tbox->buf[str_len] = 0;
 	}
-
-	gp_widget_send_event(on_event, ret, event_ptr, GP_WIDGET_EVENT_NEW);
 
 	return ret;
 }

@@ -12,8 +12,6 @@
 struct gp_widget_bool {
 	const char *label;
 	int val;
-	void *event_ptr;
-	int (*on_event)(gp_widget_event *ev);
 	char payload[];
 };
 

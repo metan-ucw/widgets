@@ -26,6 +26,7 @@ gp_widget *gp_widget_from_json(json_object *json, void **uids)
 	char *uid_key = NULL;
 	unsigned int halign = 0;
 	unsigned int valign = 0;
+	int (*on_event)(gp_widget_event *) = NULL;
 
 	if (json_object_object_length(json) == 0)
 		return NULL;
@@ -115,6 +116,17 @@ gp_widget *gp_widget_from_json(json_object *json, void **uids)
 		json_object_object_del(json, "valign");
 	}
 
+	if (json_object_object_get_ex(json, "on_event", &json_type)) {
+		const char *on_event_str = json_object_get_string(json_type);
+
+		on_event = gp_widget_callback_addr(on_event_str);
+
+		if (!on_event)
+			GP_WARN("No on_event function '%s' defined", on_event_str);
+
+		json_object_object_del(json, "on_event");
+	}
+
 	const struct gp_widget_ops *ops = gp_widget_ops_by_id(type);
 
 	if (!ops) {
@@ -144,6 +156,10 @@ gp_widget *gp_widget_from_json(json_object *json, void **uids)
 	}
 
 	wid->align = halign | valign;
+
+	wid->on_event = on_event;
+
+	gp_widget_send_event(wid, GP_WIDGET_EVENT_NEW);
 
 	return wid;
 err:

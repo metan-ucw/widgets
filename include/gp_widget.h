@@ -12,9 +12,14 @@
 #include <stdlib.h>
 #include <gp_common.h>
 
+struct gp_widget_event;
+
 typedef struct gp_widget {
 	unsigned int type;
 	struct gp_widget *parent;
+
+	int (*on_event)(struct gp_widget_event *);
+	void *on_event_ptr;
 
 	unsigned int x, y, w, h;
 
