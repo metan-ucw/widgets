@@ -159,6 +159,29 @@ image:label.png[Label widget]
 |  +bold+   |  bool  | +false+ | Bold text attribute
 |===================================================
 
+Button widget
+~~~~~~~~~~~~~
+
+Button is a button with a label.
+
+Button is one of the boolean widgets the `struct gp_widget_bool` can be accessed as `widget->btn`.
+
+image:button.png[Button widget]
+
+.Button JSON attributes
+[cols=",,,3",options="header"]
+|===================================================
+| Attribute |  Type  | Default | Description
+|  +label+  | string |         | Button label
+|===================================================
+
+.Button widget events
+[cols=",3",options="header"]
+|===================================================
+| Event name | Description
+|   ACTION   | Emitted on button press.
+|===================================================
+
 Grid widget
 ~~~~~~~~~~~
 
@@ -180,6 +203,7 @@ image:grid.png[Grid widget]
 | Attribute |  Type  | Default  | Description
 |  +cols+   |  uint  |   +1+    | Number of columns
 |  +rows+   |  uint  |   +1+    | Number of rows
+|  +border+ | string |  +all+   | Border one of +horiz+, +vert+, +none+, +all+.
 |  +cpad+   | string | all +1+  | Horizontal border and padding size multiples.
 |  +rpad+   | string | all +1+  | Vertical border and padding size multiples.
 |  +cpadf+  | string | all +0+  | Horizontal border and padding fill coeficients.
@@ -187,6 +211,7 @@ image:grid.png[Grid widget]
 |  +cfill+  | string | all +1+  | Horizontal cell fill coeficients.
 |  +rfill+  | string | all +1+  | Vertical cell fill coeficients.
 |  +padd+   |  uint  |   +1+    | Horizontal and vertical padding size multiples.
+| +widgets+ |  json  |          | +cols+ * +rows+ widgets.
 |==============================================================================
 
 Padding and fill string
