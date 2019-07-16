@@ -212,7 +212,7 @@ static int event(gp_widget *self, gp_event *ev)
 			return 0;
 		case GP_KEY_ENTER:
 			if (ev->code == GP_EV_KEY_DOWN)
-				on_event(self, GP_WIDGET_EVENT_ENTER);
+				on_event(self, GP_WIDGET_EVENT_ACTION);
 			return 1;
 		case GP_KEY_LEFT:
 			key_left(self);

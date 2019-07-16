@@ -26,7 +26,7 @@ enum gp_widget_event_type {
 	/** Send right after widget has been allocated and initalized. */
 	GP_WIDGET_EVENT_NEW,
 	/** Commonly event for default widget action, e.g. button press. */
-	GP_WIDGET_EVENT_ENTER,
+	GP_WIDGET_EVENT_ACTION,
 	GP_WIDGET_EVENT_EDIT,
 	GP_WIDGET_EVENT_FILTER,
 	/** Raw user input event such as mouse movement or keypress. */

@@ -85,7 +85,7 @@ int set_bg_color(gp_widget_event *ev)
 		bg_rgb = strtol(ev->self->tbox->buf, NULL, 16);
 		printf("bg_color = 0x%06x\n", bg_rgb);
 	break;
-	case GP_WIDGET_EVENT_ENTER:
+	case GP_WIDGET_EVENT_ACTION:
 		pixmap = gp_widget_by_uid(uids, "pixmap", GP_WIDGET_PIXMAP);
 
 		if (pixmap) {
@@ -104,7 +104,7 @@ int button_on_event(gp_widget_event *ev)
 {
 	gp_widget_event_dump(ev);
 
-	if (ev->type != GP_WIDGET_EVENT_ENTER)
+	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
 	gp_widget *pixmap = gp_widget_by_uid(uids, "pixmap", GP_WIDGET_PIXMAP);

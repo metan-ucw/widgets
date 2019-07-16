@@ -338,7 +338,7 @@ static void spin_inc(gp_widget *self)
 	self->spin->val++;
 
 	gp_widget_send_event(self->i->on_event, self, self->i->event_ptr,
-	                     GP_WIDGET_EVENT_ENTER);
+	                     GP_WIDGET_EVENT_ACTION);
 	gp_widget_redraw(self);
 }
 
@@ -352,7 +352,7 @@ static void spin_dec(gp_widget *self)
 	self->spin->val--;
 
 	gp_widget_send_event(self->i->on_event, self, self->i->event_ptr,
-	                     GP_WIDGET_EVENT_ENTER);
+	                     GP_WIDGET_EVENT_ACTION);
 	gp_widget_redraw(self);
 }
 
@@ -556,7 +556,7 @@ static void slider_set_val(gp_widget *self, gp_event *ev)
 	self->i->val = val;
 
 	gp_widget_send_event(self->i->on_event, self, self->i->event_ptr,
-	                     GP_WIDGET_EVENT_ENTER);
+	                     GP_WIDGET_EVENT_ACTION);
 
 	gp_widget_redraw(self);
 }

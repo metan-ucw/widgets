@@ -11,7 +11,7 @@
 
 static int button_callback(gp_widget_event *ev)
 {
-	if (ev->type != GP_WIDGET_EVENT_ENTER)
+	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
 	gp_widget *layout = ev->priv;

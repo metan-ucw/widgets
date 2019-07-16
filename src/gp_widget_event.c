@@ -13,7 +13,7 @@
 
 static const char *ev_names[] = {
 	[GP_WIDGET_EVENT_NEW] = "new",
-	[GP_WIDGET_EVENT_ENTER] = "enter",
+	[GP_WIDGET_EVENT_ACTION] = "enter",
 	[GP_WIDGET_EVENT_EDIT] = "edit",
 	[GP_WIDGET_EVENT_FILTER] = "filter",
 	[GP_WIDGET_EVENT_INPUT] = "input",

@@ -19,7 +19,7 @@ int callback(gp_widget_event *ev)
 		if (ev->type == GP_WIDGET_EVENT_EDIT)
 			printf("Text box edit '%s'\n", ev->self->tbox->buf);
 
-		if (ev->type == GP_WIDGET_EVENT_ENTER)
+		if (ev->type == GP_WIDGET_EVENT_ACTION)
 			printf("Text box enter\n");
 	break;
 	case GP_WIDGET_BUTTON:

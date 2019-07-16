@@ -13,7 +13,7 @@ static void *uids;
 
 int login_callback(gp_widget_event *ev)
 {
-	if (ev->type != GP_WIDGET_EVENT_ENTER)
+	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
 	gp_widget *pass = gp_widget_by_uid(uids, "pass", GP_WIDGET_TEXTBOX);
@@ -30,7 +30,7 @@ int login_callback(gp_widget_event *ev)
 
 int cancel_callback(gp_widget_event *ev)
 {
-	if (ev->type != GP_WIDGET_EVENT_ENTER)
+	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
 	//TODO: Inject exit into main loop?
