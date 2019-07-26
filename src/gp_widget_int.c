@@ -96,7 +96,7 @@ static void pbar_render(gp_widget *self,
 
 	(void)flags;
 
-	int wd = w * self->i->val / (self->i->max - self->i->min);
+	unsigned int wd = 1.00 * w * self->i->val / (self->i->max - self->i->min);
 
 	gp_fill_rect_xywh(render->buf, x, y, wd, h, cfg->fg_color);
 	gp_fill_rect_xywh(render->buf, x+wd, y, w - wd, h, cfg->bg_color);
