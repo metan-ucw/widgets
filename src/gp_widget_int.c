@@ -25,7 +25,7 @@ static int check_val(int min, int max, int val)
 
 static int check_min_max(int min, int max)
 {
-	if (min > max) {
+	if (min >= max) {
 		GP_WARN("Min %i > Max %i", min, max);
 		return 1;
 	}
