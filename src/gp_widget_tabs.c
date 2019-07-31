@@ -108,11 +108,6 @@ static int active_first(gp_widget *self)
 	return self->tabs->active_tab == 0;
 }
 
-static int active_last(gp_widget *self)
-{
-	return self->tabs->active_tab == self->tabs->count - 1;
-}
-
 static void render(gp_widget *self,
                    struct gp_widget_render *render, int flags)
 {
@@ -156,17 +151,15 @@ static void render(gp_widget *self,
 
 		x += w;
 
-		if (i < self->tabs->count - 1)
+		if (x < self->x + self->w)
 			gp_vline_xyh(render->buf, x-1, self->y+1, tab_h-1, cfg->text_color);
 	}
 
 	if (!active_first(self))
 		gp_hline_xxy(render->buf, self->x, act_x-1, self->y + tab_h, cfg->text_color);
 
-	if (!active_last(self)) {
-		gp_hline_xxy(render->buf, act_x + act_w-1, self->x + self->w-2,
-			     self->y + tab_h, cfg->text_color);
-	}
+	gp_hline_xxy(render->buf, act_x + act_w - 1, self->x + self->w-1,
+		     self->y + tab_h, cfg->text_color);
 
 	if (!widget)
 		return;
