@@ -229,6 +229,11 @@ static void fill_padding(gp_widget *self,
 	gp_fill_rect_xyxy(render->buf, cur_x, self->y,
 		          self->x + self->w - 1, self->y + self->h - 1,
 	                  cfg->bg_color);
+
+	if (grid->frame) {
+		gp_rrect_xywh(render->buf, self->x, self->y,
+			      self->w, self->h, cfg->text_color);
+	}
 }
 
 static void render(gp_widget *self,
@@ -639,7 +644,7 @@ static void parse_strarray(const char *sarray, uint8_t *array, unsigned int len,
 
 static gp_widget *json_to_grid(json_object *json, void **uids)
 {
-	int cols = 0, rows = 0;
+	int cols = 0, rows = 0, frame = 0;
 	json_object *widgets = NULL;
 	const char *border = NULL;
 	const char *cpad = NULL;
@@ -670,6 +675,8 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 			cfill = json_object_get_string(val);
 		else if (!strcmp(key, "rfill"))
 			rfill = json_object_get_string(val);
+		else if (!strcmp(key, "frame"))
+			frame = !!json_object_get_int(val);
 		else
 			GP_WARN("Invalid grid key '%s'", key);
 	}
@@ -688,6 +695,8 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 	gp_widget *grid = gp_widget_grid_new(cols, rows);
 	if (!grid)
 		return NULL;
+
+	grid->grid->frame = frame;
 
 	parse_strarray(cpad, grid->grid->col_padds, cols+1, "Grid cpad");
 	parse_strarray(rpad, grid->grid->row_padds, rows+1, "Grid rpad");
@@ -737,6 +746,9 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 				gp_widget_grid_put(grid, col, row, widget);
 		}
 	}
+
+	if (json_object_array_get_idx(widgets, cols * rows))
+		GP_WARN("Too many widgets in grid!");
 
 	return grid;
 }

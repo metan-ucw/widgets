@@ -17,6 +17,9 @@ struct gp_widget_grid {
 	unsigned int selected_col;
 	unsigned int selected_row;
 
+	/* if set frame is rendered around the grid */
+	int frame:1;
+
 	/** column/row sizes */
 	unsigned int *cols_w;
 	unsigned int *rows_h;
@@ -48,7 +51,7 @@ gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows);
  * grid.
  */
 gp_widget *gp_widget_grid_put(gp_widget *self, unsigned int col, unsigned int row,
-		            gp_widget *widget);
+		              gp_widget *widget);
 
 /*
  * Removes widget at col, row.
