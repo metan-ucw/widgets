@@ -9,8 +9,8 @@ One of the major differencies is that widgets are represented by C structures
 that store the widget state, read only access could be done just by accessing
 the structure members. If you want to change the state you call helper function
 that changes it, it may also do sanity checks, and marks the widget to be
-repainted. Setting values may also invoke `on_event()` allback, e.g. if you
-change checkbox value the application will receive an event.
+repainted. Setting values may also invoke `on_event()` callback, e.g. if user
+changes checkbox value the application will receive an event.
 
 Another interesting point is that the library uncouples the GUI layout from the
 actual application functionality. As a matter of a fact the layout can be
@@ -25,15 +25,17 @@ Widget type and payload
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Each widget is represented by a `gp_widget` structure that implements common
-functionality for all widgets and among others has the `type` memeber that is
-n enum of all implemented widget types. This is commonly used to distinguish
-the type of widget we are working with and also for sanity checks.
+functionality for all widgets and among others has the `type` memeber that is n
+enum of all implemented widget types. This is commonly used to distinguish the
+type of widget we are working with and also for sanity checks. Each widget has
+also an `on_event` callback pointer and `on_event_ptr` that is reserved for the
+application, i.e. not touched by the library.
 
-The more interesting part of the structure is the payload, which points to a
-actual widget structure and is an anonymous enum of all implemented widget
-structures so you can do `widget->tbox->buf` instead of
-`((struct gp_widget_text_box)*widget->payload)->buf`. Which also means that
-you has to be sure of which type of widget you are working with.
+The payload pointer points to the actual widget structure and is an anonymous
+enum of all implemented widget structures so you can do `widget->tbox->buf`
+instead of `((struct gp_widget_text_box)*widget->payload)->buf`. Which also
+means that it's up to you to make sure which type of widget you are working
+with.
 
 Alignment and fill
 ~~~~~~~~~~~~~~~~~~
@@ -127,13 +129,13 @@ Widgets
 .Widget JSON attributes
 [cols=",,,3",options="header"]
 |==============================================================================
-| Attribute |  Type  | Default  | Description
-|  +uid+    | string |          | Widget universal id
-|  +align+  |  enum  | +center+ | Sets both +haling+ and +valign+ {+center+, +fill+}
-|  +haling+ |  enum  | +center+ | Horizontal alignment {+center+, +left+, +right+, +fill+}
-|  +valing+ |  enum  | +center+ | Vertical alignment {+center+, +top+, +bottom+, +fill+}
+|  Attribute |  Type  | Default  | Description
+|   +uid+    | string |          | Widget universal id
+|   +align+  |  enum  | +center+ | Sets both +haling+ and +valign+ {+center+, +fill+}
+|  +haling+  |  enum  | +center+ | Horizontal alignment {+center+, +left+, +right+, +fill+}
+|  +valing+  |  enum  | +center+ | Vertical alignment {+center+, +top+, +bottom+, +fill+}
+| +on_event+ | string |          | Widget event callback function name
 |==============================================================================
-
 
 Widget events
 ~~~~~~~~~~~~~
