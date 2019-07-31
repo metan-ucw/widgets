@@ -57,4 +57,15 @@ static inline void gp_widget_label_bold(gp_widget *self, int bold)
  */
 gp_widget *gp_widget_label_new(const char *text, unsigned int width, int bold);
 
+/**
+ * @brief Printf-like function to create a label widget.
+ *
+ * @param bold Sets the bold text attribute.
+ * @param fmt Printf formatting string.
+ * @param ... Printf parameters.
+ * @return Newly allocated label widget.
+ */
+gp_widget *gp_widget_label_printf_new(int bold, const char *fmt, ...)
+                                      __attribute__((format (printf, 2, 3)));
+
 #endif /* GP_WIDGET_LABEL_H__ */

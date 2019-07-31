@@ -133,3 +133,21 @@ gp_widget *gp_widget_label_new(const char *text, unsigned int size, int bold)
 
 	return ret;
 }
+
+gp_widget *gp_widget_label_printf_new(int bold, const char *fmt, ...)
+{
+	va_list ap;
+	size_t len;
+
+	va_start(ap, fmt);
+	len = vsnprintf(NULL, 0, fmt, ap);
+	va_end(ap);
+
+	gp_widget *ret = gp_widget_label_new(NULL, len+1, bold);
+
+	va_start(ap, fmt);
+	vsnprintf(ret->label->text, len+1, fmt, ap);
+	va_end(ap);
+
+	return ret;
+}
