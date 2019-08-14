@@ -31,6 +31,7 @@ struct gp_widget_render_info gp_widget_render_info_ = {
 	.text_color = 0,
 	.bg_color = 0xdddddd,
 	.fg_color = 0xeeeeee,
+	.fg2_color = 0xbbbbff,
 	.sel_color = 0x5555ff,
 	.alert_color = 0xff5555,
 	.font = &font,

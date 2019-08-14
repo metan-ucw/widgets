@@ -20,6 +20,7 @@ struct gp_widget_render_info {
 	gp_pixel text_color;
 	gp_pixel bg_color;
 	gp_pixel fg_color;
+	gp_pixel fg2_color;
 	gp_pixel sel_color;
 	gp_pixel alert_color;
 	gp_text_style *font;
