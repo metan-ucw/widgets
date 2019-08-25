@@ -19,6 +19,8 @@ struct gp_widget_grid {
 
 	/* if set frame is rendered around the grid */
 	int frame:1;
+	/* if set the grid all columns and all rows have the same size */
+	int uniform:1;
 
 	/** column/row sizes */
 	unsigned int *cols_w;

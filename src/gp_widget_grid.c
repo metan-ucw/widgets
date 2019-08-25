@@ -25,10 +25,16 @@ static void init(gp_widget *self)
 		gp_widget_init(grid->widgets[i], self);
 }
 
+static gp_widget *widget_grid_grid_get(struct gp_widget_grid *grid,
+                                       unsigned int col, unsigned int row)
+{
+	return grid->widgets[row * grid->cols + col];
+}
+
 static gp_widget *widget_grid_get(gp_widget *self,
                                   unsigned int col, unsigned int row)
 {
-	return self->grid->widgets[row * self->grid->cols + col];
+	return widget_grid_grid_get(self->grid, col, row);
 }
 
 static gp_widget *widget_grid_selected(gp_widget *self)
@@ -56,7 +62,27 @@ static unsigned int padd_size(int padd)
 	return cfg->padd * padd;
 }
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w_uniform(gp_widget *self)
+{
+	struct gp_widget_grid *grid = self->grid;
+	unsigned int x, sum_min_w = padd_size(grid->col_padds[0]);
+	unsigned int max_cols_w = 0;
+
+	for (x = 0; x < grid->cols; x++) {
+		unsigned int y;
+		for (y = 0; y < grid->rows; y++) {
+			unsigned int min_w;
+			min_w = gp_widget_min_w(widget_grid_get(self, x, y));
+			max_cols_w = GP_MAX(max_cols_w, min_w);
+		}
+
+		sum_min_w += padd_size(grid->col_padds[x+1]);
+	}
+
+	return sum_min_w + grid->cols * max_cols_w;
+}
+
+static unsigned int min_w_(gp_widget *self)
 {
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int x, sum_min_w = padd_size(grid->col_padds[0]);
@@ -76,7 +102,35 @@ static unsigned int min_w(gp_widget *self)
 	return sum_min_w;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_w(gp_widget *self)
+{
+	if (self->grid->uniform)
+		return min_w_uniform(self);
+
+	return min_w_(self);
+}
+
+static unsigned int min_h_uniform(gp_widget *self)
+{
+	struct gp_widget_grid *grid = self->grid;
+	unsigned int y, sum_min_h = padd_size(grid->row_padds[0]);
+	unsigned int max_rows_h = 0;
+
+	for (y = 0; y < grid->rows; y++) {
+		unsigned int x;
+		for (x = 0; x < grid->cols; x++) {
+			unsigned int min_h;
+			min_h = gp_widget_min_h(widget_grid_get(self, x, y));
+			max_rows_h = GP_MAX(max_rows_h, min_h);
+		}
+
+		sum_min_h += padd_size(grid->row_padds[y+1]);
+	}
+
+	return sum_min_h + grid->rows * max_rows_h;
+}
+
+static unsigned int min_h_(gp_widget *self)
 {
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int y, sum_min_h = padd_size(grid->row_padds[0]);
@@ -96,13 +150,17 @@ static unsigned int min_h(gp_widget *self)
 	return sum_min_h;
 }
 
-static void distribute_size(gp_widget *self, int new_wh)
+static unsigned int min_h(gp_widget *self)
 {
-	struct gp_widget_grid *grid = self->grid;
-	unsigned int x, y;
+	if (self->grid->uniform)
+		return min_h_uniform(self);
 
-	unsigned int sum_row_fills = 0;
-	unsigned int sum_col_fills = 0;
+	return min_h_(self);
+}
+
+static void compute_cols_rows_min_wh(struct gp_widget_grid *grid)
+{
+	unsigned int x, y;
 
 	for (y = 0; y < grid->rows; y++)
 		grid->rows_h[y] = 0;
@@ -112,12 +170,47 @@ static void distribute_size(gp_widget *self, int new_wh)
 
 	for (y = 0; y < grid->rows; y++) {
 		for (x = 0; x < grid->cols; x++) {
-			struct gp_widget *widget = widget_grid_get(self, x, y);
+			struct gp_widget *widget = widget_grid_grid_get(grid, x, y);
 
 			grid->cols_w[x] = GP_MAX(grid->cols_w[x], gp_widget_min_w(widget));
 			grid->rows_h[y] = GP_MAX(grid->rows_h[y], gp_widget_min_h(widget));
 		}
 	}
+}
+
+static void compute_cols_rows_min_uniform_wh(struct gp_widget_grid *grid)
+{
+	unsigned int x, y;
+	unsigned int min_cols_w = 0, min_rows_h = 0;
+
+	for (y = 0; y < grid->rows; y++) {
+		for (x = 0; x < grid->cols; x++) {
+			struct gp_widget *widget = widget_grid_grid_get(grid, x, y);
+
+			min_cols_w = GP_MAX(min_cols_w, gp_widget_min_w(widget));
+			min_rows_h = GP_MAX(min_rows_h, gp_widget_min_h(widget));
+		}
+	}
+
+	for (x = 0; x < grid->cols; x++)
+		grid->cols_w[x] = min_cols_w;
+
+	for (y = 0; y < grid->rows; y++)
+		grid->rows_h[y] = min_rows_h;
+}
+
+static void distribute_size(gp_widget *self, int new_wh)
+{
+	struct gp_widget_grid *grid = self->grid;
+	unsigned int x, y;
+
+	if (grid->uniform)
+		compute_cols_rows_min_uniform_wh(grid);
+	else
+		compute_cols_rows_min_wh(grid);
+
+	unsigned int sum_row_fills = 0;
+	unsigned int sum_col_fills = 0;
 
 	/* cell fills */
 	for (y = 0; y < grid->rows; y++)
@@ -653,6 +746,7 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 	const char *rpadf = NULL;
 	const char *cfill = NULL;
 	const char *rfill = NULL;
+	int uniform = 0;
 
 	json_object_object_foreach(json, key, val) {
 		if (!strcmp(key, "cols"))
@@ -677,6 +771,8 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 			rfill = json_object_get_string(val);
 		else if (!strcmp(key, "frame"))
 			frame = !!json_object_get_int(val);
+		else if (!strcmp(key, "uniform"))
+			uniform = 1;
 		else
 			GP_WARN("Invalid grid key '%s'", key);
 	}
@@ -697,6 +793,7 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 		return NULL;
 
 	grid->grid->frame = frame;
+	grid->grid->uniform = uniform;
 
 	parse_strarray(cpad, grid->grid->col_padds, cols+1, "Grid cpad");
 	parse_strarray(rpad, grid->grid->row_padds, rows+1, "Grid rpad");
