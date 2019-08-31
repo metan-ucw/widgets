@@ -34,6 +34,8 @@ struct gp_widget_ops {
 	 */
 	void (*init)(gp_widget *self);
 
+	void (*free)(gp_widget *self);
+
 	int (*event)(gp_widget *self, gp_event *ev);
 	void (*render)(gp_widget *self,
 	               struct gp_widget_render *render, int flags);
@@ -79,6 +81,8 @@ const char *gp_widget_type_name(enum gp_widget_type type);
 void gp_widget_init(gp_widget *self, gp_widget *parent);
 
 void gp_widgets_init(gp_widget *self);
+
+void gp_widget_free(gp_widget *self);
 
 unsigned int gp_widget_min_w(gp_widget *self);
 

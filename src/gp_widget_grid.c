@@ -850,6 +850,15 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 	return grid;
 }
 
+static void free_(gp_widget *self)
+{
+	unsigned int x, y;
+
+	for (y = 0; y < self->grid->rows; y++) {
+		for (x = 0; x < self->grid->cols; x++)
+			gp_widget_free(widget_grid_get(self, x, y));
+	}
+}
 
 struct gp_widget_ops gp_widget_grid_ops = {
 	.init = init,
@@ -857,6 +866,7 @@ struct gp_widget_ops gp_widget_grid_ops = {
 	.min_h = min_h,
 	.render = render,
 	.event = event,
+	.free = free_,
 	.select = select_event,
 	.select_xy = select_xy,
 	.distribute_size = distribute_size,

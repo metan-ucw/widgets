@@ -104,6 +104,20 @@ void gp_widget_init(gp_widget *self, gp_widget *parent)
 	ops->init(self);
 }
 
+void gp_widget_free(gp_widget *self)
+{
+	const struct gp_widget_ops *ops;
+
+	if (!self)
+		return;
+
+	ops = gp_widget_ops(self);
+	if (!ops->free)
+		free(self);
+	else
+		ops->free(self);
+}
+
 unsigned int gp_widget_min_w(gp_widget *self)
 {
 	const struct gp_widget_ops *ops;
