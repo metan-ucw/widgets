@@ -38,6 +38,7 @@
     {
       "cols": 2,
       "cpadf": "0, 1, 0",
+      "cfill": "0, 0",
       "halign": "fill",
       "border": "none",
       "widgets": [
