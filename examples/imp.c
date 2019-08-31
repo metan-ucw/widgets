@@ -21,6 +21,8 @@
 #include <gp_file_size.h>
 
 static gp_widget *table;
+static gp_widget *hidden;
+static gp_widget *filter;
 
 static int redraw_table(gp_widget_event *ev)
 {
@@ -31,7 +33,7 @@ static int redraw_table(gp_widget_event *ev)
 	return 0;
 }
 
-#include "imp.h"
+//#include "imp.h"
 
 static const gp_widget_table_header headers[] = {
 	{.text = "File", .sortable = 1},
@@ -66,8 +68,8 @@ static void sort(gp_widget *self, unsigned int col, int desc)
 static int find_next(gp_widget_table *tbl)
 {
 	gp_dir_cache *cache = tbl->priv;
-	int show_hidden = hidden.chbox->val;
-	char *str = filter.tbox->buf;
+	int show_hidden = hidden ? hidden->chbox->val : 0;
+	char *str = filter ? filter->tbox->buf : "";
 	size_t str_len = strlen(str);
 	gp_dir_entry *entry;
 
@@ -158,8 +160,20 @@ void table_on_event(gp_widget *self)
 
 int main(void)
 {
+	static void *uids;
+	gp_widget *layout = gp_widget_layout_json("imp.json", &uids);
+
+	hidden = gp_widget_by_uid(uids, "hidden", GP_WIDGET_CHECKBOX);
+	filter = gp_widget_by_uid(uids, "filter", GP_WIDGET_TEXTBOX);
+
+	if (hidden)
+		hidden->on_event = redraw_table;
+
+	if (filter)
+		filter->on_event = redraw_table;
+
 	table = gp_widget_table_new(3, 25, headers, set_row, get_elem);
-	table->align = GP_FILL(1, 1);
+	table->align = GP_FILL;
 	table->tbl->col_fills[0] = 1;
 	table->tbl->col_min_sizes[0] = 20;
 	table->tbl->col_min_sizes[1] = 7;
@@ -167,12 +181,11 @@ int main(void)
 
 	table->tbl->priv = gp_dir_cache_new(".");
 	table->tbl->sort = sort;
-	table->tbl->on_event = table_on_event;
+	table->on_event = table_on_event;
 
-	gp_widget_grid_put(&layout, 0, 1, table);
+	gp_widget_grid_put(layout, 0, 1, table);
 
-	gp_widgets_init(&layout);
-	gp_widgets_main_loop(&layout, "IMP", NULL);
+	gp_widgets_main_loop(layout, "IMP", NULL);
 
 	return 0;
 }

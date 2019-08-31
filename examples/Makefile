@@ -1,7 +1,7 @@
 CFLAGS+=-W -Wall -Wextra -O2 -I../include/ `gfxprim-config --cflags` -ggdb
 LDFLAGS+=-L../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl -ljson-c
-BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout #sysinfo t1 t2 imp
+BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout imp #sysinfo t1 t2
 DEP=$(BINS:=.dep)
 
 all: $(DEP) $(BINS)
@@ -16,7 +16,6 @@ sysinfo.dep: sysinfo.h
 t0.dep: t0.h
 t4.dep: t4.h
 t5.dep: t5.h
-imp.dep: imp.h
 
 test: test.o
 sysinfo: sysinfo.o

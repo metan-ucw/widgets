@@ -1,0 +1,42 @@
+{
+  "rows": 3,
+  "widgets": [
+    {
+      "cols": 2,
+      "widgets": [
+	{
+	  "type": "label",
+	  "label": "Directory:"
+	},
+	{
+	  "type": "textbox",
+	  "text": "/home/metan"
+	}
+      ]
+    },
+    {
+    },
+    {
+      "cols": 4,
+      "widgets": [
+        {
+          "type": "label",
+          "label": "Filter:"
+        },
+        {
+	  "type": "textbox",
+	  "size": 20,
+	  "uid": "filter"
+        },
+        {
+          "type": "button",
+          "label": "Cancel"
+        },
+        {
+          "type": "button",
+          "label": "Open"
+        }
+      ]
+    }
+  ]
+}
