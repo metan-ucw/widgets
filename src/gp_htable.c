@@ -166,6 +166,9 @@ void gp_htable_put(void *table, void *val, char *key)
 
 void *gp_htable_get(void *table, const char *key)
 {
+	if (!table)
+		return NULL;
+
 	htable *self = table;
 	unsigned int h = hash(key, self->size);
 
