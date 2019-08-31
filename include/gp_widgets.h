@@ -29,5 +29,6 @@
 #include <gp_widget_json.h>
 
 #include <gp_htable.h>
+#include <gp_file_size.h>
 
 #endif /* GP_WIDGETS_H__ */
