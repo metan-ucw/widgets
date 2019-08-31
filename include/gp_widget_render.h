@@ -54,6 +54,14 @@ void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires_ms);
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
                         void (*init)(void));
 
+int gp_widgets_fd(void);
+
+int gp_widgets_process_events(gp_widget *layout);
+
+void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle);
+
+void gp_widgets_redraw(gp_widget *layout);
+
 void gp_widget_render_zoom(int zoom_inc);
 
 void gp_text_fit(gp_pixmap *pix, const gp_text_style *style,

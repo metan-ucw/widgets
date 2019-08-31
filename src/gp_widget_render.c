@@ -247,6 +247,25 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 	return 0;
 }
 
+int gp_widgets_process_events(gp_widget *layout)
+{
+	gp_event ev;
+
+	while (gp_backend_poll_event(backend, &ev)) {
+		if (gp_widgets_event(&ev, layout)) {
+			gp_backend_exit(backend);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int gp_widgets_fd(void)
+{
+	return backend->fd;
+}
+
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
                         void (*init)(void))
 {
