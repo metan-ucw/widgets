@@ -72,6 +72,9 @@ static gp_widget *load_fsinfo(void)
 			   (long long unsigned)sfs.f_bfree,
 			   (long long unsigned)sfs.f_bavail);
 
+		if (sfs.f_blocks == 0)
+			continue;
+
 		if (gp_htable_get(fs_widget_groups, mnt->mnt_fsname))
 			continue;
 
