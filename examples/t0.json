@@ -12,9 +12,7 @@
     },
     {
       "type": "progressbar",
-      "min": 0,
-      "max": 100,
-      "val": 50
+      "val": 50.1
     },
     {
       "type": "textbox",

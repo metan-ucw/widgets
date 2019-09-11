@@ -21,9 +21,9 @@
 #include "gp_widget_int.h"
 #include "gp_widget_slider.h"
 #include "gp_widget_textbox.h"
-#include "gp_widget_progress_bar.h"
 #include "gp_widget_choice.h"
 #include "gp_widget_table.h"
+#include "gp_widget_pbar.h"
 #include <gp_widget_pixmap.h>
 
 #include <gp_widget_json.h>

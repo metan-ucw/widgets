@@ -43,7 +43,7 @@ typedef struct gp_widget {
 		struct gp_widget_label *label;
 
 		struct gp_widget_int *i;
-		struct gp_widget_int *pbar;
+		struct gp_widget_pbar *pbar;
 		struct gp_widget_int *spin;
 		struct gp_widget_int *slider;
 

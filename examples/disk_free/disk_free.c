@@ -83,7 +83,7 @@ static gp_widget *load_fsinfo(void)
 			continue;
 
 		widgets->dev_label = gp_widget_label_printf_new(0, "%s mounted on %s", mnt->mnt_fsname, mnt->mnt_dir);
-		widgets->used = gp_widget_progress_bar_new(0, sfs.f_blocks, sfs.f_blocks - sfs.f_bavail);
+		widgets->used = gp_widget_pbar_new((100.00 * (sfs.f_blocks - sfs.f_bavail) / sfs.f_blocks));
 		widgets->used->align = GP_HFILL | GP_VCENTER;
 		widgets->grid = gp_widget_grid_new(1, 3);
 
