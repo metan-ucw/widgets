@@ -146,12 +146,6 @@ static void spin_render(gp_widget *self,
 
 	(void)flags;
 
-	gp_fill_rect_xywh(render->buf, x, y, w, h, cfg->fg_color);
-
-	gp_print(render->buf, cfg->font, self->x + w - s - cfg->padd, y + cfg->padd,
-		 GP_ALIGN_LEFT | GP_VALIGN_BELOW,
-		 cfg->text_color, cfg->bg_color, "%i", self->spin->val);
-
 	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
 
 	if (self->spin->alert) {
@@ -159,7 +153,13 @@ static void spin_render(gp_widget *self,
 		gp_widget_render_timer(self, GP_TIMER_RESCHEDULE, 500);
 	}
 
-	gp_rect_xywh(render->buf, x, y, w, h, color);
+	gp_fill_rrect_xywh(render->buf, x, y, w, h,
+	                   cfg->bg_color, cfg->fg_color, color);
+
+	gp_print(render->buf, cfg->font, self->x + w - s - cfg->padd, y + cfg->padd,
+		 GP_ALIGN_LEFT | GP_VALIGN_BELOW,
+		 cfg->text_color, cfg->bg_color, "%i", self->spin->val);
+
 
 	x += w - s;
 
