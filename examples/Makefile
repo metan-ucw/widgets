@@ -3,8 +3,15 @@ LDFLAGS+=-L../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl -ljson-c
 BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout imp #sysinfo t1 t2
 DEP=$(BINS:=.dep)
+SUBDIRS=disk_free login
 
-all: $(DEP) $(BINS)
+all: $(DEP) $(BINS) $(SUBDIRS)
+clean: $(SUBDIRS)
+
+.PHONY: $(SUBDIRS) all clean
+
+$(SUBDIRS):
+	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 %.dep: %.c
 	$(CC) $(CFLAGS) -M $< -o $@
