@@ -22,7 +22,7 @@ int login_callback(gp_widget_event *ev)
 
 int main(void)
 {
-	gp_widget *layout = gp_widget_layout_json("layout.json", &uids);
+	gp_widget *layout = gp_widget_layout_json("example_login.json", &uids);
 	if (!layout) {
 		fprintf(stderr, "Failed to load layout!\n");
 		return 1;
