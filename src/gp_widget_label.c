@@ -51,6 +51,7 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 {
 	const char *label = NULL;
 	int bold = 0;
+	int size = 0;
 
 	(void)uids;
 
@@ -59,6 +60,8 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 			label = json_object_get_string(val);
 		else if (!strcmp(key, "bold"))
 			bold = json_object_get_boolean(val);
+		else if (!strcmp(key, "size"))
+			size = json_object_get_int(val);
 		else
 			GP_WARN("Invalid label key '%s'", key);
 	}
@@ -68,7 +71,7 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 		label = "Missing label";
 	}
 
-	return gp_widget_label_new(label, 0, bold);
+	return gp_widget_label_new(label, size, bold);
 }
 
 struct gp_widget_ops gp_widget_label_ops = {
@@ -117,7 +120,7 @@ gp_widget *gp_widget_label_new(const char *text, unsigned int size, int bold)
 {
 	size_t payload_size = sizeof(struct gp_widget_label);
 	gp_widget *ret;
-	size_t strsize = size ? size : strlen(text)+1;
+	size_t strsize = size ? size + 1 : strlen(text) + 1;
 
 	payload_size += strsize;
 
@@ -127,6 +130,9 @@ gp_widget *gp_widget_label_new(const char *text, unsigned int size, int bold)
 
 	ret->label->text = ret->label->payload;
 	ret->label->bold = !!bold;
+
+	if (size)
+		ret->label->width = size + 1;
 
 	if (text)
 		copy_text(ret->label, text, strsize);
