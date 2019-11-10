@@ -36,14 +36,24 @@ static void render(gp_widget *self,
                    struct gp_widget_render *render, int flags)
 {
 	(void) flags;
+	unsigned int startx;
+	unsigned int align;
 
 	gp_text_style *font = self->label->bold ? cfg->font_bold : cfg->font;
 
 	gp_fill_rect_xywh(render->buf, self->x, self->y,
 	                self->w, self->h, cfg->bg_color);
 
-	gp_text(render->buf, font, self->x, self->y + cfg->padd,
-		GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
+	if (self->label->ralign) {
+		startx = self->x + self->w - 1;
+		align = GP_ALIGN_LEFT;
+	} else {
+		startx = self->x;
+		align = GP_ALIGN_RIGHT;
+	}
+
+	gp_text(render->buf, font, startx, self->y + cfg->padd,
+		align|GP_VALIGN_BELOW,
 		cfg->text_color, cfg->bg_color, self->label->text);
 }
 
@@ -52,6 +62,7 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 	const char *label = NULL;
 	int bold = 0;
 	int size = 0;
+	int ralign = 0;
 
 	(void)uids;
 
@@ -62,6 +73,8 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 			bold = json_object_get_boolean(val);
 		else if (!strcmp(key, "size"))
 			size = json_object_get_int(val);
+		else if (!strcmp(key, "ralign"))
+			ralign = json_object_get_boolean(val);
 		else
 			GP_WARN("Invalid label key '%s'", key);
 	}
@@ -71,7 +84,11 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 		label = "Missing label";
 	}
 
-	return gp_widget_label_new(label, size, bold);
+	gp_widget *ret = gp_widget_label_new(label, size, bold);
+
+	ret->label->ralign = ralign;
+
+	return ret;
 }
 
 struct gp_widget_ops gp_widget_label_ops = {
