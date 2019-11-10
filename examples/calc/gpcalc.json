@@ -1,0 +1,164 @@
+{
+ "rows": 2,
+ "widgets": [
+  {
+   "type": "label",
+   "size": 10,
+   "halign": "fill",
+   "label": "0",
+   "ralign": "true",
+   "frame": "true",
+   "uid": "result"
+  },
+  {
+   "rows": 5,
+   "cols": 5,
+   "uniform": 1,
+   "border": "none",
+   "widgets": [
+    {
+     "type": "button",
+     "label": "M+",
+     "align": "fill",
+     "on_event": "m_plus"
+    },
+    {
+     "type": "button",
+     "label": "7",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "4",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "1",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "0",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "M-",
+     "align": "fill",
+     "on_event": "m_minus"
+    },
+    {
+     "type": "button",
+     "label": "8",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "5",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "2",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": ".",
+     "align": "fill",
+     "on_event": "do_dec"
+    },
+    {
+     "type": "button",
+     "label": "MC",
+     "align": "fill",
+     "on_event": "m_clear"
+    },
+    {
+     "type": "button",
+     "label": "9",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "6",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "3",
+     "align": "fill",
+     "on_event": "do_number"
+    },
+    {
+     "type": "button",
+     "label": "+/-",
+     "align": "fill",
+     "on_event": "do_sign"
+    },
+    {
+     "type": "button",
+     "label": "MR",
+     "align": "fill",
+     "on_event": "m_recall"
+    },
+    {
+     "type": "button",
+     "label": "+",
+     "align": "fill",
+     "on_event": "do_op"
+    },
+    {
+     "type": "button",
+     "label": "-",
+     "align": "fill",
+     "on_event": "do_op"
+    },
+    {
+     "type": "button",
+     "label": "*",
+     "align": "fill",
+     "on_event": "do_op"
+    },
+    {
+     "type": "button",
+     "label": "/",
+     "align": "fill",
+     "on_event": "do_op"
+    },
+    {
+     "type": "button",
+     "label": "C",
+     "align": "fill",
+     "on_event": "clear"
+    },
+    {
+     "type": "button",
+     "label": "sqrt",
+     "align": "fill",
+     "on_event": "sqrt"
+    },
+    {
+    },
+    {
+    },
+    {
+     "type": "button",
+     "label": "=",
+     "align": "fill",
+     "on_event": "do_op"
+    }
+   ]
+  }
+ ]
+}
