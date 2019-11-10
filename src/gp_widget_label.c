@@ -23,12 +23,15 @@ static unsigned int min_w(gp_widget *self)
 	else
 		max_width = gp_text_width(font, self->label->text);
 
+	if (self->label->frame)
+		max_width += 2 * cfg->padd;
+
 	return max_width;
 }
 
 static unsigned int min_h(gp_widget *self)
 {
-	(void)self;
+	(void) self;
 	return 2 * cfg->padd + gp_text_ascent(cfg->font);
 }
 
@@ -36,23 +39,33 @@ static void render(gp_widget *self,
                    struct gp_widget_render *render, int flags)
 {
 	(void) flags;
-	unsigned int startx;
 	unsigned int align;
+
+	unsigned int x = self->x;
+	unsigned int y = self->y;
+	unsigned int w = self->w;
+	unsigned int h = self->h;
 
 	gp_text_style *font = self->label->bold ? cfg->font_bold : cfg->font;
 
-	gp_fill_rect_xywh(render->buf, self->x, self->y,
-	                self->w, self->h, cfg->bg_color);
+	if (self->label->frame) {
+		gp_fill_rrect_xywh(render->buf, x, y, w, h, cfg->bg_color,
+		                   cfg->fg_color, cfg->text_color);
+
+		x += cfg->padd;
+		w -= 2 * cfg->padd;
+	} else {
+		gp_fill_rect_xywh(render->buf, x, y, w, h, cfg->bg_color);
+	}
 
 	if (self->label->ralign) {
-		startx = self->x + self->w - 1;
+		x += w - 1;
 		align = GP_ALIGN_LEFT;
 	} else {
-		startx = self->x;
 		align = GP_ALIGN_RIGHT;
 	}
 
-	gp_text(render->buf, font, startx, self->y + cfg->padd,
+	gp_text(render->buf, font, x, y + cfg->padd,
 		align|GP_VALIGN_BELOW,
 		cfg->text_color, cfg->bg_color, self->label->text);
 }
@@ -63,6 +76,7 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 	int bold = 0;
 	int size = 0;
 	int ralign = 0;
+	int frame = 0;
 
 	(void)uids;
 
@@ -75,6 +89,8 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 			size = json_object_get_int(val);
 		else if (!strcmp(key, "ralign"))
 			ralign = json_object_get_boolean(val);
+		else if (!strcmp(key, "frame"))
+			frame = json_object_get_boolean(val);
 		else
 			GP_WARN("Invalid label key '%s'", key);
 	}
@@ -87,6 +103,7 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 	gp_widget *ret = gp_widget_label_new(label, size, bold);
 
 	ret->label->ralign = ralign;
+	ret->label->frame = frame;
 
 	return ret;
 }

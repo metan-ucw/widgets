@@ -15,6 +15,7 @@ struct gp_widget_label {
 	unsigned int width:8;
 	unsigned int bold:1;
 	unsigned int ralign:1;
+	unsigned int frame:1;
 	char *text;
 	char payload[];
 };
