@@ -1,3 +1,11 @@
+//SPDX-License-Identifier: LGPL-2.0-or-later
+
+/*
+
+    Copyright (C) 2007-2019 Cyril Hrubis <metan@ucw.cz>
+
+ */
+
 #include <errno.h>
 #include <string.h>
 #include <mntent.h>
