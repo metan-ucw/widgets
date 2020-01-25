@@ -205,10 +205,10 @@ static void spin_dec(gp_widget *self)
 static void spin_click(gp_widget *self, gp_event *ev)
 {
 	unsigned int s = gp_text_max_width(cfg->font, 1);
-	unsigned int min_x = self->x + self->w - cfg->padd - s;
-	unsigned int max_x = self->x + self->w - cfg->padd;
-	unsigned int min_y = self->y + cfg->padd;
-	unsigned int max_y = self->y + self->h - cfg->padd;
+	unsigned int min_x = self->x + self->w - s;
+	unsigned int max_x = self->x + self->w;
+	unsigned int min_y = self->y;
+	unsigned int max_y = self->y + self->h;
 	unsigned int mid_y = (min_y + max_y) / 2;
 
 	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
