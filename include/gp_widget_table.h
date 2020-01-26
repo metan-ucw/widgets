@@ -51,8 +51,6 @@ typedef struct gp_widget_table {
 
 	void (*sort)(struct gp_widget *self, unsigned int col, int desc);
 
-	void (*on_event)(struct gp_widget *self);
-
 	char buf[];
 } gp_widget_table;
 

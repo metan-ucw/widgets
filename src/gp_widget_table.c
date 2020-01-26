@@ -362,10 +362,7 @@ static int enter(gp_widget *self)
 	if (!tbl->row_selected)
 		return 0;
 
-	if (!tbl->on_event)
-		return 0;
-
-	tbl->on_event(self);
+	gp_widget_send_event(self, 0);
 
 	return 1;
 }
