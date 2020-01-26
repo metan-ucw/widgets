@@ -258,7 +258,7 @@ static gp_widget *json_to_textbox(json_object *json, void **uid)
 	}
 
 	if (len <= 0 && !text) {
-		GP_WARN("At least one of len or text has to be set!");
+		GP_WARN("At least one of size or text has to be set!");
 		return NULL;
 	}
 
@@ -305,4 +305,34 @@ struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
 	}
 
 	return ret;
+}
+
+int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
+{
+	va_list ap;
+	int len;
+
+	GP_WIDGET_ASSERT(self, GP_WIDGET_TEXTBOX, -1);
+
+	va_start(ap, fmt);
+	len = vsnprintf(NULL, 0, fmt, ap)+1;
+	va_end(ap);
+
+	char *tmp = malloc(len);
+	if (!tmp) {
+		GP_DEBUG(1, "Malloc failed :(");
+		return -1;
+	}
+
+	va_start(ap, fmt);
+	vsprintf(tmp, fmt, ap);
+	va_end(ap);
+
+	strncpy(self->tbox->buf, tmp, self->tbox->buf_len);
+	free(tmp);
+	self->tbox->buf[self->tbox->buf_len - 1] = 0;
+
+	gp_widget_redraw(self);
+
+	return len;
 }

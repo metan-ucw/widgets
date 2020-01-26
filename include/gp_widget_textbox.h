@@ -42,4 +42,7 @@ struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
                                         int (*on_event)(gp_widget_event *),
                                         void *event_ptr, int flags);
 
+int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
+                             __attribute__((format (printf, 2, 3)));
+
 #endif /* GP_WIDGET_TEXT_BOX_H__ */
