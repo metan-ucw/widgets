@@ -7,8 +7,8 @@
  */
 
 #include <string.h>
-#include <core/GP_Debug.h>
-#include <core/GP_Common.h>
+#include <core/gp_debug.h>
+#include <core/gp_common.h>
 #include <gp_widget.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_grid.h>

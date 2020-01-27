@@ -9,7 +9,7 @@
 #ifndef GP_WIDGET_RENDER_H__
 #define GP_WIDGET_RENDER_H__
 
-#include <core/GP_Core.h>
+#include <core/gp_core.h>
 #include <gfx/GP_Gfx.h>
 #include <text/GP_Text.h>
 #include <input/GP_Timer.h>

@@ -9,8 +9,8 @@
 #include <string.h>
 #include <json-c/json.h>
 
-#include <core/GP_Debug.h>
-#include <core/GP_Common.h>
+#include <core/gp_debug.h>
+#include <core/gp_common.h>
 
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>

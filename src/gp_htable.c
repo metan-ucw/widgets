@@ -8,8 +8,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <core/GP_Common.h>
-#include <core/GP_Debug.h>
+#include <core/gp_common.h>
+#include <core/gp_debug.h>
 #include "gp_htable.h"
 
 static unsigned int primes[] = {

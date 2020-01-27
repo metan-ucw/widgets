@@ -6,7 +6,7 @@
 
  */
 
-#include <core/GP_Debug.h>
+#include <core/gp_debug.h>
 #include <gp_block_alloc.h>
 
 static size_t block_size;
