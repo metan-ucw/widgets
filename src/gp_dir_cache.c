@@ -13,7 +13,10 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <fcntl.h>
 
+#include <core/gp_debug.h>
 #include <gp_block_alloc.h>
 #include <gp_dir_cache.h>
 
@@ -39,6 +42,8 @@ static gp_dir_entry *new_entry(gp_dir_cache *self, size_t size,
 	sprintf(entry->name, "%s%s", name, is_dir ? "/" : "");
 	entry->mtime = mtime;
 
+	GP_DEBUG(3, "Dir Cache %p new entry '%s'", self, entry->name);
+
 	return entry;
 }
 
@@ -62,7 +67,7 @@ static void put_entry(gp_dir_cache **self, gp_dir_entry *entry)
 	(*self)->entries[(*self)->used++] = entry;
 }
 
-static void populate(gp_dir_cache **self)
+static void populate(gp_dir_cache **self, int dirfd)
 {
 	for (;;) {
 		gp_dir_entry *entry;
@@ -73,12 +78,13 @@ static void populate(gp_dir_cache **self)
 		if (!ent)
 			return;
 
-		if (!strcmp(ent->d_name, ".") ||
-		    !strcmp(ent->d_name, ".."))
+		if (!strcmp(ent->d_name, "."))
 			continue;
 
-		if (stat(ent->d_name, &buf))
-			return;
+		if (fstatat(dirfd, ent->d_name, &buf, 0)) {
+			GP_DEBUG(3, "stat(%s): %s", ent->d_name, strerror(errno));
+			continue;
+		}
 
 		entry = new_entry(*self, buf.st_size, ent->d_name,
 		                  buf.st_mode, buf.st_mtim.tv_sec);
@@ -171,16 +177,27 @@ void gp_dir_cache_sort(gp_dir_cache *self, int sort_type)
 gp_dir_cache *gp_dir_cache_new(const char *path)
 {
 	DIR *dir;
+	int dirfd;
 	gp_dir_cache *ret;
 
-	dir = opendir(path);
-	if (!dir)
+	GP_DEBUG(1, "Creating dir cache for '%s'", path);
+
+	dirfd = open(path, O_DIRECTORY);
+	if (!dirfd) {
+		GP_DEBUG(1, "open(%s, O_DIRECTORY): %s", path, strerror(errno));
 		return NULL;
+	}
+
+	dir = opendir(path);
+	if (!dir) {
+		GP_DEBUG(1, "opendir(%s) failed: %s", path, strerror(errno));
+		goto err0;
+	}
 
 	ret = malloc(sizeof(gp_dir_cache) + 100 * sizeof(void*));
 	if (!ret) {
-		closedir(dir);
-		return NULL;
+		GP_DEBUG(1, "Malloc failed :(");
+		goto err1;
 	}
 
 	ret->dir = dir;
@@ -188,15 +205,24 @@ gp_dir_cache *gp_dir_cache_new(const char *path)
 	ret->used = 0;
 	ret->allocator = NULL;
 
-	populate(&ret);
+	populate(&ret, dirfd);
 
 	gp_dir_cache_sort(ret, 0);
 
+	close(dirfd);
+
 	return ret;
+err1:
+	closedir(dir);
+err0:
+	close(dirfd);
+	return NULL;
 }
 
 void gp_dir_cache_free(gp_dir_cache *self)
 {
+	GP_DEBUG(1, "Destroying dir cache %p", self);
+
 	closedir(self->dir);
 	gp_block_free(&self->allocator);
 	free(self);
