@@ -6,8 +6,11 @@
 
  */
 
+#include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
+#include <core/gp_debug.h>
 #include <gp_string.h>
 
 size_t gp_string_arr_size(const char *strings[], unsigned int len)
@@ -35,4 +38,26 @@ char **gp_string_arr_copy(const char *strings[], unsigned int len, void *buf)
 	}
 
 	return copy;
+}
+
+char *gp_aprintf(const char *fmt, ...)
+{
+	va_list ap;
+	int len;
+
+	va_start(ap, fmt);
+	len = vsnprintf(NULL, 0, fmt, ap)+1;
+	va_end(ap);
+
+	char *tmp = malloc(len);
+	if (!tmp) {
+		GP_DEBUG(1, "Malloc failed :(");
+		return NULL;
+	}
+
+	va_start(ap, fmt);
+	vsprintf(tmp, fmt, ap);
+	va_end(ap);
+
+	return tmp;
 }
