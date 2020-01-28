@@ -88,8 +88,8 @@ static void toggle(gp_widget *self)
 
 static void click(gp_widget *self, gp_event *ev)
 {
-	unsigned int min_x = self->x + cfg->padd;
-	unsigned int max_x = self->x + self->w - cfg->padd;
+	unsigned int min_x = self->x;
+	unsigned int max_x = self->x + self->w;
 	unsigned int min_y = self->y + cfg->padd;
 	unsigned int max_y = self->y + self->h - cfg->padd;
 
