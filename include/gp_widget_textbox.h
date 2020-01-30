@@ -45,4 +45,9 @@ struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
 int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
                              __attribute__((format (printf, 2, 3)));
 
+/*
+ * Clears the textbox text.
+ */
+void gp_widget_textbox_clear(gp_widget *self);
+
 #endif /* GP_WIDGET_TEXT_BOX_H__ */

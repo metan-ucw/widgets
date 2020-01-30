@@ -336,3 +336,13 @@ int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
 
 	return len;
 }
+
+void gp_widget_textbox_clear(gp_widget *self)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_TEXTBOX, );
+
+	self->tbox->buf[0] = 0;
+	self->tbox->cur_pos = 0;
+
+	gp_widget_redraw(self);
+}
