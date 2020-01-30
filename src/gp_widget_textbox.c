@@ -131,6 +131,7 @@ static void ascii_key(gp_widget *self, char ch)
 	}
 
 	self->tbox->buf[self->tbox->cur_pos++] = ch;
+	self->tbox->buf[self->tbox->cur_pos] = 0;
 
 	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
 
