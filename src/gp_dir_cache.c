@@ -228,3 +228,17 @@ void gp_dir_cache_free(gp_dir_cache *self)
 	free(self);
 }
 
+gp_dir_entry *gp_dir_cache_get_filtered(gp_dir_cache *self, unsigned int pos)
+{
+	unsigned int n, cur_pos = 0;
+
+	for (n = 0; n < self->used; n++) {
+		if (self->entries[n]->filtered)
+			continue;
+
+		if (cur_pos++ == pos)
+			return self->entries[n];
+	}
+
+	return NULL;
+}

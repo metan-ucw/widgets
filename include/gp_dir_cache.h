@@ -15,6 +15,7 @@ typedef struct gp_dir_entry {
 	size_t size;
 	time_t mtime;
 	int is_dir:1;
+	int filtered:1;
 	char name[];
 } gp_dir_entry;
 
@@ -48,5 +49,26 @@ static inline gp_dir_entry *gp_dir_cache_get(gp_dir_cache *self,
 
 	return self->entries[pos];
 }
+
+/*
+ * If element has been set to be filtered it's ignored by functions with _filter suffix.
+ *
+ * @self Directory cache.
+ * @pos Element position
+ * @filter Either 1 == filtered or 0 == not filtered.
+ */
+static inline void gp_dir_cache_set_filter(gp_dir_cache *self, unsigned int pos,
+                                           int filter)
+{
+	self->entries[pos]->filtered = !!filter;
+}
+
+/*
+ * Returns entry on position pos ignoring filtered out elements.
+ *
+ * @self struct gp_dir_cache
+ * @pos position of the element
+ */
+gp_dir_entry *gp_dir_cache_get_filtered(gp_dir_cache *self, unsigned int pos);
 
 #endif /* GP_DIR_CACHE_H__ */
