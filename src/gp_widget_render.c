@@ -213,11 +213,6 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 			break;
 			}
 		}
-		switch (ev->val.val) {
-		case GP_KEY_ESC:
-			return 1;
-		break;
-		}
 	break;
 	case GP_EV_SYS:
 		switch (ev->code) {
