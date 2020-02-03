@@ -21,17 +21,20 @@ typedef struct gp_dir_entry {
 
 typedef struct gp_dir_cache {
 	DIR *dir;
+	int dirfd;
+	int inotify_fd;
+	int sort_type;
 	struct gp_block *allocator;
 	size_t size;
 	size_t used;
-	struct gp_dir_entry *entries[];
+	struct gp_dir_entry **entries;
 } gp_dir_cache;
 
 gp_dir_cache *gp_dir_cache_new(const char *path);
 
 void gp_dir_cache_free(gp_dir_cache *self);
 
-enum gp_dir_cache_sortType {
+enum gp_dir_cache_sort_type {
 	GP_DIR_SORT_ASC = 0x00,
 	GP_DIR_SORT_DESC = 0x04,
 	GP_DIR_SORT_BY_NAME = 0x00,
@@ -70,5 +73,14 @@ static inline void gp_dir_cache_set_filter(gp_dir_cache *self, unsigned int pos,
  * @pos position of the element
  */
 gp_dir_entry *gp_dir_cache_get_filtered(gp_dir_cache *self, unsigned int pos);
+
+
+/*
+ * Inotify handler, should be called when there are data to be read on inotify_fd.
+ *
+ * @self struct gp_dir_cache
+ * @return Returns non-zeor if cache content changed.
+ */
+int gp_dir_cache_inotify(gp_dir_cache *self);
 
 #endif /* GP_DIR_CACHE_H__ */

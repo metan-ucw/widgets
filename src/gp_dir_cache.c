@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/inotify.h>
 
 #include <core/gp_debug.h>
 #include <gp_block_alloc.h>
@@ -47,51 +48,70 @@ static gp_dir_entry *new_entry(gp_dir_cache *self, size_t size,
 	return entry;
 }
 
-static void put_entry(gp_dir_cache **self, gp_dir_entry *entry)
+static void put_entry(gp_dir_cache *self, gp_dir_entry *entry)
 {
-	if ((*self)->used >= (*self)->size) {
-		gp_dir_cache *new;
-		size_t new_size;
+	if (self->used >= self->size) {
+		size_t new_size = self->size + 50;
+		void *entries;
 
-		new_size = sizeof(gp_dir_cache);
-		new_size += ((*self)->size + 50) * sizeof(void*);
-
-		new = realloc(*self, new_size);
-		if (!new)
+		entries = realloc(self->entries, new_size * sizeof(void*));
+		if (!entries) {
+			GP_DEBUG(1, "Realloc failed :-(");
 			return;
+		}
 
-		new->size += 50;
-		*self = new;
+		self->size = new_size;
+		self->entries = entries;
 	}
 
-	(*self)->entries[(*self)->used++] = entry;
+	self->entries[self->used++] = entry;
 }
 
-static void populate(gp_dir_cache **self, int dirfd)
+static void add_entry(gp_dir_cache *self, const char *name)
+{
+	gp_dir_entry *entry;
+	struct stat buf;
+
+	if (fstatat(self->dirfd, name, &buf, 0)) {
+		GP_DEBUG(3, "stat(%s): %s", name, strerror(errno));
+		return;
+	}
+
+	entry = new_entry(self, buf.st_size, name,
+	                  buf.st_mode, buf.st_mtim.tv_sec);
+	if (!entry)
+		return;
+
+	put_entry(self, entry);
+}
+
+static int rem_entry_by_name(gp_dir_cache *self, const char *name)
+{
+	unsigned int i;
+
+	for (i = 0; i < self->used; i++) {
+		if (!strcmp(self->entries[i]->name, name)) {
+			self->entries[i] = self->entries[--self->used];
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static void populate(gp_dir_cache *self)
 {
 	for (;;) {
-		gp_dir_entry *entry;
 		struct dirent *ent;
-		struct stat buf;
 
-		ent = readdir((*self)->dir);
+		ent = readdir(self->dir);
 		if (!ent)
 			return;
 
-		if (!strcmp(ent->d_name, "."))
+		if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
 			continue;
 
-		if (fstatat(dirfd, ent->d_name, &buf, 0)) {
-			GP_DEBUG(3, "stat(%s): %s", ent->d_name, strerror(errno));
-			continue;
-		}
-
-		entry = new_entry(*self, buf.st_size, ent->d_name,
-		                  buf.st_mode, buf.st_mtim.tv_sec);
-		if (!entry)
-			return;
-
-		put_entry(self, entry);
+		add_entry(self, ent->d_name);
 	}
 }
 
@@ -171,51 +191,149 @@ void gp_dir_cache_sort(gp_dir_cache *self, int sort_type)
 	if (!cmp_func)
 		return;
 
+	self->sort_type = sort_type;
+
 	qsort(self->entries, self->used, sizeof(void*), cmp_func);
 }
+
+static void open_inotify(gp_dir_cache *self, const char *path)
+{
+	self->inotify_fd = inotify_init1(IN_NONBLOCK);
+
+	if (self->inotify_fd < 0) {
+		GP_DEBUG(1, "inotify_init(): %s", strerror(errno));
+		return;
+	}
+
+	int watch = inotify_add_watch(self->inotify_fd, path, IN_CREATE | IN_DELETE);
+
+	if (watch < 0) {
+		GP_DEBUG(1, "inotify_add_watch(): %s", strerror(errno));
+		close(self->inotify_fd);
+		self->inotify_fd = -1;
+		return;
+	}
+}
+
+static void close_inotify(gp_dir_cache *self)
+{
+	if (self->inotify_fd > 0)
+		close(self->inotify_fd);
+}
+
+static void append_slash(struct inotify_event *ev)
+{
+	size_t len = strlen(ev->name);
+
+	if (ev->name[len] == '/')
+		return;
+
+	if (len + 1 >= ev->len)
+		return;
+
+	ev->name[len] = '/';
+	ev->name[len+1] = 0;
+}
+
+int gp_dir_cache_inotify(gp_dir_cache *self)
+{
+	long buf[1024];
+	struct inotify_event *ev = (void*)buf;
+	int sort = 0;
+
+	if (self->inotify_fd <= 0)
+		return 0;
+
+	while (read(self->inotify_fd, &buf, sizeof(buf)) > 0) {
+		switch (ev->mask) {
+		case IN_DELETE:
+			if (!rem_entry_by_name(self, ev->name)) {
+				GP_DEBUG(1, "Deleted '%s'", ev->name);
+				sort = 1;
+				break;
+			}
+		/*
+		 * We have to try both since symlink to directory does not
+		 * contain IN_ISDIR but appears to be directory for us.
+		 */
+		/* fallthrough */
+		case IN_DELETE | IN_ISDIR:
+			append_slash(ev);
+
+			GP_DEBUG(1, "Deleted '%s'", ev->name);
+
+			if (rem_entry_by_name(self, ev->name))
+				GP_WARN("Failed to remove '%s'", ev->name);
+
+			sort = 1;
+		break;
+		case IN_CREATE:
+		case IN_CREATE | IN_ISDIR:
+			GP_DEBUG(1, "Created '%s'", ev->name);
+			add_entry(self, ev->name);
+			sort = 1;
+		break;
+		}
+	}
+
+	if (sort)
+		gp_dir_cache_sort(self, self->sort_type);
+
+	return sort;
+}
+
+#define MIN_SIZE 25
 
 gp_dir_cache *gp_dir_cache_new(const char *path)
 {
 	DIR *dir;
 	int dirfd;
 	gp_dir_cache *ret;
+	gp_dir_entry **entries;
 
 	GP_DEBUG(1, "Creating dir cache for '%s'", path);
+
+	ret = malloc(sizeof(gp_dir_cache));
+	entries = malloc(MIN_SIZE * sizeof(void*));
+	if (!ret || !entries) {
+		GP_DEBUG(1, "Malloc failed :(");
+		return NULL;
+	}
+
+	ret->entries = entries;
+
+	open_inotify(ret, path);
 
 	dirfd = open(path, O_DIRECTORY);
 	if (!dirfd) {
 		GP_DEBUG(1, "open(%s, O_DIRECTORY): %s", path, strerror(errno));
-		return NULL;
+		goto err0;
 	}
 
 	dir = opendir(path);
 	if (!dir) {
 		GP_DEBUG(1, "opendir(%s) failed: %s", path, strerror(errno));
-		goto err0;
-	}
-
-	ret = malloc(sizeof(gp_dir_cache) + 100 * sizeof(void*));
-	if (!ret) {
-		GP_DEBUG(1, "Malloc failed :(");
 		goto err1;
 	}
 
 	ret->dir = dir;
-	ret->size = 100;
+	ret->dirfd = dirfd;
+	ret->size = MIN_SIZE;
 	ret->used = 0;
 	ret->allocator = NULL;
+	ret->sort_type = 0;
 
-	populate(&ret, dirfd);
+	populate(ret);
 
-	gp_dir_cache_sort(ret, 0);
-
-	close(dirfd);
+	gp_dir_cache_sort(ret, ret->sort_type);
 
 	return ret;
 err1:
-	closedir(dir);
-err0:
 	close(dirfd);
+err0:
+	close_inotify(ret);
+	free(ret->entries);
+	free(ret);
 	return NULL;
 }
 
@@ -223,8 +341,12 @@ void gp_dir_cache_free(gp_dir_cache *self)
 {
 	GP_DEBUG(1, "Destroying dir cache %p", self);
 
+	close_inotify(self);
+
 	closedir(self->dir);
+	close(self->dirfd);
 	gp_block_free(&self->allocator);
+	free(self->entries);
 	free(self);
 }
 
