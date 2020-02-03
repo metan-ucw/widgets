@@ -158,7 +158,7 @@ void table_on_event(gp_widget *self)
 	//TODO:!!!
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	static void *uids;
 	gp_widget *layout = gp_widget_layout_json("imp.json", &uids);
@@ -185,7 +185,7 @@ int main(void)
 
 	gp_widget_grid_put(layout, 0, 1, table);
 
-	gp_widgets_main_loop(layout, "IMP", NULL);
+	gp_widgets_main_loop(layout, "IMP", NULL, argc, argv);
 
 	return 0;
 }

@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	if (!layout)
 		return 0;
 
-	gp_widgets_main_loop(layout, "Login!", NULL);
+	gp_widgets_main_loop(layout, "Login!", NULL, argc, argv);
 
 	return 0;
 }

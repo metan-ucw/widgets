@@ -171,11 +171,11 @@ int do_dec(gp_widget_event *ev)
 	return do_number(ev);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_layout_json("gpcalc.json", &uids);
 
-	gp_widgets_main_loop(layout, "gpcalc", NULL);
+	gp_widgets_main_loop(layout, "gpcalc", NULL, argc, argv);
 
 	return 0;
 }

@@ -24,13 +24,13 @@ int button_callback(gp_widget_event *ev)
 	return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_layout_json("t0.json", &uids);
 	if (!layout)
 		return 0;
 
-	gp_widgets_main_loop(layout, "t0", NULL);
+	gp_widgets_main_loop(layout, "t0", NULL, argc, argv);
 
 	return 0;
 }

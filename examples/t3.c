@@ -25,7 +25,7 @@ static int button_callback(gp_widget_event *ev)
 	return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_grid_new(2, 2);
 
@@ -34,7 +34,7 @@ int main(void)
 	gp_widget_grid_put(layout, 0, 0, gp_widget_label_new("Text Label", 0, 0));
 	gp_widget_grid_put(layout, 0, 1, gp_widget_button_new("OK", button_callback, layout));
 
-	gp_widgets_main_loop(layout, "t3", NULL);
+	gp_widgets_main_loop(layout, "t3", NULL, argc, argv);
 
 	return 0;
 }

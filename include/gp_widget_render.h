@@ -52,7 +52,7 @@ void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms)
 void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires_ms);
 
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
-                        void (*init)(void));
+                        void (*init)(void), int argc, char *argv[]);
 
 int gp_widgets_fd(void);
 

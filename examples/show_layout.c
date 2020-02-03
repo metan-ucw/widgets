@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	gp_widgets_main_loop(layout, "Layout", NULL);
+	gp_widgets_main_loop(layout, "Layout", NULL, argc, argv);
 
 	return 0;
 }

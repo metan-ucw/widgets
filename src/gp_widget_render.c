@@ -177,21 +177,32 @@ void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires)
 
 static struct gp_widget_render buf;
 
+static char *backend_init_str = "x11";
+
 void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 {
 	gp_widget_render_init();
 	gp_widget_calc_size(layout, 0, 0, 1);
 
-	//backend = gp_x11_init(NULL, 0, 0, layout->w, layout->h, win_tittle, 0);
-	backend = gp_backend_init("x11", win_tittle);
+	backend = gp_backend_init(backend_init_str, win_tittle);
 	if (!backend)
 		exit(1);
+
+	gp_backend_resize(backend, layout->w, layout->h);
 
 	buf.buf = backend->pixmap;
 
 	app_layout = layout;
 
-	gp_widget_render(layout, &buf, 0);
+	int flag = 0;
+
+	if (layout->w != gp_pixmap_w(backend->pixmap) ||
+	    layout->h != gp_pixmap_h(backend->pixmap)) {
+		gp_fill(backend->pixmap, 0x444444);
+		flag = 1;
+	}
+
+	gp_widget_render(layout, &buf, flag);
 	gp_backend_flip(backend);
 }
 
@@ -279,9 +290,35 @@ int gp_widgets_fd(void)
 	return backend->fd;
 }
 
-void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
-                        void (*init)(void))
+static void print_options(int exit_val)
 {
+	printf("Options: -b backend init string\n");
+	exit(exit_val);
+}
+
+static void parse_args(int argc, char *argv[])
+{
+	int opt;
+
+	while ((opt = getopt(argc, argv, "b:h")) != -1) {
+		switch (opt) {
+		case 'b':
+			backend_init_str = optarg;
+		break;
+		case 'h':
+			print_options(0);
+		break;
+		default:
+			print_options(1);
+		}
+	}
+}
+
+void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
+                        void (*init)(void), int argc, char *argv[])
+{
+	parse_args(argc, argv);
+
 	gp_widgets_layout_init(layout, label);
 
 	if (init)

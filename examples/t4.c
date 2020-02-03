@@ -33,13 +33,13 @@ int callback(gp_widget_event *ev)
 	return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_layout_json("t4.json", NULL);
 	if (!layout)
 		return 0;
 
-	gp_widgets_main_loop(layout, "t4", NULL);
+	gp_widgets_main_loop(layout, "t4", NULL, argc, argv);
 
 	return 0;
 }

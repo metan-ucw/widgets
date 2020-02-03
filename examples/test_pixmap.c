@@ -119,13 +119,13 @@ int button_on_event(gp_widget_event *ev)
 	return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_layout_json("test_pixmap.json", &uids);
 	if (!layout)
 		return 0;
 
-	gp_widgets_main_loop(layout, "Pixmap test", NULL);
+	gp_widgets_main_loop(layout, "Pixmap test", NULL, argc, argv);
 
 	return 0;
 }

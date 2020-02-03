@@ -20,7 +20,7 @@ int login_callback(gp_widget_event *ev)
 	return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_layout_json("example_login.json", &uids);
 	if (!layout) {
@@ -28,7 +28,7 @@ int main(void)
 		return 1;
 	}
 
-	gp_widgets_main_loop(layout, "Login!", NULL);
+	gp_widgets_main_loop(layout, "Login!", NULL, argc, argv);
 
 	return 0;
 }
