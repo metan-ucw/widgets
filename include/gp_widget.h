@@ -31,6 +31,7 @@ typedef struct gp_widget {
 	unsigned int no_redraw_child:1;
 	unsigned int redraw_subtree:1;
 	unsigned int selected:1;
+	unsigned int input_events:1;
 
 	union {
 		struct gp_widget_grid *grid;

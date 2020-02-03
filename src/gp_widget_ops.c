@@ -480,6 +480,7 @@ int gp_widget_input_event(gp_widget *self, gp_event *ev)
 int gp_widget_ops_event(gp_widget *self, gp_event *ev)
 {
 	const struct gp_widget_ops *ops;
+	int handled;
 
 	if (!self)
 		return 0;
@@ -490,7 +491,12 @@ int gp_widget_ops_event(gp_widget *self, gp_event *ev)
 
 	GP_DEBUG(3, "event widget %p (%s)", self, ops->id);
 
-	return ops->event(self, ev);
+	handled = ops->event(self, ev);
+
+	if (!handled && self->input_events)
+		handled = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, ev);
+
+	return handled;
 }
 
 void gp_widget_render(gp_widget *self,
