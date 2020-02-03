@@ -182,7 +182,8 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 	gp_widget_render_init();
 	gp_widget_calc_size(layout, 0, 0, 1);
 
-	backend = gp_x11_init(NULL, 0, 0, layout->w, layout->h, win_tittle, 0);
+	//backend = gp_x11_init(NULL, 0, 0, layout->w, layout->h, win_tittle, 0);
+	backend = gp_backend_init("x11", win_tittle);
 	if (!backend)
 		exit(1);
 
@@ -234,9 +235,26 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 	break;
 	}
 
-	if (!handled)
-		gp_widget_input_event(layout, ev);
+	if (handled)
+		goto out;
 
+	handled = gp_widget_input_event(layout, ev);
+
+	if (handled)
+		goto out;
+
+	if (ev->type == GP_EV_KEY) {
+		if ((gp_event_get_key(ev, GP_KEY_LEFT_ALT) ||
+		     gp_event_get_key(ev, GP_KEY_LEFT_ALT)) &&
+		     ev->code == GP_EV_KEY_DOWN) {
+			switch (ev->val.val) {
+			case GP_KEY_F4:
+				return 1;
+			}
+		}
+	}
+
+out:
 	gp_widgets_redraw(layout);
 
 	return 0;
