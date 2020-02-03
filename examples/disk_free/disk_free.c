@@ -10,7 +10,6 @@
 #include <string.h>
 #include <mntent.h>
 #include <sys/vfs.h>
-#include <poll.h>
 #include <fcntl.h>
 
 #include <gfxprim.h>
@@ -142,41 +141,42 @@ static int open_proc_mounts(void)
 	return fd;
 }
 
-int main(int argc, char *argv[])
+static int proc_mounts_poll(gp_widget_poll *self)
 {
-	struct pollfd fds[2];
+	gp_widget *layout, *old_layout;
+
+	(void)self;
+
+	gp_htable_free(fs_widget_groups);
 	fs_widget_groups = gp_htable_new(0, GP_HTABLE_COPY_KEY);
 
+	layout = load_fsinfo();
+
+	if (!layout)
+		return 0;
+
+	old_layout = gp_widget_layout_replace(layout);
+
+	gp_widget_free(old_layout);
+
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	fs_widget_groups = gp_htable_new(0, GP_HTABLE_COPY_KEY);
+	int fd = open_proc_mounts();
 	gp_widget *layout = load_fsinfo();
-	gp_widgets_layout_init(layout, "Disk Free");
 
-	fds[0].fd = gp_widgets_fd();
-	fds[0].events = POLLIN;
-	fds[0].revents = 0;
+	struct gp_widget_poll proc_mounts = {
+		.callback = proc_mounts_poll,
+		.events = POLLPRI,
+		.fd = fd,
+	};
 
-	fds[1].fd = open_proc_mounts();
-	fds[1].events = POLLPRI;
-	fds[1].revents = 0;
+	gp_widgets_poll_add(&proc_mounts);
 
-	for (;;) {
-		poll(fds, 2, -1);
-
-		if (fds[0].revents & POLLIN) {
-			fds[0].revents = 0;
-			if (gp_widgets_process_events(layout))
-				exit(0);
-		}
-
-		if (fds[1].revents & POLLPRI) {
-			fds[1].revents = 0;
-			gp_htable_free(fs_widget_groups);
-			fs_widget_groups = gp_htable_new(0, GP_HTABLE_COPY_KEY);
-			gp_widget_free(layout);
-			layout = load_fsinfo();
-			gp_widget_resize(layout);
-			gp_widgets_redraw(layout);
-		}
-	}
+	gp_widgets_main_loop(layout, "Disk Free", NULL, argc, argv);
 
 	return 0;
 }
