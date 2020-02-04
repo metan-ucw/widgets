@@ -193,7 +193,7 @@ void gp_dir_cache_sort(gp_dir_cache *self, int sort_type)
 
 	self->sort_type = sort_type;
 
-	qsort(self->entries, self->used, sizeof(void*), cmp_func);
+	qsort(self->entries+1, self->used-1, sizeof(void*), cmp_func);
 }
 
 static void open_inotify(gp_dir_cache *self, const char *path)
@@ -322,6 +322,8 @@ gp_dir_cache *gp_dir_cache_new(const char *path)
 	ret->used = 0;
 	ret->allocator = NULL;
 	ret->sort_type = 0;
+
+	add_entry(ret, "..");
 
 	populate(ret);
 
