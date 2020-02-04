@@ -358,6 +358,8 @@ void gp_widgets_poll_rem(struct gp_widget_poll *poll)
 	GP_WARN("No poll %p to remove!", poll);
 }
 
+static gp_widget *win_layout;
+
 static void do_poll(void)
 {
 	unsigned int i;
@@ -373,6 +375,7 @@ static void do_poll(void)
 	if (ret == 0) {
 		/* process timers */
 		gp_backend_poll(backend);
+		gp_widgets_process_events(win_layout);
 		return;
 	}
 
@@ -395,8 +398,6 @@ static void do_poll(void)
 			widgets_poll_rem(i);
 	}
 }
-
-static gp_widget *win_layout;
 
 gp_widget *gp_widget_layout_replace(gp_widget *layout)
 {
