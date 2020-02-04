@@ -236,6 +236,7 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 			buf.buf = backend->pixmap;
 			gp_fill(backend->pixmap, 0x444444);
 			gp_widget_render(layout, &buf, 1);
+			gp_backend_flip(backend);
 			handled = 1;
 		break;
 		case GP_EV_SYS_QUIT:
