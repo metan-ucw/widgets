@@ -431,7 +431,8 @@ void gp_widgets_main_loop(gp_widget *layout, const char *label,
 		do_poll();
 
 		if (pfds[0].revents) {
-			gp_widgets_process_events(win_layout);
+			if (gp_widgets_process_events(win_layout))
+				return;
 			pfds[0].revents = 0;
 		}
 
