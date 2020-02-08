@@ -18,12 +18,6 @@ $(SUBDIRS):
 
 -include $(DEP)
 
-test.dep: test.h
-sysinfo.dep: sysinfo.h
-t0.dep: t0.h
-t4.dep: t4.h
-t5.dep: t5.h
-
 test: test.o
 sysinfo: sysinfo.o
 t0: t0.o
@@ -43,9 +37,6 @@ test_pixmap: LDFLAGS+=-rdynamic
 show_layout: LDFLAGS+=-rdynamic
 t0: LDFLAGS+=-rdynamic
 t4: LDFLAGS+=-rdynamic
-
-%.h: %.wl
-	./gpwl $^ > $@
 
 clean:
 	rm -f $(BINS) *.dep *.h *.o
