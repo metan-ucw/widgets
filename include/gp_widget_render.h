@@ -13,8 +13,8 @@
 
 #include <core/gp_core.h>
 #include <gfx/gp_gfx.h>
-#include <text/GP_Text.h>
-#include <input/GP_Timer.h>
+#include <text/gp_text.h>
+#include <input/gp_timer.h>
 
 #include <gp_widget.h>
 

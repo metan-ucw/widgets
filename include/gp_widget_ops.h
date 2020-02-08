@@ -9,7 +9,7 @@
 #ifndef GP_WIDGET_OPS_H__
 #define GP_WIDGET_OPS_H__
 
-#include <input/GP_Event.h>
+#include <input/gp_event.h>
 #include <gp_widget.h>
 
 struct gp_widget_render;
