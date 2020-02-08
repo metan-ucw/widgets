@@ -42,17 +42,14 @@ struct gp_widget_render_info gp_widget_render_info_ = {
 	.padd = 4,
 };
 
-#define FONT "/usr/share/fonts/droid/DroidSans.ttf"
-#define FONT_BOLD "/usr/share/fonts/droid/DroidSans-Bold.ttf"
-
 static int font_size = 16;
 static gp_font_face *render_font;
 static gp_font_face *render_font_bold;
 
 void gp_widget_render_init(void)
 {
-	gp_font_face *font = gp_font_face_load(FONT, 0, font_size);
-	gp_font_face *font_bold = gp_font_face_load(FONT_BOLD, 0, font_size);
+	gp_font_face *font = gp_font_face_fc_load("DroidSans", 0, font_size);
+	gp_font_face *font_bold = gp_font_face_fc_load("DroidSans:Bold", 0, font_size);
 
 	if (!font || !font_bold) {
 		gp_font_face_free(font);
