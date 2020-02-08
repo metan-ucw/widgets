@@ -12,7 +12,7 @@
 #include <poll.h>
 
 #include <core/gp_core.h>
-#include <gfx/GP_Gfx.h>
+#include <gfx/gp_gfx.h>
 #include <text/GP_Text.h>
 #include <input/GP_Timer.h>
 
