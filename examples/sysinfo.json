@@ -1,0 +1,40 @@
+{
+ "type": "tabs",
+ "labels": [
+  "System",
+  "Cpus",
+  "Memory"
+ ],
+ "widgets": [
+  {
+   "rows": 4,
+   "uid": "sysinfo",
+   "widgets": [
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    }
+   ]
+  },
+  {
+   "call": "init_cpu_bars"
+  },
+  {
+   "rows": 2,
+   "widgets": [
+    {
+     "type": "progressbar",
+     "uid": "ram_usage"
+    },
+    {
+     "type": "progressbar",
+     "uid": "swap_usage"
+    }
+   ]
+  }
+ ]
+}

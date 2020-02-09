@@ -1,7 +1,7 @@
 CFLAGS+=-W -Wall -Wextra -O2 -I../include/ `gfxprim-config --cflags` -ggdb
 LDFLAGS+=-L../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl
-BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout imp #sysinfo t1 t2
+BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout imp sysinfo #t1 t2
 DEP=$(BINS:=.dep)
 SUBDIRS=disk_free login calc
 
@@ -31,6 +31,7 @@ test_login: test_login.o
 test_pixmap: test_pixmap.o
 show_layout: show_layout.o
 
+sysinfo: LDFLAGS+=-rdynamic
 test: LDFLAGS+=-rdynamic
 test_login: LDFLAGS+=-rdynamic
 test_pixmap: LDFLAGS+=-rdynamic

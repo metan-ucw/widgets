@@ -1,5 +1,4 @@
 //SPDX-License-Identifier: LGPL-2.0-or-later
-
 /*
 
    Copyright (c) 2014-2019 Cyril Hrubis <metan@ucw.cz>
@@ -13,22 +12,27 @@
 #include <gfxprim.h>
 #include <gp_widgets.h>
 
-#include "sysinfo.h"
+static gp_widget *ram_usage;
+static gp_widget *swap_usage;
 
-static void read_uname(void)
+void init_sysinfo(gp_widget *grid)
 {
 	static struct utsname buf;
 	static char hbuf[32];
 
 	uname(&buf);
-
-	gp_widget_label_set(&sysname, buf.sysname);
-	gp_widget_label_set(&release, buf.release);
-	gp_widget_label_set(&machine, buf.machine);
-
 	gethostname(hbuf, sizeof(hbuf));
 
-	gp_widget_label_set(&hostname, hbuf);
+	gp_widget *label;
+
+	label = gp_widget_label_new(buf.sysname, 0, 0);
+	gp_widget_grid_put(grid, 0, 0, label);
+	label = gp_widget_label_new(buf.release, 0, 0);
+	gp_widget_grid_put(grid, 0, 1, label);
+	label = gp_widget_label_new(buf.machine, 0, 0);
+	gp_widget_grid_put(grid, 0, 2, label);
+	label = gp_widget_label_new(hbuf, 0, 0);
+	gp_widget_grid_put(grid, 0, 3, label);
 }
 
 static void update_mem_usage(void)
@@ -58,10 +62,8 @@ static void update_mem_usage(void)
 			swap_free = val;
 	}
 
-	gp_widget_progress_bar_set_max(&ram_usage, mem_total);
-	gp_widget_progress_bar_set(&ram_usage, mem_total - mem_free);
-	gp_widget_progress_bar_set_max(&swap_usage, swap_total);
-	gp_widget_progress_bar_set(&swap_usage, swap_total - swap_free);
+	gp_widget_pbar_set(ram_usage, 100.00 * (mem_total - mem_free) / mem_total);
+	gp_widget_pbar_set(swap_usage, 100.00 * (swap_total - swap_free) / swap_total);
 }
 
 struct cpu_stat {
@@ -124,14 +126,14 @@ static void read_cpu_proc(struct cpu_stat *s)
 
 static gp_widget *bars;
 
-static void alloc_cpu_bars(void)
+gp_widget *init_cpu_bars(void)
 {
 	unsigned int cpus = count_cpus();
 	unsigned int i;
 
 	cpu_stats = malloc(cpus * sizeof(struct cpu_stat));
 	if (!cpu_stats)
-		return;
+		return NULL;
 
 	read_cpu_proc(cpu_stats);
 
@@ -143,13 +145,12 @@ static void alloc_cpu_bars(void)
 		cpu_stats[i].load = 0;
 		if (i != 0)
 			sprintf(buf, "cpu%i", i);
-		gp_widget_grid_put(bars, 1, i, gp_widget_progress_bar_new(0, 1000000, 0));
+		gp_widget_grid_put(bars, 1, i, gp_widget_pbar_new(0));
 		gp_widget_grid_put(bars, 0, i, gp_widget_label_new(buf, 0, 0));
 	}
 
-	gp_widget_grid_put(&cpu_tab, 0, 1, bars);
+	return bars;
 }
-
 
 static void update_cpu_usage(void)
 {
@@ -159,7 +160,7 @@ static void update_cpu_usage(void)
 
 	for (i = 0; i < cpus; i++) {
 		gp_widget *bar = gp_widget_grid_get(bars, 1, i);
-		gp_widget_progress_bar_set(bar, cpu_stats[i].load);
+		gp_widget_pbar_set(bar, cpu_stats[i].load / 10000.00);
 	}
 }
 
@@ -181,15 +182,23 @@ static void start_timer(void)
 	gp_widgets_timer_add(&tmr, 1000);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-	read_uname();
+	static void *uids;
 
+	gp_widget *layout = gp_widget_layout_json("sysinfo.json", &uids);
+	if (!layout)
+		return 0;
+
+	gp_widget *grid = gp_widget_by_uid(uids, "sysinfo", GP_WIDGET_GRID);
+
+	ram_usage = gp_widget_by_uid(uids, "ram_usage", GP_WIDGET_PROGRESSBAR);
+	swap_usage = gp_widget_by_uid(uids, "swap_usage", GP_WIDGET_PROGRESSBAR);
+
+	init_sysinfo(grid);
 	update_mem_usage();
-	alloc_cpu_bars();
 
-	gp_widgets_init(&layout);
-	gp_widgets_main_loop(&layout, "System Information", start_timer);
+	gp_widgets_main_loop(layout, "System Information", start_timer, argc, argv);
 
 	return 0;
 }
