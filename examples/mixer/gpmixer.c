@@ -2,13 +2,30 @@
 
 /*
 
-    Copyright (C) 2007-2019 Cyril Hrubis <metan@ucw.cz>
+    Copyright (C) 2007-2020 Cyril Hrubis <metan@ucw.cz>
 
  */
 
 #include <alsa/asoundlib.h>
 #include <gfxprim.h>
 #include <gp_widgets.h>
+
+struct elem_group {
+	gp_widget *slider;
+	gp_widget *choice;
+	gp_widget *chbox;
+};
+
+struct elem_group *alloc_elem_groups(unsigned int count)
+{
+	struct elem_group *groups = malloc(sizeof(struct elem_group) * count);
+	if (!count)
+		return NULL;
+
+	memset(groups, 0, sizeof(struct elem_group) * count);
+
+	return groups;
+}
 
 static int slider_playback_callback(gp_widget_event *ev)
 {
@@ -25,12 +42,33 @@ static int slider_playback_callback(gp_widget_event *ev)
 static int mixer_playback_callback(snd_mixer_elem_t *elem,
                           unsigned int mask __attribute__((unused)))
 {
-	gp_widget *w = snd_mixer_elem_get_callback_private(elem);
-	long volume;
+	struct elem_group *grp = snd_mixer_elem_get_callback_private(elem);
 
-	snd_mixer_selem_get_playback_volume(elem, 0, &volume);
+	//TODO: Use mask?
 
-	gp_widget_int_set(w, volume);
+	if (grp->slider) {
+		long volume;
+
+		snd_mixer_selem_get_playback_volume(elem, 0, &volume);
+
+		gp_widget_int_set(grp->slider, volume);
+	}
+
+	if (grp->chbox) {
+		int val;
+
+		snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_MONO, &val);
+
+		gp_widget_checkbox_set(grp->chbox, val);
+	}
+
+	if (grp->choice) {
+		unsigned int sel;
+
+		snd_mixer_selem_get_enum_item(elem, SND_MIXER_SCHN_MONO, &sel);
+
+		gp_widget_choice_set(grp->choice, sel);
+	}
 
 	return 0;
 }
@@ -50,9 +88,6 @@ static gp_widget *create_playback_slider(snd_mixer_elem_t *elem)
 	                              slider_playback_callback, elem);
 
 	slider->align = GP_VFILL | GP_HCENTER;
-
-	snd_mixer_elem_set_callback_private(elem, slider);
-	snd_mixer_elem_set_callback(elem, mixer_playback_callback);
 
 	return slider;
 }
@@ -148,6 +183,12 @@ static gp_widget *create_playback_widgets(snd_mixer_t *mixer)
 
 	gp_widget *playback = gp_widget_grid_new(count, 3);
 
+	struct elem_group *playback_groups = malloc(sizeof(struct elem_group) * count);
+	if (!count)
+		return playback;
+
+	memset(playback_groups, 0, sizeof(struct elem_group) * count);
+
 	playback->align = GP_VFILL | GP_HCENTER;
 
 	for (; elem != NULL; elem = snd_mixer_elem_next(elem)) {
@@ -155,20 +196,23 @@ static gp_widget *create_playback_widgets(snd_mixer_t *mixer)
 			continue;
 
 		if (snd_mixer_selem_is_enumerated(elem)) {
-			gp_widget *choice = create_playback_enum(elem);
-			gp_widget_grid_put(playback, i, 0, choice);
+			playback_groups[i].choice = create_playback_enum(elem);
+			gp_widget_grid_put(playback, i, 0, playback_groups[i].choice);
 		} else {
-			gp_widget *slider = create_playback_slider(elem);
+			playback_groups[i].slider = create_playback_slider(elem);
 
-			if (slider)
-				gp_widget_grid_put(playback, i, 0, slider);
+			if (playback_groups[i].slider)
+				gp_widget_grid_put(playback, i, 0, playback_groups[i].slider);
 		}
 
-		gp_widget *chbox = create_playback_chbox(elem);
-		gp_widget_grid_put(playback, i, 1, chbox);
+		playback_groups[i].chbox = create_playback_chbox(elem);
+		gp_widget_grid_put(playback, i, 1, playback_groups[i].chbox);
 
 		gp_widget *label = create_label(elem);
 		gp_widget_grid_put(playback, i, 2, label);
+
+		snd_mixer_elem_set_callback_private(elem, &playback_groups[i]);
+		snd_mixer_elem_set_callback(elem, mixer_playback_callback);
 
 		i++;
 	}
