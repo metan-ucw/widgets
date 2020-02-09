@@ -13,7 +13,7 @@
 static unsigned int header_min_w(gp_widget_table *tbl, unsigned int col)
 {
 	const char *text = tbl->headers[col].text;
-	unsigned int text_size = gp_text_width(cfg->font, text);
+	unsigned int text_size = gp_text_width(cfg->font_bold, text);
 
 	if (tbl->headers[col].sortable)
 		text_size += cfg->padd + gp_text_ascent(cfg->font);
