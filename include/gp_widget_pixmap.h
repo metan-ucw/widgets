@@ -10,8 +10,12 @@
 #define GP_WIDGET_PIXMAP_H__
 
 struct gp_widget_pixmap {
-	unsigned int w, h;
+	unsigned int min_w, min_h;
 	gp_pixmap *pixmap;
+	/*
+	 * If set backing bitmap is allocated automatically.
+	 */
+	int double_buffer:1;
 };
 
 struct gp_widget *gp_widget_pixmap_new(unsigned int w, unsigned int h,

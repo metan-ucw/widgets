@@ -16,12 +16,12 @@
 
 static unsigned int min_w(gp_widget *self)
 {
-	return self->pixmap->w;
+	return self->pixmap->min_w;
 }
 
 static unsigned int min_h(gp_widget *self)
 {
-	return self->pixmap->h;
+	return self->pixmap->min_h;
 }
 
 static void render(gp_widget *self,
@@ -32,8 +32,17 @@ static void render(gp_widget *self,
 
 	(void)flags;
 
+	if (!self->pixmap->double_buffer) {
+		gp_pixmap pix;
+		gp_sub_pixmap(render->buf, &pix, self->x, self->y, self->w, self->h);
+		self->pixmap->pixmap = &pix;
+		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
+		self->pixmap->pixmap = NULL;
+		return;
+	}
+
 	if (!self->pixmap->pixmap) {
-		gp_pixmap *p = gp_pixmap_alloc(self->pixmap->w, self->pixmap->h,
+		gp_pixmap *p = gp_pixmap_alloc(self->w, self->h,
 		                               render->buf->pixel_type);
 
 		if (!p)
@@ -41,11 +50,11 @@ static void render(gp_widget *self,
 
 		self->pixmap->pixmap = p;
 
-		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW);
+		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
 	}
 
 	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
-	             self->pixmap->w, self->pixmap->h,
+	             self->w, self->h,
 	             render->buf, x, y);
 }
 
@@ -80,7 +89,7 @@ static gp_widget *json_to_pixmap(json_object *json, void **uids)
 			GP_WARN("Invalid pixmap key '%s'", key);
 	}
 
-	if (w == 0 || h == 0) {
+	if (w <= 0 || h <= 0) {
 		GP_WARN("Invalid pixmap size %ux%u\n", w, h);
 		return NULL;
 	}
@@ -109,8 +118,8 @@ struct gp_widget *gp_widget_pixmap_new(unsigned int w, unsigned int h,
 
 	ret->on_event = on_event;
 	ret->on_event_ptr = event_ptr;
-	ret->pixmap->w = w;
-	ret->pixmap->h = h;
+	ret->pixmap->min_w = w;
+	ret->pixmap->min_h = h;
 	ret->pixmap->pixmap = NULL;
 
 	return ret;

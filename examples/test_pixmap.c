@@ -125,6 +125,10 @@ int main(int argc, char *argv[])
 	if (!layout)
 		return 0;
 
+	gp_widget *pixmap = gp_widget_by_uid(uids, "pixmap", GP_WIDGET_PIXMAP);
+
+	pixmap->pixmap->double_buffer = 1;
+
 	gp_widgets_main_loop(layout, "Pixmap test", NULL, argc, argv);
 
 	return 0;
