@@ -242,3 +242,15 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
 
 	return ret;
 }
+
+void gp_widget_choice_set(gp_widget *self, unsigned int sel)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_RADIOBUTTON, );
+
+	if (self->choice->sel == sel)
+		return;
+
+	self->choice->sel = sel;
+
+	gp_widget_redraw(self);
+}
