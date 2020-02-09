@@ -31,6 +31,26 @@ gp_widget *gp_widget_from_json(json_object *json, void **uids)
 	if (json_object_object_length(json) == 0)
 		return NULL;
 
+	if (json_object_object_get_ex(json, "call", &json_type)) {
+		const char *func_name = json_object_get_string(json_type);
+
+		if (!func_name) {
+			GP_WARN("Invalid call");
+			return NULL;
+		}
+
+		gp_widget *(*func)(void) = gp_widget_callback_addr(func_name);
+
+		if (!func) {
+			GP_WARN("Function call '%s' does not exist!", func_name);
+			return NULL;
+		}
+
+		GP_DEBUG(1, "Calling '%s'", func_name);
+
+		return func();
+	}
+
 	if (json_object_object_get_ex(json, "type", &json_type)) {
 		type = json_object_get_string(json_type);
 
