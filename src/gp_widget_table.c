@@ -112,16 +112,17 @@ static void header_render(gp_widget *self, struct gp_widget_render *render)
 		char *buf = "";
 
 		if (tbl->headers[i].sortable) {
+			gp_size symbol_size = text_a/1.5;
 			gp_size sx = cx + tbl->cols_w[i] - cfg->padd - text_a/2;
 			gp_size sy = cy + text_a/2;
 
 			if (i == tbl->sorted_by_col) {
 				if (tbl->sorted_desc)
-					gp_triangle_down(render->buf, sx, sy, text_a, cfg->text_color);
+					gp_triangle_down(render->buf, sx, sy, symbol_size, cfg->text_color);
 				else
-					gp_triangle_up(render->buf, sx, sy, text_a, cfg->text_color);
+					gp_triangle_up(render->buf, sx, sy, symbol_size, cfg->text_color);
 			} else {
-				gp_triangle_updown(render->buf, sx, sy, text_a, cfg->text_color);
+				gp_triangle_updown(render->buf, sx, sy, symbol_size, cfg->text_color);
 			}
 		}
 
