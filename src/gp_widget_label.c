@@ -183,11 +183,19 @@ gp_widget *gp_widget_label_printf_new(int bold, const char *fmt, ...)
 	len = vsnprintf(NULL, 0, fmt, ap);
 	va_end(ap);
 
-	gp_widget *ret = gp_widget_label_new(NULL, len+1, bold);
+	char *buf = malloc(len+1);
+	if (!buf) {
+		GP_WARN("Malloc failed :(");
+		return NULL;
+	}
 
 	va_start(ap, fmt);
-	vsnprintf(ret->label->text, len+1, fmt, ap);
+	vsnprintf(buf, len+1, fmt, ap);
 	va_end(ap);
+
+	gp_widget *ret = gp_widget_label_new(buf, 0, bold);
+
+	free(buf);
 
 	return ret;
 }
