@@ -3,6 +3,9 @@
   "widgets": [
     {
       "cols": 2,
+      "halign": "fill",
+      "border": "none",
+      "cfill": "0, 1",
       "widgets": [
 	{
 	  "type": "label",
@@ -10,14 +13,20 @@
 	},
 	{
 	  "type": "textbox",
-	  "text": "/home/metan"
+	  "size": 40,
+	  "halign": "fill",
+	  "uid": "path"
 	}
       ]
     },
     {
     },
     {
-      "cols": 4,
+      "cols": 5,
+      "border": "none",
+      "halign": "fill",
+      "cfill": "5 * 0",
+      "cpadf": "0, 0, 1, 1, 0, 0",
       "widgets": [
         {
           "type": "label",
@@ -28,7 +37,12 @@
 	  "size": 20,
 	  "uid": "filter"
         },
-        {
+	{
+	 "type": "checkbox",
+	 "label": "Show Hidden",
+	 "uid": "hidden"
+	},
+	{
           "type": "button",
           "label": "Cancel"
         },

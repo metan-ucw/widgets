@@ -15,6 +15,7 @@
 #include <time.h>
 
 #include <gfxprim.h>
+#include <gp_string.h>
 #include <gp_widgets.h>
 #include <gp_dir_cache.h>
 #include <gp_date_time.h>
@@ -23,6 +24,7 @@
 static gp_widget *table;
 static gp_widget *hidden;
 static gp_widget *filter;
+static gp_widget *path;
 
 static int redraw_table(gp_widget_event *ev)
 {
@@ -32,8 +34,6 @@ static int redraw_table(gp_widget_event *ev)
 
 	return 0;
 }
-
-//#include "imp.h"
 
 static const gp_widget_table_header headers[] = {
 	{.text = "File", .sortable = 1},
@@ -80,27 +80,64 @@ static int find_next(gp_widget_table *tbl)
 		entry = gp_dir_cache_get(cache, tbl->row_idx);
 
 		if (str_len) {
-			if (strstr(entry->name, str))
+			if (strstr(entry->name, str)) {
+				gp_dir_cache_set_filter(cache, tbl->row_idx, 0);
 				return 1;
-			else
+			} else {
 				goto next;
+			}
 		}
 
-		if (show_hidden)
+		if (show_hidden || (entry->name[0] != '.' || entry->name[1] == '.')) {
+			gp_dir_cache_set_filter(cache, tbl->row_idx, 0);
 			return 1;
-
-		if (entry->name[0] != '.' || entry->name[1] == '.')
-			return 1;
-
+		}
 next:
+		gp_dir_cache_set_filter(cache, tbl->row_idx, 1);
 		tbl->row_idx++;
 	}
+}
+
+static int notify_callback(gp_widget_poll *self)
+{
+	if (gp_dir_cache_inotify(self->priv))
+		redraw_table(NULL);
+
+	return 0;
+}
+
+static struct gp_widget_poll notify_poll;
+
+static gp_dir_cache *load_dir_cache(void)
+{
+	gp_dir_cache *cache = gp_dir_cache_new(path->tbox->buf);
+
+	if (cache->inotify_fd > 0) {
+		notify_poll.events = POLLIN,
+		notify_poll.fd = cache->inotify_fd;
+		notify_poll.priv = cache;
+		notify_poll.callback = notify_callback;
+		gp_widgets_poll_add(&notify_poll);
+	}
+
+	return cache;
+}
+
+static void free_dir_cache(struct gp_dir_cache *self)
+{
+	if (self->inotify_fd > 0)
+		gp_widgets_poll_rem(&notify_poll);
+
+	gp_dir_cache_free(self);
 }
 
 int set_row(gp_widget *self, int op, unsigned int pos)
 {
 	gp_dir_cache *cache = self->tbl->priv;
 	unsigned int i;
+
+	if (!cache)
+		cache = self->tbl->priv = load_dir_cache();
 
 	switch (op) {
 	case GP_TABLE_ROW_RESET:
@@ -144,18 +181,52 @@ static const char *get_elem(gp_widget *self, unsigned int col)
 	return "";
 }
 
-void table_on_event(gp_widget *self)
+static void table_event(gp_widget_table *tbl)
 {
-	gp_widget_table *tbl = self->tbl;
-	//TODO: filtering - selected_row != cache entry
-	gp_dir_entry *entry = gp_dir_cache_get(tbl->priv, tbl->selected_row);
+	gp_dir_entry *entry = gp_dir_cache_get_filtered(tbl->priv, tbl->selected_row);
+
+	if (!entry) {
+		GP_BUG("Empty entry!");
+		return;
+	}
 
 	if (!entry->is_dir) {
 		printf("%s\n", entry->name);
 		return;
 	}
 
-	//TODO:!!!
+	char *dpath = gp_aprintf("%s/%s", path->tbox->buf, entry->name);
+	char *dir = realpath(dpath, NULL);
+
+	gp_widget_textbox_printf(path, "%s", dir);
+
+	free(dpath);
+	free(dir);
+
+	free_dir_cache(table->tbl->priv);
+	table->tbl->priv = load_dir_cache();
+	gp_widget_textbox_clear(filter);
+	gp_widget_redraw(table);
+}
+
+static int table_on_event(gp_widget_event *ev)
+{
+	switch (ev->type) {
+	case GP_WIDGET_EVENT_ACTION:
+		table_event(ev->self->tbl);
+		return 0;
+	case GP_WIDGET_EVENT_INPUT:
+		if (ev->input_ev->type == GP_EV_KEY &&
+		    ev->input_ev->val.val == GP_KEY_ESC) {
+			gp_widget_textbox_clear(filter);
+			gp_widget_redraw(ev->self);
+			return 1;
+		}
+
+		return gp_widget_ops_event(filter, ev->input_ev);
+	default:
+		return 0;
+	}
 }
 
 int main(int argc, char *argv[])
@@ -172,6 +243,10 @@ int main(int argc, char *argv[])
 	if (filter)
 		filter->on_event = redraw_table;
 
+	path = gp_widget_by_uid(uids, "path", GP_WIDGET_TEXTBOX);
+
+	gp_widget_textbox_printf(path, ".");
+
 	table = gp_widget_table_new(3, 25, headers, set_row, get_elem);
 	table->align = GP_FILL;
 	table->tbl->col_fills[0] = 1;
@@ -179,13 +254,15 @@ int main(int argc, char *argv[])
 	table->tbl->col_min_sizes[1] = 7;
 	table->tbl->col_min_sizes[2] = 7;
 
-	table->tbl->priv = gp_dir_cache_new(".");
+	table->input_events = 1;
+
+	table->tbl->priv = NULL;
 	table->tbl->sort = sort;
 	table->on_event = table_on_event;
 
 	gp_widget_grid_put(layout, 0, 1, table);
 
-	gp_widgets_main_loop(layout, "IMP", NULL, argc, argv);
+	gp_widgets_main_loop(layout, "Open File", NULL, argc, argv);
 
 	return 0;
 }
