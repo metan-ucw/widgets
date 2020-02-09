@@ -46,8 +46,36 @@ static int font_size = 16;
 static gp_font_face *render_font;
 static gp_font_face *render_font_bold;
 
-void gp_widget_render_init(void)
+const char *arg_fonts;
+
+static void init_fonts(void)
 {
+	if (arg_fonts) {
+		if (!strcmp(arg_fonts, "default"))
+			return;
+
+		if (!strcmp(arg_fonts, "haxor-15")) {
+			render_font = gp_font_haxor_narrow_15;
+			render_font_bold = gp_font_haxor_narrow_bold_15;
+			return;
+		}
+
+		if (!strcmp(arg_fonts, "haxor-16")) {
+			render_font = gp_font_haxor_narrow_16;
+			render_font_bold = gp_font_haxor_narrow_bold_16;
+			return;
+		}
+
+		if (!strcmp(arg_fonts, "haxor-17")) {
+			render_font = gp_font_haxor_narrow_17;
+			render_font_bold = gp_font_haxor_narrow_bold_17;
+			return;
+		}
+
+		GP_WARN("Inavlid font '%s'!", arg_fonts);
+		return;
+	}
+
 	gp_font_face *font = gp_font_face_fc_load("DroidSans", 0, font_size);
 	gp_font_face *font_bold = gp_font_face_fc_load("DroidSans:Bold", 0, font_size);
 
@@ -62,9 +90,16 @@ void gp_widget_render_init(void)
 
 	render_font = font;
 	render_font_bold = font_bold;
+}
 
-	gp_widget_render_info_.font->font = font;
-	gp_widget_render_info_.font_bold->font = font_bold;
+void gp_widget_render_init(void)
+{
+	init_fonts();
+
+	if (render_font && render_font_bold) {
+		gp_widget_render_info_.font->font = render_font;
+		gp_widget_render_info_.font_bold->font = render_font_bold;
+	}
 
 	gp_widget_render_info_.font_bold->pixel_xmul = 1;
 	gp_widget_render_info_.font_bold->pixel_ymul = 1;
@@ -290,7 +325,9 @@ int gp_widgets_fd(void)
 
 static void print_options(int exit_val)
 {
-	printf("Options: -b backend init string\n");
+	printf("Options:\n--------\n");
+	printf("\t-b backend init string (pass -b help for options)\n");
+	printf("\t-f fonts\n\t\tdefault\n\t\thaxor-15\n\t\thaxor-16\n\t\thaxor-17\n");
 	exit(exit_val);
 }
 
@@ -298,13 +335,16 @@ static void parse_args(int argc, char *argv[])
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "b:h")) != -1) {
+	while ((opt = getopt(argc, argv, "b:f:h")) != -1) {
 		switch (opt) {
 		case 'b':
 			backend_init_str = optarg;
 		break;
 		case 'h':
 			print_options(0);
+		break;
+		case 'f':
+			arg_fonts = optarg;
 		break;
 		default:
 			print_options(1);
