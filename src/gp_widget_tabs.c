@@ -161,17 +161,17 @@ static void render(gp_widget *self,
 	gp_hline_xxy(render->buf, act_x + act_w - 1, self->x + self->w-1,
 		     self->y + tab_h, cfg->text_color);
 
+	gp_rrect_xywh(render->buf, self->x, self->y, self->w, self->h, cfg->text_color);
+
 	if (!widget)
 		return;
 
-	gp_fill_rect_xyxy(render->buf, self->x, widget->y + widget->h,
-	                  self->x + self->w-1, self->y + self->h-1, cfg->bg_color);
+	gp_fill_rect_xyxy(render->buf, self->x+1, widget->y + widget->h,
+	                  self->x + self->w-2, self->y + self->h-2, cfg->bg_color);
 	gp_fill_rect_xyxy(render->buf, widget->x + widget->w, widget->y,
 	                  self->x + self->w-2, widget->y + widget->h, cfg->bg_color);
 	gp_fill_rect_xywh(render->buf, self->x+1, widget->y,
 	                  widget->x - self->x-1, widget->h, cfg->bg_color);
-
-	gp_rrect_xywh(render->buf, self->x, self->y, self->w, self->h, cfg->text_color);
 
 	if (self->redraw_subtree) {
 		self->redraw_subtree = 0;
