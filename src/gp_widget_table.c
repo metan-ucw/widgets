@@ -27,9 +27,8 @@ static unsigned int min_w(gp_widget *self)
 	unsigned int i, sum_cols_w = 0;
 
 	if (tbl->headers) {
-		for (i = 0; i < tbl->cols; i++) {
+		for (i = 0; i < tbl->cols; i++)
 			tbl->cols_w[i] = header_min_w(tbl, i);
-		}
 	}
 
 	for (i = 0; i < tbl->cols; i++) {
@@ -39,7 +38,7 @@ static unsigned int min_w(gp_widget *self)
 		sum_cols_w += tbl->cols_w[i];
 	}
 
-	return sum_cols_w + (2 * tbl->cols + 1) * cfg->padd;
+	return sum_cols_w + (2 * tbl->cols) * cfg->padd;
 }
 
 static unsigned int header_h(gp_widget *self)
@@ -92,7 +91,7 @@ static void distribute_size(gp_widget *self, int new_wh)
 	if (!sum_fills)
 		return;
 
-	unsigned int table_w = sum_cols_w + (2 * tbl->cols + 1) * cfg->padd;
+	unsigned int table_w = sum_cols_w + (2 * tbl->cols) * cfg->padd;
 	unsigned int diff = self->w - table_w;
 
 	for (i = 0; i < tbl->cols; i++)
@@ -113,7 +112,7 @@ static void header_render(gp_widget *self, struct gp_widget_render *render)
 
 		if (tbl->headers[i].sortable) {
 			gp_size symbol_size = text_a/1.5;
-			gp_size sx = cx + tbl->cols_w[i] - cfg->padd - text_a/2;
+			gp_size sx = cx + tbl->cols_w[i] - cfg->padd;
 			gp_size sy = cy + text_a/2;
 
 			if (i == tbl->sorted_by_col) {
