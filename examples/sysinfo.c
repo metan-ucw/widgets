@@ -38,7 +38,7 @@ void init_sysinfo(gp_widget *grid)
 static void update_mem_usage(void)
 {
 	FILE *f;
-	char buf[128];
+	char buf[129];
 	unsigned long val = 0;
 	unsigned long mem_total = 0, mem_free = 0;
 	unsigned long swap_total = 0, swap_free = 0;
