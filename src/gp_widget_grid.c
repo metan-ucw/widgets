@@ -270,16 +270,12 @@ static void distribute_size(gp_widget *self, int new_wh)
 			struct gp_widget *widget = widget_grid_get(self, x, y);
 
 			if (widget) {
-				widget->x = grid->cols_off[x];
-				widget->y = grid->rows_off[y];
-				widget->w = grid->cols_w[x];
-				widget->h = grid->rows_h[y];
-
 				gp_widget_ops_distribute_size(widget,
-				                           widget->x, widget->y,
-				                           grid->cols_w[x],
-				                           grid->rows_h[y],
-				                           new_wh);
+				                              grid->cols_off[x],
+				                              grid->rows_off[y],
+				                              grid->cols_w[x],
+				                              grid->rows_h[y],
+				                              new_wh);
 			}
 		}
 	}
