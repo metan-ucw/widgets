@@ -30,7 +30,7 @@ static struct gp_text_style font_bold = {
 	.font = &gp_default_font,
 };
 
-struct gp_widget_render_info gp_widget_render_info_ = {
+static struct gp_widget_render_cfg cfg = {
 	.text_color = 0,
 	.bg_color = 0xdddddd,
 	.fg_color = 0xeeeeee,
@@ -97,16 +97,16 @@ void gp_widget_render_init(void)
 	init_fonts();
 
 	if (render_font && render_font_bold) {
-		gp_widget_render_info_.font->font = render_font;
-		gp_widget_render_info_.font_bold->font = render_font_bold;
+		cfg.font->font = render_font;
+		cfg.font_bold->font = render_font_bold;
 	}
 
-	gp_widget_render_info_.font_bold->pixel_xmul = 1;
-	gp_widget_render_info_.font_bold->pixel_ymul = 1;
-	gp_widget_render_info_.font_bold->pixel_xspace = 0;
-	gp_widget_render_info_.font_bold->pixel_yspace = 0;
+	cfg.font_bold->pixel_xmul = 1;
+	cfg.font_bold->pixel_ymul = 1;
+	cfg.font_bold->pixel_xspace = 0;
+	cfg.font_bold->pixel_yspace = 0;
 
-	gp_widget_render_info_.padd = 2 * gp_text_descent(gp_widget_render_info_.font);
+	cfg.padd = 2 * gp_text_descent(cfg.font);
 }
 
 static gp_backend *backend;
@@ -128,7 +128,7 @@ static void timer_event(gp_event *ev)
 {
 	struct gp_widget *widget = ev->val.tmr->priv;
 
-	gp_widget_ops_event(widget, ev);
+	gp_widget_ops_event(widget, &cfg, ev);
 
 	ev->val.tmr->priv = NULL;
 }
@@ -170,8 +170,6 @@ void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms)
 
 void gp_widgets_redraw(struct gp_widget *layout)
 {
-	struct gp_widget_render buf = {backend->pixmap};
-
 	if (!layout) {
 		GP_DEBUG(1, "Redraw called with NULL layout!");
 		return;
@@ -185,7 +183,7 @@ void gp_widgets_redraw(struct gp_widget *layout)
 		gp_backend_resize(backend, layout->w, layout->h);
 	}
 
-	gp_widget_render(layout, &buf, 0);
+	gp_widget_render(layout, &cfg, 0);
 	gp_backend_flip(backend);
 }
 
@@ -210,22 +208,22 @@ void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires)
 	gp_backend_add_timer(backend, &tmr->tmr);
 }
 
-static struct gp_widget_render buf;
-
 static char *backend_init_str = "x11";
 
 void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 {
 	gp_widget_render_init();
-	gp_widget_calc_size(layout, 0, 0, 1);
 
 	backend = gp_backend_init(backend_init_str, win_tittle);
 	if (!backend)
 		exit(1);
 
-	gp_backend_resize(backend, layout->w, layout->h);
+	cfg.buf = backend->pixmap;
+	cfg.pixel_type = backend->pixmap->pixel_type;
 
-	buf.buf = backend->pixmap;
+	gp_widget_calc_size(layout, &cfg, 0, 0, 1);
+
+	gp_backend_resize(backend, layout->w, layout->h);
 
 	app_layout = layout;
 
@@ -237,7 +235,7 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 		flag = 1;
 	}
 
-	gp_widget_render(layout, &buf, flag);
+	gp_widget_render(layout, &cfg, flag);
 	gp_backend_flip(backend);
 }
 
@@ -265,9 +263,9 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 		switch (ev->code) {
 		case GP_EV_SYS_RESIZE:
 			gp_backend_resize_ack(backend);
-			buf.buf = backend->pixmap;
+			cfg.buf = backend->pixmap;
 			gp_fill(backend->pixmap, 0x444444);
-			gp_widget_render(layout, &buf, 1);
+			gp_widget_render(layout, &cfg, 1);
 			gp_backend_flip(backend);
 			handled = 1;
 		break;
@@ -285,7 +283,7 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 	if (handled)
 		return 0;
 
-	handled = gp_widget_input_event(layout, ev);
+	handled = gp_widget_input_event(layout, &cfg, ev);
 
 	if (handled)
 		return 0;
@@ -476,8 +474,6 @@ void gp_widgets_main_loop(gp_widget *layout, const char *label,
 		gp_widgets_redraw(layout);
 	}
 }
-
-const struct gp_widget_render_info *cfg = &gp_widget_render_info_;
 
 static gp_size text_size(gp_size add_size, const gp_text_style *style,
                          const char *str, size_t len)

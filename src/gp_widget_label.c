@@ -13,7 +13,7 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	gp_text_style *font = self->label->bold ? cfg->font_bold : cfg->font;
 	unsigned int max_width;
@@ -29,14 +29,13 @@ static unsigned int min_w(gp_widget *self)
 	return max_width;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	(void) self;
 	return 2 * cfg->padd + gp_text_ascent(cfg->font);
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	(void) flags;
 	unsigned int align;
@@ -49,13 +48,13 @@ static void render(gp_widget *self,
 	gp_text_style *font = self->label->bold ? cfg->font_bold : cfg->font;
 
 	if (self->label->frame) {
-		gp_fill_rrect_xywh(render->buf, x, y, w, h, cfg->bg_color,
+		gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color,
 		                   cfg->fg_color, cfg->text_color);
 
 		x += cfg->padd;
 		w -= 2 * cfg->padd;
 	} else {
-		gp_fill_rect_xywh(render->buf, x, y, w, h, cfg->bg_color);
+		gp_fill_rect_xywh(cfg->buf, x, y, w, h, cfg->bg_color);
 	}
 
 	if (self->label->ralign) {
@@ -65,7 +64,7 @@ static void render(gp_widget *self,
 		align = GP_ALIGN_RIGHT;
 	}
 
-	gp_text(render->buf, font, x, y + cfg->padd,
+	gp_text(cfg->buf, font, x, y + cfg->padd,
 		align|GP_VALIGN_BELOW,
 		cfg->text_color, cfg->bg_color, self->label->text);
 }

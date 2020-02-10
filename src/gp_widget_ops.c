@@ -10,6 +10,7 @@
 #include <core/gp_debug.h>
 #include <core/gp_common.h>
 #include <gp_widget.h>
+#include <gp_widget_event.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
@@ -118,7 +119,7 @@ void gp_widget_free(gp_widget *self)
 		ops->free(self);
 }
 
-unsigned int gp_widget_min_w(gp_widget *self)
+unsigned int gp_widget_min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	const struct gp_widget_ops *ops;
 
@@ -134,11 +135,11 @@ unsigned int gp_widget_min_w(gp_widget *self)
 		return 0;
 	}
 
-	self->min_w = ops->min_w(self);
+	self->min_w = ops->min_w(self, cfg);
 	return self->min_w;
 }
 
-unsigned int gp_widget_min_h(gp_widget *self)
+unsigned int gp_widget_min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	const struct gp_widget_ops *ops;
 
@@ -154,7 +155,7 @@ unsigned int gp_widget_min_h(gp_widget *self)
 		return 0;
 	}
 
-	self->min_h = ops->min_h(self);
+	self->min_h = ops->min_h(self, cfg);
 	return self->min_h;
 }
 
@@ -251,10 +252,10 @@ static void widget_resize(gp_widget *self,
 		self->h = self->min_h;
 }
 
-void gp_widget_ops_distribute_size(gp_widget *self,
-                                unsigned int x, unsigned int y,
-                                unsigned int w, unsigned int h,
-				int new_wh)
+void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg,
+                                   unsigned int x, unsigned int y,
+                                   unsigned int w, unsigned int h,
+                                   int new_wh)
 {
 	const struct gp_widget_ops *ops = gp_widget_ops(self);
 
@@ -277,14 +278,20 @@ void gp_widget_ops_distribute_size(gp_widget *self,
 		h = self->min_h;
 	}
 
+	unsigned int old_w = self->w;
+	unsigned int old_h = self->h;
+
 	widget_resize(self, x, y, w, h);
 
+	if (self->w != old_w || self->h != old_h)
+		gp_widget_send_event(self, GP_WIDGET_EVENT_RESIZE, cfg);
+
 	if (ops->distribute_size)
-		ops->distribute_size(self, 1);
+		ops->distribute_size(self, cfg, 1);
 }
 
-void gp_widget_calc_size(gp_widget *self,
-                       unsigned int w, unsigned int h, int new_wh)
+void gp_widget_calc_size(gp_widget *self, const gp_widget_render_cfg *cfg,
+                         unsigned int w, unsigned int h, int new_wh)
 {
 	if (!self)
 		return;
@@ -294,8 +301,8 @@ void gp_widget_calc_size(gp_widget *self,
 
 	GP_DEBUG(1, "Recalculating layout %p", self);
 
-	gp_widget_min_w(self);
-	gp_widget_min_h(self);
+	gp_widget_min_w(self, cfg);
+	gp_widget_min_h(self, cfg);
 
 	w = GP_MAX(self->min_w, w);
 	h = GP_MAX(self->min_h, h);
@@ -304,11 +311,10 @@ void gp_widget_calc_size(gp_widget *self,
 	w = GP_MAX(w, 1u);
 	h = GP_MAX(h, 1u);
 
-	gp_widget_ops_distribute_size(self, 0, 0, w, h, new_wh);
+	gp_widget_ops_distribute_size(self, cfg, 0, 0, w, h, new_wh);
 }
 
-void gp_widget_ops_render(gp_widget *self,
-                        struct gp_widget_render *render, int flags)
+void gp_widget_ops_render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	const struct gp_widget_ops *ops;
 
@@ -325,7 +331,7 @@ void gp_widget_ops_render(gp_widget *self,
 	         self, ops->id, self->type, self->x, self->y,
 	         self->w, self->h, flags);
 
-	ops->render(self, render, flags);
+	ops->render(self, cfg, flags);
 
 	self->no_redraw = 1;
 	self->no_redraw_child = 1;
@@ -370,7 +376,8 @@ static const char *select_to_str(int flag)
 	return "???";
 }
 
-int gp_widget_ops_render_select_xy(gp_widget *self, unsigned int x, unsigned int y)
+int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_cfg *cfg,
+                                   unsigned int x, unsigned int y)
 {
 	const struct gp_widget_ops *ops;
 
@@ -385,7 +392,7 @@ int gp_widget_ops_render_select_xy(gp_widget *self, unsigned int x, unsigned int
 		return 0;
 
 	if (ops->select_xy)
-		return ops->select_xy(self, x, y);
+		return ops->select_xy(self, cfg, x, y);
 
 	if (self->selected)
 		return 0;
@@ -424,7 +431,7 @@ int gp_widget_ops_render_select(gp_widget *self, int flag)
 	return 1;
 }
 
-static int handle_select(gp_widget *self, gp_event *ev)
+static int handle_select(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -441,7 +448,7 @@ static int handle_select(gp_widget *self, gp_event *ev)
 
 			return 1;
 		case GP_BTN_LEFT:
-			gp_widget_ops_render_select_xy(self, ev->cursor_x, ev->cursor_y);
+			gp_widget_ops_render_select_xy(self, cfg, ev->cursor_x, ev->cursor_y);
 			return 0;
 		}
 
@@ -469,15 +476,16 @@ static int handle_select(gp_widget *self, gp_event *ev)
 	return 0;
 }
 
-int gp_widget_input_event(gp_widget *self, gp_event *ev)
+int gp_widget_input_event(gp_widget *self, const gp_widget_render_cfg *cfg,
+                          gp_event *ev)
 {
-	if (handle_select(self, ev))
+	if (handle_select(self, cfg, ev))
 		return 1;
 
-	return gp_widget_ops_event(self, ev);
+	return gp_widget_ops_event(self, cfg, ev);
 }
 
-int gp_widget_ops_event(gp_widget *self, gp_event *ev)
+int gp_widget_ops_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	const struct gp_widget_ops *ops;
 	int handled;
@@ -491,22 +499,22 @@ int gp_widget_ops_event(gp_widget *self, gp_event *ev)
 
 	GP_DEBUG(3, "event widget %p (%s)", self, ops->id);
 
-	handled = ops->event(self, ev);
+	handled = ops->event(self, cfg, ev);
 
-	if (!handled && self->input_events)
-		handled = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, ev);
+	if (!handled)
+		handled = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, cfg, ev);
 
 	return handled;
 }
 
-void gp_widget_render(gp_widget *self,
-                     struct gp_widget_render *render, int new_wh)
+void gp_widget_render(gp_widget *self, const gp_widget_render_cfg *cfg, int new_wh)
 {
 	GP_DEBUG(1, "rendering layout %p", self);
-	gp_widget_calc_size(self, gp_pixmap_w(render->buf),
-	                  gp_pixmap_h(render->buf), new_wh);
+	gp_widget_calc_size(self, cfg,
+	                    gp_pixmap_w(cfg->buf),
+	                    gp_pixmap_h(cfg->buf), new_wh);
 
-	gp_widget_ops_render(self, render, 0);
+	gp_widget_ops_render(self, cfg, 0);
 }
 
 void gp_widget_redraw_child(gp_widget *self)

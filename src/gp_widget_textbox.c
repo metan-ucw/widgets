@@ -13,7 +13,7 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	size_t text_len = self->tbox->buf_len - 1;
 	unsigned int ret = 2 * cfg->padd;
@@ -27,7 +27,7 @@ static unsigned int min_w(gp_widget *self)
 	return ret;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	(void)self;
 
@@ -45,8 +45,7 @@ static const char *hidden_str(const char *buf)
 	return s + sizeof(s) - len - 1;
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	unsigned int x = self->x;
 	unsigned int y = self->y;
@@ -68,17 +67,17 @@ static void render(gp_widget *self,
 		gp_widget_render_timer(self, GP_TIMER_RESCHEDULE, 500);
 	}
 
-	gp_fill_rrect_xywh(render->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, color);
+	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, color);
 
 	if (self->selected) {
 		unsigned int cursor_x = x + cfg->padd;
 		cursor_x += gp_text_width_len(cfg->font, str,
 		                              self->tbox->cur_pos);
-		gp_vline_xyh(render->buf, cursor_x, y + cfg->padd,
+		gp_vline_xyh(cfg->buf, cursor_x, y + cfg->padd,
 			     gp_text_ascent(cfg->font), cfg->text_color);
 	}
 
-	gp_text(render->buf, cfg->font,
+	gp_text(cfg->buf, cfg->font,
 		x + cfg->padd, y + cfg->padd,
 		GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
 		cfg->text_color, cfg->bg_color, str);
@@ -192,8 +191,10 @@ static void key_end(gp_widget *self)
 	gp_widget_redraw(self);
 }
 
-static int event(gp_widget *self, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
+	(void)cfg;
+
 	switch (ev->type) {
 	//TODO: Mouse clicks
 	case GP_EV_KEY:

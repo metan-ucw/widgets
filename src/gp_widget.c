@@ -31,5 +31,7 @@ gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size)
 	ret->payload = ret->buf;
 	ret->type = type;
 
+	ret->event_mask = GP_WIDGET_DEFAULT_EVENT_MASK;
+
 	return ret;
 }

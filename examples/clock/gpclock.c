@@ -10,13 +10,13 @@
 #include <time.h>
 #include <gp_widgets.h>
 
-static void draw(gp_widget *pixmap, struct gp_widget_render_info *render)
+static void draw(gp_widget *pixmap, const gp_widget_render_cfg *cfg)
 {
 	gp_pixmap *pix = pixmap->pixmap->pixmap;
 	gp_pixel black = gp_rgb_to_pixmap_pixel(0x00, 0x00, 0x00, pix);
 	gp_pixel red   = gp_rgb_to_pixmap_pixel(0xff, 0x00, 0x00, pix);
 
-	gp_fill(pix, render->bg_color);
+	gp_fill(pix, cfg->bg_color);
 
 	int w = pix->w;
 	int h = pix->h;
@@ -74,7 +74,7 @@ int pixmap_on_event(gp_widget_event *ev)
 {
 	switch (ev->type) {
 	case GP_WIDGET_EVENT_REDRAW:
-		draw(ev->self, ev->ptr);
+		draw(ev->self, ev->cfg);
 		return 1;
 	default:
 		return 0;
@@ -103,6 +103,8 @@ int main(int argc, char *argv[])
 	layout->align = GP_FILL;
 
 	tmr.priv = layout;
+
+	gp_widget_event_unmask(layout, GP_WIDGET_EVENT_REDRAW);
 
 	gp_widgets_main_loop(layout, "Clock", start_timer, argc, argv);
 }

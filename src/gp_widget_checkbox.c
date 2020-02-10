@@ -13,7 +13,7 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
 	unsigned int text_w = 0;
@@ -24,7 +24,7 @@ static unsigned int min_w(gp_widget *self)
 	return text_a + text_w;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	(void)self;
 
@@ -38,8 +38,7 @@ static void cross(gp_pixmap *buf, unsigned int x, unsigned int y,
 	gp_line(buf, x + 3, y + h - 4, x + w - 4, y + 3, col);
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
 	unsigned int x = self->x;
@@ -49,23 +48,23 @@ static void render(gp_widget *self,
 
 	(void)flags;
 
-	gp_fill_rect_xywh(render->buf, x, y, w, h, cfg->bg_color);
+	gp_fill_rect_xywh(cfg->buf, x, y, w, h, cfg->bg_color);
 
 	y += cfg->padd;
 
 	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
 
-	gp_fill_rrect_xywh(render->buf, x, y, text_a, text_a, cfg->bg_color, cfg->fg_color, color);
+	gp_fill_rrect_xywh(cfg->buf, x, y, text_a, text_a, cfg->bg_color, cfg->fg_color, color);
 
 	if (self->b->val) {
-		cross(render->buf, x, y,
+		cross(cfg->buf, x, y,
 		      text_a, text_a, cfg->text_color);
 	}
 
 	if (!self->b->label)
 		return;
 
-	gp_text(render->buf, cfg->font,
+	gp_text(cfg->buf, cfg->font,
 		x + text_a + cfg->padd, y,
 		GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
 		cfg->text_color,
@@ -86,12 +85,12 @@ static void toggle(gp_widget *self)
 	set(self, !self->b->val);
 }
 
-static void click(gp_widget *self, gp_event *ev)
+static void click(gp_widget *self, unsigned int padd, gp_event *ev)
 {
 	unsigned int min_x = self->x;
 	unsigned int max_x = self->x + self->w;
-	unsigned int min_y = self->y + cfg->padd;
-	unsigned int max_y = self->y + self->h - cfg->padd;
+	unsigned int min_y = self->y + padd;
+	unsigned int max_y = self->y + self->h - padd;
 
 	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
 		return;
@@ -102,7 +101,7 @@ static void click(gp_widget *self, gp_event *ev)
 	toggle(self);
 }
 
-static int event(gp_widget *self, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -115,7 +114,7 @@ static int event(gp_widget *self, gp_event *ev)
 			return 1;
 		break;
 		case GP_BTN_LEFT:
-			click(self, ev);
+			click(self, cfg->padd, ev);
 			return 1;
 		break;
 		}

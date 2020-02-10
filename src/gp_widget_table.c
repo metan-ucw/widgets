@@ -10,7 +10,9 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int header_min_w(gp_widget_table *tbl, unsigned int col)
+static unsigned int header_min_w(gp_widget_table *tbl,
+                                 const gp_widget_render_cfg *cfg,
+                                 unsigned int col)
 {
 	const char *text = tbl->headers[col].text;
 	unsigned int text_size = gp_text_width(cfg->font_bold, text);
@@ -21,14 +23,14 @@ static unsigned int header_min_w(gp_widget_table *tbl, unsigned int col)
 	return text_size;
 }
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	struct gp_widget_table *tbl = self->tbl;
 	unsigned int i, sum_cols_w = 0;
 
 	if (tbl->headers) {
 		for (i = 0; i < tbl->cols; i++)
-			tbl->cols_w[i] = header_min_w(tbl, i);
+			tbl->cols_w[i] = header_min_w(tbl, cfg, i);
 	}
 
 	for (i = 0; i < tbl->cols; i++) {
@@ -41,7 +43,7 @@ static unsigned int min_w(gp_widget *self)
 	return sum_cols_w + (2 * tbl->cols) * cfg->padd;
 }
 
-static unsigned int header_h(gp_widget *self)
+static unsigned int header_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
 
@@ -51,32 +53,32 @@ static unsigned int header_h(gp_widget *self)
 	return text_a + 2 * cfg->padd;
 }
 
-static unsigned int row_h(void)
+static unsigned int row_h(const gp_widget_render_cfg *cfg)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
 
 	return text_a + cfg->padd;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
-	unsigned int h = row_h() * self->tbl->min_rows;
+	unsigned int h = row_h(cfg) * self->tbl->min_rows;
 
 	if (self->tbl->headers)
-		h += header_h(self);
+		h += header_h(self, cfg);
 
 	return h;
 }
 
-static unsigned int display_rows(gp_widget *self)
+static unsigned int display_rows(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
-	unsigned int header = header_h(self);
+	unsigned int header = header_h(self, cfg);
 
 	return (self->h - header) / (text_a + cfg->padd);
 }
 
-static void distribute_size(gp_widget *self, int new_wh)
+static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg, int new_wh)
 {
 	gp_widget_table *tbl = self->tbl;
 	unsigned int i, sum_cols_w = 0, sum_fills = 0;
@@ -98,7 +100,7 @@ static void distribute_size(gp_widget *self, int new_wh)
 		tbl->cols_w[i] += tbl->col_fills[i] * (diff/sum_fills);
 }
 
-static void header_render(gp_widget *self, struct gp_widget_render *render)
+static void header_render(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	gp_widget_table *tbl = self->tbl;
 	const gp_widget_table_header *headers = tbl->headers;
@@ -108,8 +110,6 @@ static void header_render(gp_widget *self, struct gp_widget_render *render)
 	unsigned int i;
 
 	for (i = 0; i < tbl->cols; i++) {
-		char *buf = "";
-
 		if (tbl->headers[i].sortable) {
 			gp_size symbol_size = text_a/1.5;
 			gp_size sx = cx + tbl->cols_w[i] - cfg->padd;
@@ -117,22 +117,22 @@ static void header_render(gp_widget *self, struct gp_widget_render *render)
 
 			if (i == tbl->sorted_by_col) {
 				if (tbl->sorted_desc)
-					gp_triangle_down(render->buf, sx, sy, symbol_size, cfg->text_color);
+					gp_triangle_down(cfg->buf, sx, sy, symbol_size, cfg->text_color);
 				else
-					gp_triangle_up(render->buf, sx, sy, symbol_size, cfg->text_color);
+					gp_triangle_up(cfg->buf, sx, sy, symbol_size, cfg->text_color);
 			} else {
-				gp_triangle_updown(render->buf, sx, sy, symbol_size, cfg->text_color);
+				gp_triangle_updown(cfg->buf, sx, sy, symbol_size, cfg->text_color);
 			}
 		}
 
-		gp_print(render->buf, cfg->font_bold, cx, cy,
+		gp_print(cfg->buf, cfg->font_bold, cx, cy,
 			GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
 			cfg->text_color, cfg->bg_color, "%s", headers[i].text);
 
 		cx += tbl->cols_w[i] + cfg->padd;
 
 		if (i < tbl->cols - 1) {
-			gp_vline_xyh(render->buf, cx, self->y+1,
+			gp_vline_xyh(cfg->buf, cx, self->y+1,
 			            text_a + 2 * cfg->padd-1, cfg->bg_color);
 		}
 
@@ -143,10 +143,11 @@ static void header_render(gp_widget *self, struct gp_widget_render *render)
 
 	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
 
-	gp_hline_xyw(render->buf, self->x, cy, self->w, color);
+	gp_hline_xyw(cfg->buf, self->x, cy, self->w, color);
 }
 
 static void align_text(gp_pixmap *buf, gp_widget_table *tbl,
+                       const gp_widget_render_cfg *cfg,
 		       unsigned int x, unsigned int y,
 		       unsigned int col, gp_pixel bg, const char *str)
 {
@@ -155,8 +156,7 @@ static void align_text(gp_pixmap *buf, gp_widget_table *tbl,
 	           cfg->text_color, bg, str);
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	struct gp_widget_table *tbl = self->tbl;
 	unsigned int text_a = gp_text_ascent(cfg->font);
@@ -167,25 +167,27 @@ static void render(gp_widget *self,
 	unsigned int cy = y + cfg->padd;
 	unsigned int i, j;
 
+	(void)flags;
+
 	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
-	gp_fill_rrect_xywh(render->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, color);
+	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, color);
 
 	if (tbl->headers) {
-		header_render(self, render);
-		cy = y + header_h(self);
+		header_render(self, cfg);
+		cy = y + header_h(self, cfg);
 	}
 
 	tbl->row(self, GP_TABLE_ROW_RESET, 0);
 	tbl->row(self, GP_TABLE_ROW_ADVANCE, tbl->start_row);
 
 	unsigned int cur_row = tbl->start_row;
-	unsigned int rows = display_rows(self);
+	unsigned int rows = display_rows(self, cfg);
 
 	unsigned int cx = self->x + cfg->padd;
 
 	for (j = 0; j < tbl->cols-1; j++) {
 		cx += tbl->cols_w[j] + cfg->padd;
-		gp_vline_xyy(render->buf, cx, cy+1, self->y + self->h - 2, cfg->bg_color);
+		gp_vline_xyy(cfg->buf, cx, cy+1, self->y + self->h - 2, cfg->bg_color);
 		cx += cfg->padd;
 	}
 
@@ -197,7 +199,7 @@ static void render(gp_widget *self,
 		if (tbl->row_selected && cur_row == tbl->selected_row) {
 			bg_col = self->selected ? cfg->sel_color : cfg->bg_color;
 
-			gp_fill_rect_xywh(render->buf, self->x+1, cy - cfg->padd/2+1,
+			gp_fill_rect_xywh(cfg->buf, self->x+1, cy - cfg->padd/2+1,
 					self->w - 2,
 					text_a + cfg->padd-1, bg_col);
 		}
@@ -205,12 +207,12 @@ static void render(gp_widget *self,
 		for (j = 0; j < tbl->cols; j++) {
 			const char *str = tbl->get(self, j);
 
-			align_text(render->buf, tbl, cx, cy, j, bg_col, str);
+			align_text(cfg->buf, tbl, cfg, cx, cy, j, bg_col, str);
 
 			cx += tbl->cols_w[j] + cfg->padd;
 
 		//	if (j < tbl->cols - 1) {
-		//		gp_vline_xyh(render->buf, cx, cy,
+		//		gp_vline_xyh(cfg->buf, cx, cy,
 		//			    text_a, cfg->text_color);
 		//	}
 
@@ -222,7 +224,7 @@ static void render(gp_widget *self,
 		tbl->row(self, GP_TABLE_ROW_ADVANCE, 1);
 		cur_row++;
 
-		gp_hline_xyw(render->buf, x+1, cy - cfg->padd/2, w-2, cfg->bg_color);
+		gp_hline_xyw(cfg->buf, x+1, cy - cfg->padd/2, w-2, cfg->bg_color);
 	}
 
 	while (tbl->row(self, GP_TABLE_ROW_ADVANCE, 1))
@@ -237,7 +239,8 @@ static void fix_selected_row(gp_widget_table *tbl)
 		tbl->selected_row = tbl->last_max_row - 1;
 }
 
-static int move_down(gp_widget *self, unsigned int rows)
+static int move_down(gp_widget *self, const gp_widget_render_cfg *cfg,
+                     unsigned int rows)
 {
 	gp_widget_table *tbl = self->tbl;
 
@@ -261,7 +264,7 @@ static int move_down(gp_widget *self, unsigned int rows)
 	return 0;
 
 redraw:
-	rows = display_rows(self);
+	rows = display_rows(self, cfg);
 
 	if (tbl->selected_row > tbl->start_row + rows)
 		tbl->start_row = tbl->selected_row - rows + 1;
@@ -270,13 +273,13 @@ redraw:
 	return 1;
 }
 
-static int move_up(gp_widget *self, unsigned int rows)
+static int move_up(gp_widget *self, const gp_widget_render_cfg *cfg, unsigned int rows)
 {
 	gp_widget_table *tbl = self->tbl;
 
 	if (!tbl->row_selected) {
 		tbl->row_selected = 1;
-		tbl->selected_row = tbl->start_row + display_rows(self) - 1;
+		tbl->selected_row = tbl->start_row + display_rows(self, cfg) - 1;
 
 		goto redraw;
 	}
@@ -300,7 +303,7 @@ redraw:
 	return 1;
 }
 
-static int header_click(gp_widget *self, unsigned int x)
+static int header_click(gp_widget *self, const gp_widget_render_cfg *cfg, unsigned int x)
 {
 	gp_widget_table *tbl = self->tbl;
 	unsigned int i, cx = self->x;
@@ -332,12 +335,12 @@ static int header_click(gp_widget *self, unsigned int x)
 	return 1;
 }
 
-static int row_click(gp_widget *self, gp_event *ev)
+static int row_click(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	gp_widget_table *tbl = self->tbl;
-	unsigned int row = ev->cursor_y - self->y - header_h(self);
+	unsigned int row = ev->cursor_y - self->y - header_h(self, cfg);
 
-	row /= row_h() + tbl->start_row;
+	row /= row_h(cfg) + tbl->start_row;
 	tbl->selected_row = row;
 
 	if (!tbl->row_selected)
@@ -347,12 +350,12 @@ static int row_click(gp_widget *self, gp_event *ev)
 	return 1;
 }
 
-static int click(gp_widget *self, gp_event *ev)
+static int click(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
-	if (ev->cursor_y <= self->y + header_h(self))
-		return header_click(self, ev->cursor_x);
+	if (ev->cursor_y <= self->y + header_h(self, cfg))
+		return header_click(self, cfg, ev->cursor_x);
 
-	return row_click(self, ev);
+	return row_click(self, cfg, ev);
 }
 
 static int enter(gp_widget *self)
@@ -367,7 +370,7 @@ static int enter(gp_widget *self)
 	return 1;
 }
 
-static int event(gp_widget *self, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -377,23 +380,23 @@ static int event(gp_widget *self, gp_event *ev)
 		switch (ev->val.val) {
 		case GP_KEY_DOWN:
 			if (gp_event_get_key(ev, GP_KEY_LEFT_SHIFT))
-				return move_down(self, 10);
+				return move_down(self, cfg, 10);
 
-			return move_down(self, 1);
+			return move_down(self, cfg, 1);
 		break;
 		case GP_KEY_UP:
 			if (gp_event_get_key(ev, GP_KEY_LEFT_SHIFT))
-				return move_up(self, 10);
+				return move_up(self, cfg, 10);
 
-			return move_up(self, 1);
+			return move_up(self, cfg, 1);
 		break;
 		//TODO: Better page up/down
 		case GP_KEY_PAGE_UP:
-			return move_up(self, 10);
+			return move_up(self, cfg, 10);
 		case GP_KEY_PAGE_DOWN:
-			return move_down(self, 10);
+			return move_down(self, cfg, 10);
 		case GP_BTN_LEFT:
-			return click(self, ev);
+			return click(self, cfg, ev);
 		case GP_KEY_ENTER:
 			return enter(self);
 		}

@@ -13,7 +13,7 @@
 #include <gp_widget_render.h>
 #include <gp_string.h>
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
 	unsigned int text_w = 0;
@@ -27,14 +27,13 @@ static unsigned int min_w(gp_widget *self)
 	return cfg->padd + text_a + text_w;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	return cfg->padd +
 	       self->choice->max * (gp_text_ascent(cfg->font) + cfg->padd);
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
 	unsigned int x = self->x;
@@ -45,7 +44,7 @@ static void render(gp_widget *self,
 
 	(void)flags;
 
-	gp_fill_rect_xywh(render->buf, x, y, w, h, cfg->bg_color);
+	gp_fill_rect_xywh(cfg->buf, x, y, w, h, cfg->bg_color);
 
 	y += cfg->padd;
 
@@ -54,16 +53,16 @@ static void render(gp_widget *self,
 		unsigned int cy = y + r;
 		unsigned int cx = x + r;
 
-		gp_fill_circle(render->buf, cx, cy, r, cfg->fg_color);
+		gp_fill_circle(cfg->buf, cx, cy, r, cfg->fg_color);
 		gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
-		gp_circle(render->buf, cx, cy, r, color);
+		gp_circle(cfg->buf, cx, cy, r, color);
 
 		if (i == self->choice->sel) {
-			gp_fill_circle(render->buf, cx, cy, r - 3,
+			gp_fill_circle(cfg->buf, cx, cy, r - 3,
 			              cfg->text_color);
 		}
 
-		gp_text(render->buf, cfg->font,
+		gp_text(cfg->buf, cfg->font,
 			x + cfg->padd + text_a, y,
 		        GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
                         cfg->text_color, cfg->bg_color,
@@ -107,7 +106,7 @@ static void key_down(gp_widget *self)
 		select_choice(self, self->choice->sel + 1);
 }
 
-static void radio_click(gp_widget *self, gp_event *ev)
+static void radio_click(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	unsigned int min_x = self->x;
 	unsigned int max_x = self->x + self->w;
@@ -126,7 +125,7 @@ static void radio_click(gp_widget *self, gp_event *ev)
 	select_choice(self, select);
 }
 
-static int event(gp_widget *self, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -135,7 +134,7 @@ static int event(gp_widget *self, gp_event *ev)
 
 		switch (ev->val.val) {
 		case GP_BTN_LEFT:
-			radio_click(self, ev);
+			radio_click(self, cfg, ev);
 			return 1;
 		case GP_KEY_DOWN:
 			key_down(self);

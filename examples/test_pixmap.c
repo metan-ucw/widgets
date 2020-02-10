@@ -19,12 +19,15 @@ static void draw(gp_widget *pixmap, gp_event *ev)
 	if (ev->type != GP_EV_KEY || ev->val.key.key != GP_BTN_LEFT)
 		return;
 
+	gp_coord x = ev->cursor_x - pixmap->x;
+	gp_coord y = ev->cursor_y - pixmap->y;
+
 	gp_pixmap *p = pixmap->pixmap->pixmap;
 
 	gp_pixel col = gp_rgb_to_pixmap_pixel((fg_rgb >> 16) & 0xff, (fg_rgb >> 8) & 0xff, fg_rgb & 0xff, p);
 
-	gp_putpixel(p, ev->cursor_x, ev->cursor_y, col);
-	gp_circle(p, ev->cursor_x, ev->cursor_y, 10, col);
+	gp_putpixel(p, x, y, col);
+	gp_circle(p, x, y, 10, col);
 	gp_widget_redraw(pixmap);
 }
 
@@ -32,6 +35,17 @@ static void fill_pixmap(gp_pixmap *p)
 {
 	gp_pixel col = gp_rgb_to_pixmap_pixel((bg_rgb >> 16) & 0xff, (bg_rgb >> 8) & 0xff, bg_rgb & 0xff, p);
 	gp_fill(p, col);
+}
+
+static void allocate_backing_pixmap(gp_widget_event *ev)
+{
+	gp_widget *w = ev->self;
+
+	gp_pixmap_free(w->pixmap->pixmap);
+
+	w->pixmap->pixmap = gp_pixmap_alloc(w->w, w->h, ev->cfg->pixel_type);
+
+	fill_pixmap(w->pixmap->pixmap);
 }
 
 int pixmap_on_event(gp_widget_event *ev)
@@ -42,8 +56,8 @@ int pixmap_on_event(gp_widget_event *ev)
 	case GP_WIDGET_EVENT_INPUT:
 		draw(ev->self, ev->input_ev);
 	break;
-	case GP_WIDGET_EVENT_REDRAW:
-		fill_pixmap(ev->self->pixmap->pixmap);
+	case GP_WIDGET_EVENT_RESIZE:
+		allocate_backing_pixmap(ev);
 	break;
 	default:
 	break;
@@ -127,7 +141,8 @@ int main(int argc, char *argv[])
 
 	gp_widget *pixmap = gp_widget_by_uid(uids, "pixmap", GP_WIDGET_PIXMAP);
 
-	pixmap->pixmap->double_buffer = 1;
+	gp_widget_event_unmask(pixmap, GP_WIDGET_EVENT_RESIZE);
+	gp_widget_event_unmask(pixmap, GP_WIDGET_EVENT_INPUT);
 
 	gp_widgets_main_loop(layout, "Pixmap test", NULL, argc, argv);
 

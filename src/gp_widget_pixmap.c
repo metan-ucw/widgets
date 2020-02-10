@@ -14,63 +14,51 @@
 #include <gp_widget_render.h>
 #include <gp_widget_json.h>
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
+	(void)cfg;
+
 	return self->pixmap->min_w;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
+	(void)cfg;
+
 	return self->pixmap->min_h;
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	unsigned int x = self->x;
 	unsigned int y = self->y;
 
 	(void)flags;
 
-	if (!self->pixmap->double_buffer) {
+	if (!self->pixmap->pixmap) {
 		gp_pixmap pix;
-		gp_sub_pixmap(render->buf, &pix, self->x, self->y, self->w, self->h);
+		gp_sub_pixmap(cfg->buf, &pix, self->x, self->y, self->w, self->h);
 		self->pixmap->pixmap = &pix;
 		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
 		self->pixmap->pixmap = NULL;
 		return;
 	}
 
-	if (!self->pixmap->pixmap) {
-		gp_pixmap *p = gp_pixmap_alloc(self->w, self->h,
-		                               render->buf->pixel_type);
-
-		if (!p)
-			return;
-
-		self->pixmap->pixmap = p;
-
-		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
-	}
-
 	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
 	             self->w, self->h,
-	             render->buf, x, y);
+	             cfg->buf, x, y);
 }
 
-static int event(gp_widget *self, gp_event *ev)
+/*
+ * Dummy event handler so that events are propagated to app event handler since
+ * widgets without event handler can't get focus and events.
+ */
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
-	int ret;
-
-	ev->cursor_x -= self->x;
-	ev->cursor_y -= self->y;
-
-	ret = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, (long)ev);
-
-	ev->cursor_x += self->x;
-	ev->cursor_y += self->y;
-
-	return ret;
+	(void)self;
+	(void)cfg;
+	(void)ev;
+	return 0;
 }
 
 static gp_widget *json_to_pixmap(json_object *json, void **uids)

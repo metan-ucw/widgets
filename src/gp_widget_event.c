@@ -18,7 +18,28 @@ static const char *ev_names[] = {
 	[GP_WIDGET_EVENT_FILTER] = "filter",
 	[GP_WIDGET_EVENT_INPUT] = "input",
 	[GP_WIDGET_EVENT_REDRAW] = "redraw",
+	[GP_WIDGET_EVENT_RESIZE] = "resize",
 };
+
+void gp_widget_event_mask(gp_widget *self, enum gp_widget_event_type ev_type)
+{
+	if (!self) {
+		GP_WARN("NULL widget!");
+		return;
+	}
+
+	self->event_mask &= ~(1<<ev_type);
+}
+
+void gp_widget_event_unmask(gp_widget *self, enum gp_widget_event_type ev_type)
+{
+	if (!self) {
+		GP_WARN("NULL widget!");
+		return;
+	}
+
+	self->event_mask |= (1<<ev_type);
+}
 
 const char *gp_widget_event_type_name(enum gp_widget_event_type ev_type)
 {

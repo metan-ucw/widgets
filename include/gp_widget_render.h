@@ -18,23 +18,27 @@
 
 #include <gp_widget.h>
 
-struct gp_widget_render_info {
+typedef struct gp_widget_render_cfg {
+	/* colors */
 	gp_pixel text_color;
 	gp_pixel bg_color;
 	gp_pixel fg_color;
 	gp_pixel fg2_color;
 	gp_pixel sel_color;
 	gp_pixel alert_color;
+
+	/* fonts */
 	gp_text_style *font;
 	gp_text_style *font_bold;
+
+	/* pixel type used for drawing */
+	gp_pixel_type pixel_type;
+
+	/* padding between widgets */
 	unsigned int padd;
-};
 
-extern const struct gp_widget_render_info *cfg;
-
-struct gp_widget_render {
 	gp_pixmap *buf;
-};
+} gp_widget_render_cfg;
 
 void gp_widget_render_init(void);
 

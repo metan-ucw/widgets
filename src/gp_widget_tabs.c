@@ -24,82 +24,84 @@ static void init(gp_widget *self)
 		gp_widget_init(self->tabs->widgets[i], self);
 }
 
-static gp_size tab_w(gp_widget *self, unsigned int tab)
+static gp_size tab_w(gp_widget *self, const gp_widget_render_cfg *cfg,
+                     unsigned int tab)
 {
 	const char *label = self->tabs->labels[tab];
 
 	return gp_text_width(cfg->font_bold, label) + 2 * cfg->padd;
 }
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	unsigned int i, max_min_w = 0, tabs_width = 0;
 
 	for (i = 0; i < self->tabs->count; i++) {
-		unsigned int min_w = gp_widget_min_w(self->tabs->widgets[i]);
+		unsigned int min_w = gp_widget_min_w(self->tabs->widgets[i], cfg);
 		max_min_w = GP_MAX(max_min_w, min_w);
 
-		tabs_width += tab_w(self, i);
+		tabs_width += tab_w(self, cfg, i);
 	}
 
 	return GP_MAX(max_min_w + 2 * cfg->padd, tabs_width);
 }
 
-static gp_size title_h(gp_widget *self)
+static gp_size title_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	(void) self;
 
 	return gp_text_ascent(cfg->font) + 2 * cfg->padd;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	unsigned int i, max_min_h = 0;
 
 	for (i = 0; i < self->tabs->count; i++) {
-		unsigned int min_h = gp_widget_min_h(self->tabs->widgets[i]);
+		unsigned int min_h = gp_widget_min_h(self->tabs->widgets[i], cfg);
 
 		max_min_h = GP_MAX(max_min_h, min_h);
 	}
 
-	return max_min_h + title_h(self) + 2 * cfg->padd;
+	return max_min_h + title_h(self, cfg) + 2 * cfg->padd;
 }
 
-static gp_size payload_x(gp_widget *self)
+static gp_size payload_x(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	return self->x + cfg->padd;
 }
 
-static gp_size payload_y(gp_widget *self)
+static gp_size payload_y(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
-	return self->y + title_h(self) + cfg->padd;
+	return self->y + title_h(self, cfg) + cfg->padd;
 }
 
-static gp_size payload_w(gp_widget *self)
+static gp_size payload_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	return self->w - 2 * cfg->padd;
 }
 
-static gp_size payload_h(gp_widget *self)
+static gp_size payload_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
-	return self->h - title_h(self) - 2 * cfg->padd;
+	return self->h - title_h(self, cfg) - 2 * cfg->padd;
 }
 
-static void distribute_size(gp_widget *self, int new_wh)
+static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg,
+                            int new_wh)
 {
 	unsigned int i;
-	unsigned int x = payload_x(self);
-	unsigned int y = payload_y(self);
-	unsigned int w = payload_w(self);
-	unsigned int h = payload_h(self);
+	unsigned int x = payload_x(self, cfg);
+	unsigned int y = payload_y(self, cfg);
+	unsigned int w = payload_w(self, cfg);
+	unsigned int h = payload_h(self, cfg);
 
 	for (i = 0; i < self->tabs->count; i++) {
 
 		if (!self->tabs->widgets[i])
 			continue;
 
-		gp_widget_ops_distribute_size(self->tabs->widgets[i],
-		                           x, y, w, h, new_wh);
+		gp_widget_ops_distribute_size(self->tabs->widgets[i], cfg,
+		                              x, y, w, h, new_wh);
 	}
 }
 
@@ -108,8 +110,7 @@ static int active_first(gp_widget *self)
 	return self->tabs->active_tab == 0;
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	gp_widget *widget = self->tabs->widgets[self->tabs->active_tab];
 
@@ -119,10 +120,10 @@ static void render(gp_widget *self,
 	unsigned int act_x, act_w;
 
 	if (!widget) {
-		gp_fill_rect_xywh(render->buf, self->x, self->y,
+		gp_fill_rect_xywh(cfg->buf, self->x, self->y,
 				  self->w, self->h, cfg->bg_color);
 	} else {
-		gp_fill_rect_xywh(render->buf, self->x, self->y,
+		gp_fill_rect_xywh(cfg->buf, self->x, self->y,
 		                  self->w, widget->y - self->y, cfg->bg_color);
 	}
 
@@ -139,38 +140,38 @@ static void render(gp_widget *self,
 		}
 
 		if (is_active && self->tabs->title_selected) {
-			gp_hline_xyw(render->buf,
+			gp_hline_xyw(cfg->buf,
 				    x + cfg->padd/2,
 				    self->y + tab_h - cfg->padd,
 				    w - cfg->padd, cfg->sel_color);
 		}
 
-		gp_text(render->buf, font, x + w/2, self->y + cfg->padd,
+		gp_text(cfg->buf, font, x + w/2, self->y + cfg->padd,
 			GP_ALIGN_CENTER|GP_VALIGN_BELOW,
 			cfg->text_color, cfg->bg_color, label);
 
 		x += w;
 
 		if (x < self->x + self->w)
-			gp_vline_xyh(render->buf, x-1, self->y+1, tab_h-1, cfg->text_color);
+			gp_vline_xyh(cfg->buf, x-1, self->y+1, tab_h-1, cfg->text_color);
 	}
 
 	if (!active_first(self))
-		gp_hline_xxy(render->buf, self->x, act_x-1, self->y + tab_h, cfg->text_color);
+		gp_hline_xxy(cfg->buf, self->x, act_x-1, self->y + tab_h, cfg->text_color);
 
-	gp_hline_xxy(render->buf, act_x + act_w - 1, self->x + self->w-1,
+	gp_hline_xxy(cfg->buf, act_x + act_w - 1, self->x + self->w-1,
 		     self->y + tab_h, cfg->text_color);
 
-	gp_rrect_xywh(render->buf, self->x, self->y, self->w, self->h, cfg->text_color);
+	gp_rrect_xywh(cfg->buf, self->x, self->y, self->w, self->h, cfg->text_color);
 
 	if (!widget)
 		return;
 
-	gp_fill_rect_xyxy(render->buf, self->x+1, widget->y + widget->h,
+	gp_fill_rect_xyxy(cfg->buf, self->x+1, widget->y + widget->h,
 	                  self->x + self->w-2, self->y + self->h-2, cfg->bg_color);
-	gp_fill_rect_xyxy(render->buf, widget->x + widget->w, widget->y,
+	gp_fill_rect_xyxy(cfg->buf, widget->x + widget->w, widget->y,
 	                  self->x + self->w-2, widget->y + widget->h, cfg->bg_color);
-	gp_fill_rect_xywh(render->buf, self->x+1, widget->y,
+	gp_fill_rect_xywh(cfg->buf, self->x+1, widget->y,
 	                  widget->x - self->x-1, widget->h, cfg->bg_color);
 
 	if (self->redraw_subtree) {
@@ -178,7 +179,7 @@ static void render(gp_widget *self,
 		flags |= 1;
 	}
 
-	gp_widget_ops_render(widget, render, flags);
+	gp_widget_ops_render(widget, cfg, flags);
 }
 
 static void set_tab(gp_widget *self, unsigned int tab)
@@ -220,10 +221,10 @@ static void tab_right(gp_widget *self)
 	set_tab(self, tab);
 }
 
-static int event(gp_widget *self, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	if (self->tabs->widget_selected)
-		return gp_widget_ops_event(active_tab_widget(self), ev);
+		return gp_widget_ops_event(active_tab_widget(self), cfg, ev);
 
 	if (!self->tabs->title_selected)
 		return 0;
@@ -332,12 +333,13 @@ static int select_event(gp_widget *self, int sel)
 	return 0;
 }
 
-static void select_tab(gp_widget *self, unsigned int x)
+static void select_tab(gp_widget *self, const gp_widget_render_cfg *cfg,
+                       unsigned int x)
 {
 	unsigned int i, cx = self->x;
 
 	for (i = 0; i < self->tabs->count; i++) {
-		unsigned int w = tab_w(self, i);
+		unsigned int w = tab_w(self, cfg, i);
 
 		if (x <= cx + w)
 			break;
@@ -352,7 +354,8 @@ static void select_tab(gp_widget *self, unsigned int x)
 }
 
 
-static int select_title(gp_widget *self, unsigned int x)
+static int select_title(gp_widget *self, const gp_widget_render_cfg *cfg,
+                        unsigned int x)
 {
 	self->tabs->title_selected = 1;
 
@@ -361,14 +364,15 @@ static int select_title(gp_widget *self, unsigned int x)
 		self->tabs->widget_selected = 0;
 	}
 
-	select_tab(self, x);
+	select_tab(self, cfg, x);
 
 	return 1;
 }
 
-static int select_widget(gp_widget *self, unsigned int x, unsigned int y)
+static int select_widget(gp_widget *self, const gp_widget_render_cfg *cfg,
+                         unsigned int x, unsigned int y)
 {
-	if (!gp_widget_ops_render_select_xy(active_tab_widget(self), x, y))
+	if (!gp_widget_ops_render_select_xy(active_tab_widget(self), cfg, x, y))
 		return 0;
 
 	if (self->tabs->title_selected) {
@@ -380,12 +384,13 @@ static int select_widget(gp_widget *self, unsigned int x, unsigned int y)
 	return 1;
 }
 
-static int select_xy(gp_widget *self, unsigned int x, unsigned int y)
+static int select_xy(gp_widget *self, const gp_widget_render_cfg *cfg,
+                     unsigned int x, unsigned int y)
 {
-	if (y > self->y + title_h(self))
-		return select_widget(self, x, y);
+	if (y > self->y + title_h(self, cfg))
+		return select_widget(self, cfg, x, y);
 
-	return select_title(self, x);
+	return select_title(self, cfg, x);
 }
 
 static gp_widget *json_to_tabs(json_object *json, void **uids)

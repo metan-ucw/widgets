@@ -57,108 +57,109 @@ static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 	return ret;
 }
 
-static unsigned int padd_size(int padd)
+static unsigned int padd_size(const gp_widget_render_cfg *cfg, int padd)
 {
 	return cfg->padd * padd;
 }
 
-static unsigned int min_w_uniform(gp_widget *self)
+static unsigned int min_w_uniform(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	struct gp_widget_grid *grid = self->grid;
-	unsigned int x, sum_min_w = padd_size(grid->col_padds[0]);
+	unsigned int x, sum_min_w = padd_size(cfg, grid->col_padds[0]);
 	unsigned int max_cols_w = 0;
 
 	for (x = 0; x < grid->cols; x++) {
 		unsigned int y;
 		for (y = 0; y < grid->rows; y++) {
 			unsigned int min_w;
-			min_w = gp_widget_min_w(widget_grid_get(self, x, y));
+			min_w = gp_widget_min_w(widget_grid_get(self, x, y), cfg);
 			max_cols_w = GP_MAX(max_cols_w, min_w);
 		}
 
-		sum_min_w += padd_size(grid->col_padds[x+1]);
+		sum_min_w += padd_size(cfg, grid->col_padds[x+1]);
 	}
 
 	return sum_min_w + grid->cols * max_cols_w;
 }
 
-static unsigned int min_w_(gp_widget *self)
+static unsigned int min_w_(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	struct gp_widget_grid *grid = self->grid;
-	unsigned int x, sum_min_w = padd_size(grid->col_padds[0]);
+	unsigned int x, sum_min_w = padd_size(cfg, grid->col_padds[0]);
 
 	for (x = 0; x < grid->cols; x++) {
 		unsigned int y, max_col_w = 0;
 		for (y = 0; y < grid->rows; y++) {
 			unsigned int min_w;
-			min_w = gp_widget_min_w(widget_grid_get(self, x, y));
+			min_w = gp_widget_min_w(widget_grid_get(self, x, y), cfg);
 			max_col_w = GP_MAX(max_col_w, min_w);
 		}
 
 		sum_min_w += max_col_w;
-		sum_min_w += padd_size(grid->col_padds[x+1]);
+		sum_min_w += padd_size(cfg, grid->col_padds[x+1]);
 	}
 
 	return sum_min_w;
 }
 
-static unsigned int min_w(gp_widget *self)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	if (self->grid->uniform)
-		return min_w_uniform(self);
+		return min_w_uniform(self, cfg);
 
-	return min_w_(self);
+	return min_w_(self, cfg);
 }
 
-static unsigned int min_h_uniform(gp_widget *self)
+static unsigned int min_h_uniform(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	struct gp_widget_grid *grid = self->grid;
-	unsigned int y, sum_min_h = padd_size(grid->row_padds[0]);
+	unsigned int y, sum_min_h = padd_size(cfg, grid->row_padds[0]);
 	unsigned int max_rows_h = 0;
 
 	for (y = 0; y < grid->rows; y++) {
 		unsigned int x;
 		for (x = 0; x < grid->cols; x++) {
 			unsigned int min_h;
-			min_h = gp_widget_min_h(widget_grid_get(self, x, y));
+			min_h = gp_widget_min_h(widget_grid_get(self, x, y), cfg);
 			max_rows_h = GP_MAX(max_rows_h, min_h);
 		}
 
-		sum_min_h += padd_size(grid->row_padds[y+1]);
+		sum_min_h += padd_size(cfg, grid->row_padds[y+1]);
 	}
 
 	return sum_min_h + grid->rows * max_rows_h;
 }
 
-static unsigned int min_h_(gp_widget *self)
+static unsigned int min_h_(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	struct gp_widget_grid *grid = self->grid;
-	unsigned int y, sum_min_h = padd_size(grid->row_padds[0]);
+	unsigned int y, sum_min_h = padd_size(cfg, grid->row_padds[0]);
 
 	for (y = 0; y < grid->rows; y++) {
 		unsigned int x, max_row_h = 0;
 		for (x = 0; x < grid->cols; x++) {
 			unsigned int min_h;
-			min_h = gp_widget_min_h(widget_grid_get(self, x, y));
+			min_h = gp_widget_min_h(widget_grid_get(self, x, y), cfg);
 			max_row_h = GP_MAX(max_row_h, min_h);
 		}
 
 		sum_min_h += max_row_h;
-		sum_min_h += padd_size(grid->row_padds[y+1]);
+		sum_min_h += padd_size(cfg, grid->row_padds[y+1]);
 	}
 
 	return sum_min_h;
 }
 
-static unsigned int min_h(gp_widget *self)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 {
 	if (self->grid->uniform)
-		return min_h_uniform(self);
+		return min_h_uniform(self, cfg);
 
-	return min_h_(self);
+	return min_h_(self, cfg);
 }
 
-static void compute_cols_rows_min_wh(struct gp_widget_grid *grid)
+static void compute_cols_rows_min_wh(struct gp_widget_grid *grid,
+                                     const gp_widget_render_cfg *cfg)
 {
 	unsigned int x, y;
 
@@ -172,13 +173,14 @@ static void compute_cols_rows_min_wh(struct gp_widget_grid *grid)
 		for (x = 0; x < grid->cols; x++) {
 			struct gp_widget *widget = widget_grid_grid_get(grid, x, y);
 
-			grid->cols_w[x] = GP_MAX(grid->cols_w[x], gp_widget_min_w(widget));
-			grid->rows_h[y] = GP_MAX(grid->rows_h[y], gp_widget_min_h(widget));
+			grid->cols_w[x] = GP_MAX(grid->cols_w[x], gp_widget_min_w(widget, cfg));
+			grid->rows_h[y] = GP_MAX(grid->rows_h[y], gp_widget_min_h(widget, cfg));
 		}
 	}
 }
 
-static void compute_cols_rows_min_uniform_wh(struct gp_widget_grid *grid)
+static void compute_cols_rows_min_uniform_wh(struct gp_widget_grid *grid,
+                                             const gp_widget_render_cfg *cfg)
 {
 	unsigned int x, y;
 	unsigned int min_cols_w = 0, min_rows_h = 0;
@@ -187,8 +189,8 @@ static void compute_cols_rows_min_uniform_wh(struct gp_widget_grid *grid)
 		for (x = 0; x < grid->cols; x++) {
 			struct gp_widget *widget = widget_grid_grid_get(grid, x, y);
 
-			min_cols_w = GP_MAX(min_cols_w, gp_widget_min_w(widget));
-			min_rows_h = GP_MAX(min_rows_h, gp_widget_min_h(widget));
+			min_cols_w = GP_MAX(min_cols_w, gp_widget_min_w(widget, cfg));
+			min_rows_h = GP_MAX(min_rows_h, gp_widget_min_h(widget, cfg));
 		}
 	}
 
@@ -199,15 +201,15 @@ static void compute_cols_rows_min_uniform_wh(struct gp_widget_grid *grid)
 		grid->rows_h[y] = min_rows_h;
 }
 
-static void distribute_size(gp_widget *self, int new_wh)
+static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg, int new_wh)
 {
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int x, y;
 
 	if (grid->uniform)
-		compute_cols_rows_min_uniform_wh(grid);
+		compute_cols_rows_min_uniform_wh(grid, cfg);
 	else
-		compute_cols_rows_min_wh(grid);
+		compute_cols_rows_min_wh(grid, cfg);
 
 	unsigned int sum_row_fills = 0;
 	unsigned int sum_col_fills = 0;
@@ -241,25 +243,25 @@ static void distribute_size(gp_widget *self, int new_wh)
 	}
 
 	/* Compute colum/row offsets */
-	unsigned int cur_x = self->x + padd_size(grid->col_padds[0]);
+	unsigned int cur_x = self->x + padd_size(cfg, grid->col_padds[0]);
 	if (sum_col_fills)
 		cur_x += dx * grid->col_pfills[0] / sum_col_fills;
 
 
 	for (x = 0; x < grid->cols; x++) {
 		grid->cols_off[x] = cur_x;
-		cur_x += grid->cols_w[x] + padd_size(grid->col_padds[x+1]);
+		cur_x += grid->cols_w[x] + padd_size(cfg, grid->col_padds[x+1]);
 		if (sum_col_fills)
 			cur_x += dx * grid->col_pfills[x+1] / sum_col_fills;
 	}
 
-	unsigned int cur_y = self->y + padd_size(grid->row_padds[0]);
+	unsigned int cur_y = self->y + padd_size(cfg, grid->row_padds[0]);
 	if (sum_row_fills)
 		cur_y += dy * grid->row_pfills[0] / sum_row_fills;
 
 	for (y = 0; y < grid->rows; y++) {
 		grid->rows_off[y] = cur_y;
-		cur_y += grid->rows_h[y] + padd_size(grid->row_padds[y+1]);
+		cur_y += grid->rows_h[y] + padd_size(cfg, grid->row_padds[y+1]);
 		if (sum_row_fills)
 			cur_y += dy * grid->row_pfills[y+1] / sum_row_fills;
 	}
@@ -270,7 +272,7 @@ static void distribute_size(gp_widget *self, int new_wh)
 			struct gp_widget *widget = widget_grid_get(self, x, y);
 
 			if (widget) {
-				gp_widget_ops_distribute_size(widget,
+				gp_widget_ops_distribute_size(widget, cfg,
 				                              grid->cols_off[x],
 				                              grid->rows_off[y],
 				                              grid->cols_w[x],
@@ -281,8 +283,7 @@ static void distribute_size(gp_widget *self, int new_wh)
 	}
 }
 
-static void fill_padding(gp_widget *self,
-                         struct gp_widget_render *render, int flags)
+static void fill_padding(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	struct gp_widget_grid *grid = self->grid;
 
@@ -293,7 +294,7 @@ static void fill_padding(gp_widget *self,
 
 	unsigned int y, cur_y = self->y;
 	for (y = 0; y < grid->rows; y++) {
-		gp_fill_rect_xyxy(render->buf, self->x, cur_y,
+		gp_fill_rect_xyxy(cfg->buf, self->x, cur_y,
 		                  self->x + self->w - 1, grid->rows_off[y] - 1,
 				  cfg->bg_color);
 
@@ -301,13 +302,13 @@ static void fill_padding(gp_widget *self,
 			cur_y = grid->rows_h[y] + grid->rows_off[y];
 	}
 
-	gp_fill_rect_xyxy(render->buf, self->x, cur_y,
+	gp_fill_rect_xyxy(cfg->buf, self->x, cur_y,
 	                  self->x + self->w - 1, self->y + self->h - 1,
 			  cfg->bg_color);
 
 	unsigned int x, cur_x = self->x;
 	for (x = 0; x < grid->cols; x++) {
-		gp_fill_rect_xyxy(render->buf, cur_x, self->y,
+		gp_fill_rect_xyxy(cfg->buf, cur_x, self->y,
 		                  grid->cols_off[x] - 1, self->y + self->h - 1,
 				  cfg->bg_color);
 
@@ -315,23 +316,22 @@ static void fill_padding(gp_widget *self,
 			cur_x = grid->cols_off[x] + grid->cols_w[x];
 	}
 
-	gp_fill_rect_xyxy(render->buf, cur_x, self->y,
+	gp_fill_rect_xyxy(cfg->buf, cur_x, self->y,
 		          self->x + self->w - 1, self->y + self->h - 1,
 	                  cfg->bg_color);
 
 	if (grid->frame) {
-		gp_rrect_xywh(render->buf, self->x, self->y,
+		gp_rrect_xywh(cfg->buf, self->x, self->y,
 			      self->w, self->h, cfg->text_color);
 	}
 }
 
-static void render(gp_widget *self,
-                   struct gp_widget_render *render, int flags)
+static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 {
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int x, y, cur_x, cur_y;
 
-	fill_padding(self, render, flags);
+	fill_padding(self, cfg, flags);
 
 	for (y = 0; y < grid->rows; y++) {
 		cur_y = grid->rows_off[y];
@@ -342,7 +342,7 @@ static void render(gp_widget *self,
 			struct gp_widget *widget = widget_grid_get(self, x, y);
 
 			if (!widget) {
-				gp_fill_rect_xywh(render->buf, cur_x, cur_y,
+				gp_fill_rect_xywh(cfg->buf, cur_x, cur_y,
 						  grid->cols_w[x], grid->rows_h[y],
 						  cfg->bg_color);
 				continue;
@@ -360,12 +360,12 @@ static void render(gp_widget *self,
 			gp_pixel bg = cfg->bg_color;
 
 			if (bw) {
-				gp_fill_rect_xywh(render->buf, cur_x, cur_y, bw,
+				gp_fill_rect_xywh(cfg->buf, cur_x, cur_y, bw,
 				                  grid->rows_h[y], bg);
 			}
 
 			if (aw) {
-				gp_fill_rect_xywh(render->buf, widget->x + widget->w,
+				gp_fill_rect_xywh(cfg->buf, widget->x + widget->w,
 						cur_y, aw, grid->rows_h[y], bg);
 			}
 
@@ -373,16 +373,16 @@ static void render(gp_widget *self,
 			unsigned int ah = grid->rows_h[y] - bh - widget->h;
 
 			if (bh) {
-				gp_fill_rect_xywh(render->buf, widget->x, cur_y, widget->w,
+				gp_fill_rect_xywh(cfg->buf, widget->x, cur_y, widget->w,
 				                  bh, cfg->bg_color);
 			}
 
 			if (ah) {
-				gp_fill_rect_xywh(render->buf, widget->x, widget->y + widget->h,
+				gp_fill_rect_xywh(cfg->buf, widget->x, widget->y + widget->h,
 						widget->w, ah, cfg->bg_color);
 			}
 
-			gp_widget_ops_render(widget, render, flags);
+			gp_widget_ops_render(widget, cfg, flags);
 		}
 	}
 /*
@@ -392,27 +392,27 @@ static void render(gp_widget *self,
 	unsigned int ex = grid->cols_off[grid->cols-1] + grid->cols_w[grid->cols-1];
 
 	for (y = 0; y < grid->rows; y++) {
-		gp_hline_xxy(render->buf, sx, ex, grid->rows_off[y], col);
-		gp_hline_xxy(render->buf, sx, ex, grid->rows_off[y] + grid->rows_h[y], col);
+		gp_hline_xxy(cfg->buf, sx, ex, grid->rows_off[y], col);
+		gp_hline_xxy(cfg->buf, sx, ex, grid->rows_off[y] + grid->rows_h[y], col);
 	}
 
 	unsigned int sy = grid->rows_off[0];
 	unsigned int ey = grid->rows_off[grid->rows-1] + grid->rows_h[grid->rows-1];
 
 	for (x = 0; x < grid->cols; x++) {
-		gp_vline_xyy(render->buf, grid->cols_off[x], sy, ey, col);
-		gp_vline_xyy(render->buf, grid->cols_off[x] + grid->cols_w[x], sy, ey, col);
+		gp_vline_xyy(cfg->buf, grid->cols_off[x], sy, ey, col);
+		gp_vline_xyy(cfg->buf, grid->cols_off[x] + grid->cols_w[x], sy, ey, col);
 	}
 */
 }
 
-static int event(gp_widget *self, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
 	struct gp_widget *w = widget_grid_selected(self);
 
 	GP_DEBUG(3, "event widget %p (%s)", w, gp_widget_type_id(w));
 
-	return gp_widget_ops_event(w, ev);
+	return gp_widget_ops_event(w, cfg, ev);
 }
 
 static int try_select(gp_widget *self, unsigned int col, unsigned int row, int sel)
@@ -574,7 +574,8 @@ static int coord_search(unsigned int coord,
 	return -1;
 }
 
-static int select_xy(gp_widget *self, unsigned int x, unsigned int y)
+static int select_xy(gp_widget *self, const gp_widget_render_cfg *cfg,
+                     unsigned int x, unsigned int y)
 {
 	int col, row;
 	struct gp_widget_grid *grid = self->grid;
@@ -585,7 +586,7 @@ static int select_xy(gp_widget *self, unsigned int x, unsigned int y)
 	if (col < 0 || row < 0)
 		return 0;
 
-	if (!gp_widget_ops_render_select_xy(widget_grid_get(self, col, row), x, y))
+	if (!gp_widget_ops_render_select_xy(widget_grid_get(self, col, row), cfg, x, y))
 		return 0;
 
 	if (grid->selected_col != (unsigned int)col || grid->selected_row != (unsigned int)row)

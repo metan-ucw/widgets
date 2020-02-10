@@ -10,6 +10,7 @@
 #define GP_WIDGET_H__
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <gp_common.h>
 
 struct gp_widget_event;
@@ -32,6 +33,8 @@ typedef struct gp_widget {
 	unsigned int redraw_subtree:1;
 	unsigned int selected:1;
 	unsigned int input_events:1;
+
+	uint32_t event_mask;
 
 	union {
 		struct gp_widget_grid *grid;

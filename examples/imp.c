@@ -223,7 +223,7 @@ static int table_on_event(gp_widget_event *ev)
 			return 1;
 		}
 
-		return gp_widget_ops_event(filter, ev->input_ev);
+		return gp_widget_ops_event(filter, ev->cfg, ev->input_ev);
 	default:
 		return 0;
 	}
@@ -259,6 +259,8 @@ int main(int argc, char *argv[])
 	table->tbl->priv = NULL;
 	table->tbl->sort = sort;
 	table->on_event = table_on_event;
+
+	gp_widget_event_unmask(table, GP_WIDGET_EVENT_INPUT);
 
 	gp_widget_grid_put(layout, 0, 1, table);
 
