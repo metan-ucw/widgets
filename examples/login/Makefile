@@ -1,5 +1,5 @@
 CFLAGS+=-W -Wall -Wextra -O2 -I../../include/ `gfxprim-config --cflags` -ggdb -rdynamic
-LDFLAGS+=-L../../src/
+LDFLAGS+=-L../../src/ -Wl,-rpath=../../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl
 BIN=example_login
 DEP=$(BINS:=.dep)
