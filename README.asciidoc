@@ -9,3 +9,39 @@ something I wanted to have more than 10 years ago but haven't been able to make
 it happen sooner. Sometimes late is better than never.
 
 If you are interested you can have a look at the link:doc/[Documentation].
+
+Install
+=======
+
+Dependencies
+------------
+
+This main dependency for this library is gfxprim. RPMs for SUSE and Fedora can
+be found in the following repositories:
+
+https://build.opensuse.org/repositories/home:metan/gfxprim
+
+Install the devel package; libgfxprim-devel. Alternatively the source is here:
+
+https://github.com/gfxprim/gfxprim
+
+This library also requires json-c (libjson-c-devel), freetype fonts
+(freetype2-devel) and ofcourse clib. Depending which gfxprim backend, examples
+and features you wish to use the following devel packages may also be
+required: fontconfig, png, jpeg, tiff, gif (giflib), X11, xcb, xcb-keysyms
+(xcb-util-keysyms), Xext, alsa. For initial development it is recommended to
+install all of them.
+
+Building & Running
+------------------
+
+Simply run make, then cd into examples(/subdir) and run one of the
+examples. You can use the example Makefiles as a template for your own
+application.
+
+Installing
+----------
+
+By default a shared object file is created which you may copy to your system
+(e.g. to /usr/local/lib). Alternatively you can statically compile the library
+into your application.
