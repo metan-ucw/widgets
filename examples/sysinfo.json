@@ -8,8 +8,29 @@
  "widgets": [
   {
    "rows": 4,
+   "cols": 2,
    "uid": "sysinfo",
    "widgets": [
+    {
+     "type": "label",
+     "halign": "right",
+     "label": "System:"
+    },
+    {
+     "type": "label",
+     "halign": "right",
+     "label": "Version:"
+    },
+    {
+     "type": "label",
+     "halign": "right",
+     "label": "Arch:"
+    },
+    {
+     "type": "label",
+     "halign": "right",
+     "label": "Hostname:"
+    },
     {
     },
     {
@@ -25,10 +46,19 @@
   },
   {
    "rows": 2,
+   "cols": 2,
    "widgets": [
+    {
+     "type": "label",
+     "label": "RAM Usage"
+    },
     {
      "type": "progressbar",
      "uid": "ram_usage"
+    },
+    {
+     "type": "label",
+     "label": "Swap Usage"
     },
     {
      "type": "progressbar",

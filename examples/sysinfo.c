@@ -26,20 +26,22 @@ void init_sysinfo(gp_widget *grid)
 	gp_widget *label;
 
 	label = gp_widget_label_new(buf.sysname, 0, 0);
-	gp_widget_grid_put(grid, 0, 0, label);
+	gp_widget_grid_put(grid, 1, 0, label);
 	label = gp_widget_label_new(buf.release, 0, 0);
-	gp_widget_grid_put(grid, 0, 1, label);
+	gp_widget_grid_put(grid, 1, 1, label);
 	label = gp_widget_label_new(buf.machine, 0, 0);
-	gp_widget_grid_put(grid, 0, 2, label);
+	gp_widget_grid_put(grid, 1, 2, label);
 	label = gp_widget_label_new(hbuf, 0, 0);
-	gp_widget_grid_put(grid, 0, 3, label);
+	gp_widget_grid_put(grid, 1, 3, label);
 }
 
 static void update_mem_usage(void)
 {
 	FILE *f;
 	char buf[128];
-	unsigned long val, mem_total, mem_free, swap_total, swap_free;
+	unsigned long val = 0;
+	unsigned long mem_total = 0, mem_free = 0;
+	unsigned long swap_total = 0, swap_free = 0;
 
 	f = fopen("/proc/meminfo", "r");
 	if (!f)
@@ -104,10 +106,14 @@ static void read_cpu_proc(struct cpu_stat *s)
 		struct cpu_stat *c = &s[i];
 		unsigned long long prev_sum = c->sum;
 		unsigned long long prev_idle = c->idle;
+		int ret;
 
-		fscanf(f, "%*s%llu%llu%llu%llu%llu%llu%llu%*u%*u%*u\n",
-		       &c->user, &c->nice, &c->system, &c->idle, &c->iowait,
-		       &c->irq, &c->softirq);
+		ret = fscanf(f, "%*s%llu%llu%llu%llu%llu%llu%llu%*u%*u%*u\n",
+		             &c->user, &c->nice, &c->system, &c->idle, &c->iowait,
+		             &c->irq, &c->softirq);
+
+		if (!ret)
+			continue;
 
 		c->sum = c->user + c->nice + c->system + c->idle +
 			 c->iowait + c->irq + c->softirq;
