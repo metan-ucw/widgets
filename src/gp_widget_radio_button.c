@@ -223,7 +223,7 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
                                        unsigned int choice_cnt,
                                        unsigned int selected,
 				       int (*on_event)(gp_widget_event *self),
-				       void *event_ptr)
+				       void *priv)
 {
 	size_t size = sizeof(struct gp_widget_choice)
 	              + gp_string_arr_size(choices, choice_cnt);
@@ -237,7 +237,7 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
 	ret->choice->choices = gp_string_arr_copy(choices, choice_cnt, ret->choice->payload);
 	ret->choice->max = choice_cnt;
 	ret->on_event = on_event;
-	ret->on_event_ptr = event_ptr;
+	ret->priv = priv;
 
 	return ret;
 }

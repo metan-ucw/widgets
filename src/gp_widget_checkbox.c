@@ -184,7 +184,7 @@ void gp_widget_checkbox_toggle(gp_widget *self)
 struct gp_widget *gp_widget_checkbox_new(const char *label,
                                          int set,
                                          int (*on_event)(gp_widget_event *),
-                                         void *event_ptr)
+                                         void *priv)
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_bool);
@@ -201,7 +201,7 @@ struct gp_widget *gp_widget_checkbox_new(const char *label,
 	}
 
 	ret->on_event = on_event;
-	ret->on_event_ptr = event_ptr;
+	ret->priv = priv;
 	ret->b->val = !!set;
 
 	return ret;

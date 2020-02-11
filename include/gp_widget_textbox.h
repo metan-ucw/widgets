@@ -40,7 +40,7 @@ enum gp_widget_text_box_flags {
 struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
                                         const char *filter,
                                         int (*on_event)(gp_widget_event *),
-                                        void *event_ptr, int flags);
+                                        void *priv, int flags);
 
 int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
                              __attribute__((format (printf, 2, 3)));

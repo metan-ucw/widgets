@@ -13,6 +13,6 @@
 
 struct gp_widget *gp_widget_button_new(const char *label,
                                        int (*on_event)(gp_widget_event *ev),
-                                       void *event_ptr);
+                                       void *priv);
 
 #endif /* GP_WIDGET_BUTTON_H__ */

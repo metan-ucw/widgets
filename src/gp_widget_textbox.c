@@ -282,7 +282,7 @@ struct gp_widget_ops gp_widget_textbox_ops = {
 struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
                                         const char *filter,
                                         int (*on_event)(gp_widget_event *),
-                                        void *event_ptr, int flags)
+                                        void *priv, int flags)
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_textbox) + str_len + 1;
@@ -292,7 +292,7 @@ struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
 		return NULL;
 
 	ret->on_event = on_event;
-	ret->on_event_ptr = event_ptr;
+	ret->priv = priv;
 	ret->tbox->buf_len = str_len + 1;
 	ret->tbox->buf = ret->tbox->payload;
 	ret->tbox->filter = filter;

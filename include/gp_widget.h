@@ -20,7 +20,12 @@ typedef struct gp_widget {
 	struct gp_widget *parent;
 
 	int (*on_event)(struct gp_widget_event *);
-	void *on_event_ptr;
+	/*
+	 * User provided pointer to arbitrary data; useful for event handlers
+	 * and other user defined functions. The library will not access or
+	 * modify the memory pointed to by this.
+	 */
+	void *priv;
 
 	unsigned int x, y, w, h;
 

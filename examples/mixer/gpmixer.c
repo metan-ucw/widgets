@@ -34,7 +34,7 @@ static int slider_playback_callback(gp_widget_event *ev)
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
-	snd_mixer_selem_set_playback_volume_all(ev->self->on_event_ptr, volume);
+	snd_mixer_selem_set_playback_volume_all(ev->self->priv, volume);
 
 	return 0;
 }
@@ -99,7 +99,7 @@ static int chbox_playback_callback(gp_widget_event *ev)
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
-	snd_mixer_selem_set_playback_switch_all(ev->self->on_event_ptr, val);
+	snd_mixer_selem_set_playback_switch_all(ev->self->priv, val);
 
 	return 0;
 }
@@ -134,7 +134,7 @@ static int enum_playback_callback(gp_widget_event *ev)
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
-	snd_mixer_selem_set_enum_item(ev->self->on_event_ptr, SND_MIXER_SCHN_MONO, sel);
+	snd_mixer_selem_set_enum_item(ev->self->priv, SND_MIXER_SCHN_MONO, sel);
 
 	return 0;
 }
@@ -227,7 +227,7 @@ static int slider_capture_callback(gp_widget_event *ev)
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
-	snd_mixer_selem_set_capture_volume_all(ev->self->on_event_ptr, volume);
+	snd_mixer_selem_set_capture_volume_all(ev->self->priv, volume);
 
 	return 0;
 }
@@ -261,7 +261,7 @@ static int chbox_capture_callback(gp_widget_event *ev)
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;
 
-	snd_mixer_selem_set_capture_switch_all(ev->self->on_event_ptr, val);
+	snd_mixer_selem_set_capture_switch_all(ev->self->priv, val);
 
 	return 0;
 }

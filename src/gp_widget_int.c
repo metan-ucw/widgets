@@ -35,7 +35,7 @@ static int check_min_max(int min, int max)
 
 static gp_widget *widget_int_new(enum gp_widget_type type,
                                  int min, int max, int val,
-                                 int (*on_event)(gp_widget_event *), void *event_ptr)
+                                 int (*on_event)(gp_widget_event *), void *priv)
 {
 	gp_widget *ret;
 
@@ -53,7 +53,7 @@ static gp_widget *widget_int_new(enum gp_widget_type type,
 	ret->i->max = max;
 	ret->i->val = val;
 
-	ret->on_event_ptr = event_ptr;
+	ret->priv = priv;
 	ret->on_event = on_event;
 
 	return ret;
@@ -458,11 +458,11 @@ struct gp_widget_ops gp_widget_slider_ops = {
 
 gp_widget *gp_widget_slider_new(int min, int max, int val, int dir,
                                 int (*on_event)(gp_widget_event *ev),
-                                void *event_ptr)
+                                void *priv)
 {
 	gp_widget *ret;
 
-	ret = widget_int_new(GP_WIDGET_SLIDER, min, max, val, on_event, event_ptr);
+	ret = widget_int_new(GP_WIDGET_SLIDER, min, max, val, on_event, priv);
 	if (!ret)
 		return NULL;
 

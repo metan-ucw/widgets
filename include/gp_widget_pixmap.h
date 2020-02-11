@@ -35,6 +35,6 @@ struct gp_widget_pixmap {
  */
 struct gp_widget *gp_widget_pixmap_new(unsigned int min_w, unsigned int min_h,
                                        int (*on_event)(gp_widget_event *ev),
-                                       void *event_ptr);
+                                       void *priv);
 
 #endif /* GP_WIDGET_PIXMAP_H__ */
