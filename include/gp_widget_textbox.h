@@ -10,9 +10,6 @@
 #define GP_WIDGET_TEXT_BOX_H__
 
 struct gp_widget_textbox {
-	int (*on_event)(gp_widget_event *ev);
-	void *event_ptr;
-
 	/*
 	 * If not NULL the textbox can contain only characters from this
 	 * string, this is used as a hint when minimal textbox size is
