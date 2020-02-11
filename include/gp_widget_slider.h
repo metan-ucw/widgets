@@ -11,7 +11,7 @@
 
 gp_widget *gp_widget_slider_new(int min, int max, int val, int dir,
                                 int (*on_event)(gp_widget_event *ev),
-                                void *event_ptr);
+                                void *priv);
 
 void gp_widget_slider_set(gp_widget *self, int val);
 

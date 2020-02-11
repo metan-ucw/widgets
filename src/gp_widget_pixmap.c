@@ -96,7 +96,7 @@ struct gp_widget_ops gp_widget_pixmap_ops = {
 
 struct gp_widget *gp_widget_pixmap_new(unsigned int w, unsigned int h,
                                        int (*on_event)(gp_widget_event *ev),
-                                       void *event_ptr)
+                                       void *priv)
 {
 	gp_widget *ret;
 
@@ -105,7 +105,7 @@ struct gp_widget *gp_widget_pixmap_new(unsigned int w, unsigned int h,
 		return NULL;
 
 	ret->on_event = on_event;
-	ret->on_event_ptr = event_ptr;
+	ret->priv = priv;
 	ret->pixmap->min_w = w;
 	ret->pixmap->min_h = h;
 	ret->pixmap->pixmap = NULL;

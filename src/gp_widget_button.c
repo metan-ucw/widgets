@@ -133,7 +133,7 @@ struct gp_widget_ops gp_widget_button_ops = {
 
 struct gp_widget *gp_widget_button_new(const char *label,
                                        int (*on_event)(gp_widget_event *ev),
-                                       void *event_ptr)
+                                       void *priv)
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_bool) + strlen(label) + 1;
@@ -144,7 +144,7 @@ struct gp_widget *gp_widget_button_new(const char *label,
 
 	ret->btn->label = ret->btn->payload;
 	ret->on_event = on_event;
-	ret->on_event_ptr = event_ptr;
+	ret->priv = priv;
 
 	strcpy(ret->btn->payload, label);
 

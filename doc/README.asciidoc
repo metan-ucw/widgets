@@ -25,10 +25,10 @@ Widget type and payload
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Each widget is represented by a `gp_widget` structure that implements common
-functionality for all widgets and among others has the `type` memeber that is n
-enum of all implemented widget types. This is commonly used to distinguish the
-type of widget we are working with and also for sanity checks. Each widget has
-also an `on_event` callback pointer and `on_event_ptr` that is reserved for the
+functionality for all widgets and among others has the `type` member that is
+an enum of all implemented widget types. This is commonly used to distinguish
+the type of widget we are working with and also for sanity checks. Each widget
+also has an `on_event` callback and `priv` pointer which are reserved for the
 application, i.e. not touched by the library.
 
 The payload pointer points to the actual widget structure and is an anonymous
@@ -152,7 +152,7 @@ type.
 struct gp_widget {
 ...
 	int (*on_event)(gp_widget_event *);
-	void *on_event_ptr;
+	void *priv;
 ...
 };
 
@@ -167,7 +167,7 @@ struct gp_widget_event {
 };
 -------------------------------------------------------------------------------
 
-The event handler is part of the widget structure, the `on_event_ptr` is a user
+The event handler is part of the widget structure, the `priv` field is a user
 pointer that is not touched by the widget library.
 
 The event handler is passed `gp_widget_event` structure and returns integer, in

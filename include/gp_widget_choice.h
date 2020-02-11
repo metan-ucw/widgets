@@ -21,7 +21,7 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
                                        unsigned int choice_cnt,
                                        unsigned int selected,
 				       int (*on_event)(gp_widget_event *self),
-				       void *event_ptr);
+				       void *priv);
 
 void gp_widget_choice_set(gp_widget *self, unsigned int sel);
 
