@@ -27,12 +27,6 @@ enum gp_widget_select_flag {
 struct json_object;
 
 struct gp_widget_ops {
-	/*
-	 * Container widgets must iterate over all widgets and call
-	 * gp_widget_init() for EACH widget.
-	 */
-	void (*init)(gp_widget *self);
-
 	void (*free)(gp_widget *self);
 
 	/**
@@ -97,10 +91,6 @@ const struct gp_widget_ops *gp_widget_ops_by_id(const char *id);
 const char *gp_widget_type_id(gp_widget *self);
 
 const char *gp_widget_type_name(enum gp_widget_type type);
-
-void gp_widget_init(gp_widget *self, gp_widget *parent);
-
-void gp_widgets_init(gp_widget *self);
 
 void gp_widget_free(gp_widget *self);
 

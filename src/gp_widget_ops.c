@@ -83,28 +83,6 @@ const char *gp_widget_type_name(enum gp_widget_type type)
 	return widget_ops[type]->id;
 }
 
-void gp_widgets_init(gp_widget *layout)
-{
-	GP_DEBUG(1, "Initializing widget layout %p", layout);
-	gp_widget_init(layout, NULL);
-}
-
-void gp_widget_init(gp_widget *self, gp_widget *parent)
-{
-	const struct gp_widget_ops *ops;
-
-	self->parent = parent;
-
-	GP_DEBUG(3, "Have widget %p %s (%u) parent %p",
-	         self, gp_widget_type_id(self), self->type, parent);
-
-	ops = gp_widget_ops(self);
-	if (!ops->init)
-		return;
-
-	ops->init(self);
-}
-
 void gp_widget_free(gp_widget *self)
 {
 	const struct gp_widget_ops *ops;

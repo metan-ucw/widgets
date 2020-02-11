@@ -16,15 +16,6 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_json.h>
 
-static void init(gp_widget *self)
-{
-	struct gp_widget_grid *grid = self->grid;
-	unsigned int i;
-
-	for (i = 0; i < grid->cols * grid->rows; i++)
-		gp_widget_init(grid->widgets[i], self);
-}
-
 static gp_widget *widget_grid_grid_get(struct gp_widget_grid *grid,
                                        unsigned int col, unsigned int row)
 {
@@ -858,7 +849,6 @@ static void free_(gp_widget *self)
 }
 
 struct gp_widget_ops gp_widget_grid_ops = {
-	.init = init,
 	.min_w = min_w,
 	.min_h = min_h,
 	.render = render,

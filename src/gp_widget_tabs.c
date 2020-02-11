@@ -16,14 +16,6 @@
 #include <gp_widget_ops.h>
 #include <gp_string.h>
 
-static void init(gp_widget *self)
-{
-	unsigned int i;
-
-	for (i = 0; i < self->tabs->count; i++)
-		gp_widget_init(self->tabs->widgets[i], self);
-}
-
 static gp_size tab_w(gp_widget *self, const gp_widget_render_cfg *cfg,
                      unsigned int tab)
 {
@@ -467,7 +459,6 @@ static void free_(gp_widget *self)
 }
 
 struct gp_widget_ops gp_widget_tabs_ops = {
-	.init = init,
 	.min_w = min_w,
 	.min_h = min_h,
 	.render = render,
