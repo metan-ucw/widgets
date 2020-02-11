@@ -4,7 +4,7 @@
   "widgets": [
   {
    "type": "label",
-   "label": "Enter your login information."
+   "text": "Enter your login information."
   },
   {
    "cols": 2,
@@ -13,12 +13,12 @@
    "widgets": [
     {
       "type": "label",
-      "label": "Username:",
+      "text": "Username:",
       "halign": "right"
     },
     {
       "type": "label",
-      "label": "Password:",
+      "text": "Password:",
       "halign": "right"
     },
     {
@@ -61,5 +61,5 @@
     }
    ]
   }
-  ]
+ ]
 }

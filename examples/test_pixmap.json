@@ -7,11 +7,11 @@
    "widgets": [
     {
      "type": "label",
-     "label": "fg:"
+     "text": "fg:"
     },
     {
      "type": "label",
-     "label": "bg:"
+     "text": "bg:"
     },
     {
      "type": "textbox",

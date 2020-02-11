@@ -3,12 +3,12 @@
   "widgets": [
     {
       "type": "label",
-      "label": "Heading",
+      "text": "Heading",
       "bold": true
     },
     {
       "type": "label",
-      "label": "--- Hello World! ---"
+      "text": "--- Hello World! ---"
     },
     {
       "type": "checkbox",

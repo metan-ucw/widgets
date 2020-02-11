@@ -29,11 +29,11 @@
      "widgets": [
       {
        "type": "label",
-       "label": "Text 1"
+       "text": "Text 1"
       },
       {
        "type": "label",
-       "label": "Text 2"
+       "text": "Text 2"
       }
      ]
     }

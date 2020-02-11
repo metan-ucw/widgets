@@ -201,7 +201,7 @@ image:label.png[Label widget]
 [cols=",,,3",options="header"]
 |===================================================
 | Attribute |  Type  | Default | Description
-|  +label+  | string |         | Label text
+|  +text+   | string |         | Label text
 |  +bold+   |  bool  | +false+ | Bold text attribute
 |===================================================
 

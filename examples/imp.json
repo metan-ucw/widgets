@@ -9,7 +9,7 @@
       "widgets": [
 	{
 	  "type": "label",
-	  "label": "Directory:"
+	  "text": "Directory:"
 	},
 	{
 	  "type": "textbox",
@@ -30,7 +30,7 @@
       "widgets": [
         {
           "type": "label",
-          "label": "Filter:"
+          "text": "Filter:"
         },
         {
 	  "type": "textbox",

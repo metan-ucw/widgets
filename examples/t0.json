@@ -3,7 +3,7 @@
   "widgets": [
     {
       "type": "label",
-      "label": "Label"
+      "text": "Label"
     },
     {
       "type": "checkbox",

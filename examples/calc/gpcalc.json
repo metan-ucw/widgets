@@ -5,7 +5,7 @@
    "type": "label",
    "size": 10,
    "halign": "fill",
-   "label": "0",
+   "text": "0",
    "ralign": "true",
    "frame": "true",
    "uid": "result"

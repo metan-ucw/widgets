@@ -80,7 +80,7 @@ static gp_widget *json_to_label(json_object *json, void **uids)
 	(void)uids;
 
 	json_object_object_foreach(json, key, val) {
-		if (!strcmp(key, "label"))
+		if (!strcmp(key, "text"))
 			label = json_object_get_string(val);
 		else if (!strcmp(key, "bold"))
 			bold = json_object_get_boolean(val);

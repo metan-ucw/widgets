@@ -14,22 +14,22 @@
     {
      "type": "label",
      "halign": "right",
-     "label": "System:"
+     "text": "System:"
     },
     {
      "type": "label",
      "halign": "right",
-     "label": "Version:"
+     "text": "Version:"
     },
     {
      "type": "label",
      "halign": "right",
-     "label": "Arch:"
+     "text": "Arch:"
     },
     {
      "type": "label",
      "halign": "right",
-     "label": "Hostname:"
+     "text": "Hostname:"
     },
     {
     },
@@ -50,7 +50,7 @@
    "widgets": [
     {
      "type": "label",
-     "label": "RAM Usage"
+     "text": "RAM Usage"
     },
     {
      "type": "progressbar",
@@ -58,7 +58,7 @@
     },
     {
      "type": "label",
-     "label": "Swap Usage"
+     "text": "Swap Usage"
     },
     {
      "type": "progressbar",

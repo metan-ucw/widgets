@@ -4,7 +4,7 @@
   "widgets": [
   {
    "type": "label",
-   "label": "Please log in."
+   "text": "Please log in."
   },
   {
    "cols": 2,
@@ -12,12 +12,12 @@
    "widgets": [
      {
        "type": "label",
-       "label": "Username:",
+       "text": "Username:",
        "halign": "right"
      },
      {
        "type": "label",
-       "label": "Password:",
+       "text": "Password:",
        "halign": "right"
      },
      {
@@ -41,5 +41,5 @@
     "label": "Ok",
     "on_event": "login_callback"
   }
-  ]
+ ]
 }
