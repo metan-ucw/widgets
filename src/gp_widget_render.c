@@ -23,10 +23,8 @@ static struct gp_text_style font = {
 };
 
 static struct gp_text_style font_bold = {
-	.pixel_xmul = 2,
-	.pixel_ymul = 2,
-	.pixel_xspace = -1,
-	.pixel_yspace = -1,
+	.pixel_xmul = 1,
+	.pixel_ymul = 1,
 	.font = &gp_default_font,
 };
 
@@ -48,27 +46,38 @@ static gp_font_face *render_font_bold;
 
 const char *arg_fonts;
 
+static void set_default_font(void)
+{
+	/* Embolding */
+	font_bold.pixel_xmul = 2;
+	font_bold.pixel_ymul = 2;
+	font_bold.pixel_xspace = -1;
+	font_bold.pixel_yspace = -1;
+}
+
 static void init_fonts(void)
 {
 	if (arg_fonts) {
-		if (!strcmp(arg_fonts, "default"))
+		if (!strcmp(arg_fonts, "default")) {
+			set_default_font();
 			return;
+		}
 
 		if (!strcmp(arg_fonts, "haxor-15")) {
-			render_font = gp_font_haxor_narrow_15;
-			render_font_bold = gp_font_haxor_narrow_bold_15;
+			font.font = gp_font_haxor_narrow_15;
+			font_bold.font = gp_font_haxor_narrow_bold_15;
 			return;
 		}
 
 		if (!strcmp(arg_fonts, "haxor-16")) {
-			render_font = gp_font_haxor_narrow_16;
-			render_font_bold = gp_font_haxor_narrow_bold_16;
+			font.font = gp_font_haxor_narrow_16;
+			font_bold.font = gp_font_haxor_narrow_bold_16;
 			return;
 		}
 
 		if (!strcmp(arg_fonts, "haxor-17")) {
-			render_font = gp_font_haxor_narrow_17;
-			render_font_bold = gp_font_haxor_narrow_bold_17;
+			font.font = gp_font_haxor_narrow_17;
+			font_bold.font = gp_font_haxor_narrow_bold_17;
 			return;
 		}
 
@@ -76,35 +85,29 @@ static void init_fonts(void)
 		return;
 	}
 
-	gp_font_face *font = gp_font_face_fc_load("DroidSans", 0, font_size);
-	gp_font_face *font_bold = gp_font_face_fc_load("DroidSans:Bold", 0, font_size);
+	gp_font_face *ffont = gp_font_face_fc_load("DroidSans", 0, font_size);
+	gp_font_face *ffont_bold = gp_font_face_fc_load("DroidSans:Bold", 0, font_size);
 
-	if (!font || !font_bold) {
-		gp_font_face_free(font);
-		gp_font_face_free(font_bold);
+	if (!ffont || !ffont_bold) {
+		gp_font_face_free(ffont);
+		gp_font_face_free(ffont_bold);
+		set_default_font();
 		return;
 	}
 
 	gp_font_face_free(render_font);
 	gp_font_face_free(render_font_bold);
 
-	render_font = font;
-	render_font_bold = font_bold;
+	render_font = ffont;
+	render_font_bold = ffont_bold;
+
+	cfg.font->font = ffont;
+	cfg.font_bold->font = ffont;
 }
 
 void gp_widget_render_init(void)
 {
 	init_fonts();
-
-	if (render_font && render_font_bold) {
-		cfg.font->font = render_font;
-		cfg.font_bold->font = render_font_bold;
-	}
-
-	cfg.font_bold->pixel_xmul = 1;
-	cfg.font_bold->pixel_ymul = 1;
-	cfg.font_bold->pixel_xspace = 0;
-	cfg.font_bold->pixel_yspace = 0;
 
 	cfg.padd = 2 * gp_text_descent(cfg.font);
 }
