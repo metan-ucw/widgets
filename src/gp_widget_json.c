@@ -235,7 +235,7 @@ gp_widget *gp_widget_layout_json(const char *path, void **uids)
 	size_t size;
 	gp_widget *ret = NULL;
 
-	if (*uids)
+	if (uids)
 		*uids = NULL;
 
 	fd = open(path, O_RDONLY);
