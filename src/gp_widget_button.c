@@ -64,12 +64,12 @@ static void set(gp_widget *self)
 	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
 }
 
-static void click(gp_widget *self, unsigned int padd, gp_event *ev)
+static void click(gp_widget *self, gp_event *ev)
 {
-	unsigned int min_x = self->x + padd;
-	unsigned int max_x = self->x + self->w - padd;
-	unsigned int min_y = self->y + padd;
-	unsigned int max_y = self->y + self->w - padd;
+	unsigned int min_x = self->x;
+	unsigned int max_x = self->x + self->w;
+	unsigned int min_y = self->y;
+	unsigned int max_y = self->y + self->h;
 
 	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
 		return;
@@ -82,6 +82,8 @@ static void click(gp_widget *self, unsigned int padd, gp_event *ev)
 
 static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 {
+	(void) cfg;
+
 	switch (ev->type) {
 	case GP_EV_KEY:
 		if (ev->code == GP_EV_KEY_UP)
@@ -93,7 +95,7 @@ static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 			set(self);
 			return 1;
 		case GP_BTN_LEFT:
-			click(self, cfg->padd, ev);
+			click(self, ev);
 			return 1;
 		}
 	break;
