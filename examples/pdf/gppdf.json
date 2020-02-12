@@ -1,0 +1,31 @@
+{
+ "rows": 2,
+ "align": "fill",
+ "rfill": "0, 1",
+ "widgets": [
+  {
+   "cols": 2,
+   "halign": "left",
+   "border": "none",
+   "widgets": [
+    {
+     "type": "button",
+     "label": "prev",
+     "on_event": "button_prev_event"
+    },
+    {
+     "type": "button",
+     "label": "next",
+     "on_event": "button_next_event"
+    }
+   ]
+  },
+  {
+   "align": "fill",
+   "type": "pixmap",
+   "w": 200,
+   "h": 200,
+   "uid": "page"
+  }
+ ]
+}
