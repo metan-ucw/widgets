@@ -11,6 +11,10 @@
 
 struct gp_widget_pixmap {
 	unsigned int min_w, min_h;
+	/*
+	 * If set redraw event is send once on when widget is rendered.
+	 */
+	int update:1;
 	gp_pixmap *pixmap;
 };
 
@@ -24,7 +28,8 @@ struct gp_widget_pixmap {
  *
  * Either you allocate a backing pixmap in the resize event. Then you draw into
  * it and the library will simply copy the buffer when application requests the
- * widget to be repainted.
+ * widget to be repainted. You will get the redraw event if update flag has been
+ * set prior to widget redraw.
  *
  * Or you can leave the pixmap pointer to be NULL in which case the library
  * will fill it just for the duration of redraw event.
@@ -36,5 +41,14 @@ struct gp_widget_pixmap {
 struct gp_widget *gp_widget_pixmap_new(unsigned int min_w, unsigned int min_h,
                                        int (*on_event)(gp_widget_event *ev),
                                        void *priv);
+
+/*
+ * When called GP_WIDGET_EVENT_REDRAW is send before pixmap is blit on the
+ * screen for the buffered case.
+ */
+static inline void gp_widget_pixmap_update(gp_widget *self)
+{
+	self->pixmap->update = 1;
+}
 
 #endif /* GP_WIDGET_PIXMAP_H__ */
