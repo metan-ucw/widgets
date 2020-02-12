@@ -19,7 +19,11 @@ typedef struct gp_widget {
 	unsigned int type;
 	struct gp_widget *parent;
 
+	/*
+	 * Widget event handler.
+	 */
 	int (*on_event)(struct gp_widget_event *);
+
 	/*
 	 * User provided pointer to arbitrary data; useful for event handlers
 	 * and other user defined functions. The library will not access or
@@ -27,8 +31,19 @@ typedef struct gp_widget {
 	 */
 	void *priv;
 
-	unsigned int x, y, w, h;
+	/*
+	 * Relative offset to the parent widget.
+	 */
+	unsigned int x, y;
 
+	/*
+	 * Current widget size.
+	 */
+	unsigned int w, h;
+
+	/*
+	 * Cached widget minimal size.
+	 */
 	unsigned int min_w, min_h;
 
 	unsigned int align:16;

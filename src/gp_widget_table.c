@@ -100,13 +100,14 @@ static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg, in
 		tbl->cols_w[i] += tbl->col_fills[i] * (diff/sum_fills);
 }
 
-static void header_render(gp_widget *self, const gp_widget_render_cfg *cfg)
+static void header_render(gp_widget *self, gp_coord x, gp_coord y,
+                          const gp_widget_render_cfg *cfg)
 {
 	gp_widget_table *tbl = self->tbl;
 	const gp_widget_table_header *headers = tbl->headers;
 	unsigned int text_a = gp_text_ascent(cfg->font);
-	unsigned int cy = self->y + cfg->padd;
-	unsigned int cx = self->x + cfg->padd;
+	unsigned int cx = x + cfg->padd;
+	unsigned int cy = y + cfg->padd;
 	unsigned int i;
 
 	for (i = 0; i < tbl->cols; i++) {
@@ -132,7 +133,7 @@ static void header_render(gp_widget *self, const gp_widget_render_cfg *cfg)
 		cx += tbl->cols_w[i] + cfg->padd;
 
 		if (i < tbl->cols - 1) {
-			gp_vline_xyh(cfg->buf, cx, self->y+1,
+			gp_vline_xyh(cfg->buf, cx, y+1,
 			            text_a + 2 * cfg->padd-1, cfg->bg_color);
 		}
 
@@ -143,7 +144,7 @@ static void header_render(gp_widget *self, const gp_widget_render_cfg *cfg)
 
 	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
 
-	gp_hline_xyw(cfg->buf, self->x, cy, self->w, color);
+	gp_hline_xyw(cfg->buf, x, cy, self->w, color);
 }
 
 static void align_text(gp_pixmap *buf, gp_widget_table *tbl,
@@ -156,12 +157,13 @@ static void align_text(gp_pixmap *buf, gp_widget_table *tbl,
 	           cfg->text_color, bg, str);
 }
 
-static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void render(gp_widget *self, const gp_offset *offset,
+                   const gp_widget_render_cfg *cfg, int flags)
 {
 	struct gp_widget_table *tbl = self->tbl;
 	unsigned int text_a = gp_text_ascent(cfg->font);
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	unsigned int x = self->x + offset->x;
+	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 	unsigned int cy = y + cfg->padd;
@@ -173,7 +175,7 @@ static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, color);
 
 	if (tbl->headers) {
-		header_render(self, cfg);
+		header_render(self, x, y, cfg);
 		cy = y + header_h(self, cfg);
 	}
 
@@ -183,7 +185,7 @@ static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 	unsigned int cur_row = tbl->start_row;
 	unsigned int rows = display_rows(self, cfg);
 
-	unsigned int cx = self->x + cfg->padd;
+	unsigned int cx = x + cfg->padd;
 
 	for (j = 0; j < tbl->cols-1; j++) {
 		cx += tbl->cols_w[j] + cfg->padd;
@@ -193,13 +195,13 @@ static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 
 	cy += cfg->padd/2;
 	for (i = 0; i < rows; i++) {
-		cx = self->x + cfg->padd;
+		cx = x + cfg->padd;
 		gp_pixel bg_col = cfg->fg_color;
 
 		if (tbl->row_selected && cur_row == tbl->selected_row) {
 			bg_col = self->selected ? cfg->sel_color : cfg->bg_color;
 
-			gp_fill_rect_xywh(cfg->buf, self->x+1, cy - cfg->padd/2+1,
+			gp_fill_rect_xywh(cfg->buf, x+1, cy - cfg->padd/2+1,
 					self->w - 2,
 					text_a + cfg->padd-1, bg_col);
 		}

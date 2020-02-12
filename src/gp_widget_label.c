@@ -35,13 +35,14 @@ static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 	return 2 * cfg->padd + gp_text_ascent(cfg->font);
 }
 
-static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void render(gp_widget *self, const gp_offset *offset,
+                   const gp_widget_render_cfg *cfg, int flags)
 {
 	(void) flags;
 	unsigned int align;
 
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	unsigned int x = self->x + offset->x;
+	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 

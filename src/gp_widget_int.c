@@ -135,10 +135,11 @@ static unsigned int spin_min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 	return 2 * cfg->padd + gp_text_ascent(cfg->font);
 }
 
-static void spin_render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void spin_render(gp_widget *self, const gp_offset *offset,
+                        const gp_widget_render_cfg *cfg, int flags)
 {
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	unsigned int x = self->x + offset->x;
+	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 	unsigned int s = GP_ODD_UP(gp_text_max_width(cfg->font, 1));
@@ -155,18 +156,18 @@ static void spin_render(gp_widget *self, const gp_widget_render_cfg *cfg, int fl
 	gp_fill_rrect_xywh(cfg->buf, x, y, w, h,
 	                   cfg->bg_color, cfg->fg_color, color);
 
-	gp_print(cfg->buf, cfg->font, self->x + w - s - cfg->padd, y + cfg->padd,
+	gp_print(cfg->buf, cfg->font, x + w - s - cfg->padd, y + cfg->padd,
 		 GP_ALIGN_LEFT | GP_VALIGN_BELOW,
 		 cfg->text_color, cfg->bg_color, "%i", self->spin->val);
 
 
-	x += w - s;
+	gp_coord rx = x + w - s;
 
-	gp_vline_xyh(cfg->buf, x-1, y, h, color);
-	gp_hline_xyw(cfg->buf, x, y + h/2, s, color);
+	gp_vline_xyh(cfg->buf, rx-1, y, h, color);
+	gp_hline_xyw(cfg->buf, rx, y + h/2, s, color);
 
-	gp_triangle_up(cfg->buf, self->x + w - s/2 - 1, y + h/4, s/2, cfg->text_color);
-	gp_triangle_down(cfg->buf, self->x + w - s/2 - 1, y + (h/4) * 3, s/2, cfg->text_color);
+	gp_triangle_up(cfg->buf, x + w - s/2 - 1, y + h/4, s/2, cfg->text_color);
+	gp_triangle_down(cfg->buf, x + w - s/2 - 1, y + (h/4) * 3, s/2, cfg->text_color);
 }
 
 static void schedule_alert(gp_widget *self)
@@ -326,10 +327,11 @@ static unsigned int slider_min_h(gp_widget *self, const gp_widget_render_cfg *cf
 	return 0;
 }
 
-static void slider_render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void slider_render(gp_widget *self, const gp_offset *offset,
+                          const gp_widget_render_cfg *cfg, int flags)
 {
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	unsigned int x = self->x + offset->x;
+	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 

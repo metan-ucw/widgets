@@ -26,10 +26,11 @@ static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 	return 2 * cfg->padd + gp_text_ascent(cfg->font);
 }
 
-static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void render(gp_widget *self, const gp_offset *offset,
+                   const gp_widget_render_cfg *cfg, int flags)
 {
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	unsigned int x = self->x + offset->x;
+	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 
@@ -40,8 +41,8 @@ static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 
 	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, bg_color, fr_color);
 
-	unsigned int cx = self->x + self->w/2;
-	unsigned int cy = self->y + self->h/2 - gp_text_ascent(cfg->font)/2;
+	unsigned int cx = x + self->w/2;
+	unsigned int cy = y + self->h/2 - gp_text_ascent(cfg->font)/2;
 
 	gp_text(cfg->buf, cfg->font,
 		cx, cy, GP_ALIGN_CENTER|GP_VALIGN_BELOW,

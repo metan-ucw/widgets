@@ -35,6 +35,13 @@ static gp_widget *widget_grid_selected(gp_widget *self)
 	                       self->grid->selected_row);
 }
 
+static void widget_grid_selected_offset(gp_widget *self,
+                                        gp_offset *offset)
+{
+	offset->x = self->grid->cols_off[self->grid->selected_col];
+	offset->y = self->grid->rows_off[self->grid->selected_row];
+}
+
 static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 		                         unsigned int x, unsigned int y)
 {
@@ -238,7 +245,6 @@ static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg, in
 	if (sum_col_fills)
 		cur_x += dx * grid->col_pfills[0] / sum_col_fills;
 
-
 	for (x = 0; x < grid->cols; x++) {
 		grid->cols_off[x] = cur_x;
 		cur_x += grid->cols_w[x] + padd_size(cfg, grid->col_padds[x+1]);
@@ -264,8 +270,6 @@ static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg, in
 
 			if (widget) {
 				gp_widget_ops_distribute_size(widget, cfg,
-				                              grid->cols_off[x],
-				                              grid->rows_off[y],
 				                              grid->cols_w[x],
 				                              grid->rows_h[y],
 				                              new_wh);
@@ -274,7 +278,8 @@ static void distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg, in
 	}
 }
 
-static void fill_padding(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void fill_padding(gp_widget *self, const gp_offset *offset,
+                         const gp_widget_render_cfg *cfg, int flags)
 {
 	struct gp_widget_grid *grid = self->grid;
 
@@ -283,52 +288,58 @@ static void fill_padding(gp_widget *self, const gp_widget_render_cfg *cfg, int f
 
 	GP_DEBUG(3, "Filling grid %p padding", self);
 
-	unsigned int y, cur_y = self->y;
+	gp_coord x_off = self->x + offset->x;
+	gp_coord y_off = self->y + offset->y;
+	gp_coord end_y = y_off + self->h - 1;
+	gp_coord end_x = x_off + self->w - 1;
+
+	unsigned int y, cur_y = y_off;
 	for (y = 0; y < grid->rows; y++) {
-		gp_fill_rect_xyxy(cfg->buf, self->x, cur_y,
-		                  self->x + self->w - 1, grid->rows_off[y] - 1,
+		gp_fill_rect_xyxy(cfg->buf, x_off, cur_y,
+		                  end_x, offset->y + grid->rows_off[y] - 1,
 				  cfg->bg_color);
 
 		if (y < grid->rows)
-			cur_y = grid->rows_h[y] + grid->rows_off[y];
+			cur_y = grid->rows_h[y] + grid->rows_off[y] + offset->y;
 	}
 
-	gp_fill_rect_xyxy(cfg->buf, self->x, cur_y,
-	                  self->x + self->w - 1, self->y + self->h - 1,
-			  cfg->bg_color);
+	gp_fill_rect_xyxy(cfg->buf, x_off, cur_y,
+	                  end_x, end_y, cfg->bg_color);
 
-	unsigned int x, cur_x = self->x;
+	unsigned int x, cur_x = x_off;
 	for (x = 0; x < grid->cols; x++) {
-		gp_fill_rect_xyxy(cfg->buf, cur_x, self->y,
-		                  grid->cols_off[x] - 1, self->y + self->h - 1,
-				  cfg->bg_color);
+		if (grid->cols_off[x]) {
+			gp_fill_rect_xyxy(cfg->buf, cur_x, y_off,
+			                  offset->x + grid->cols_off[x] - 1, end_y,
+					  cfg->bg_color);
+		}
 
 		if (x < grid->cols)
-			cur_x = grid->cols_off[x] + grid->cols_w[x];
+			cur_x = grid->cols_off[x] + grid->cols_w[x] + offset->x;
 	}
 
-	gp_fill_rect_xyxy(cfg->buf, cur_x, self->y,
-		          self->x + self->w - 1, self->y + self->h - 1,
-	                  cfg->bg_color);
+	gp_fill_rect_xyxy(cfg->buf, cur_x, y_off,
+		          end_x, end_y, cfg->bg_color);
 
 	if (grid->frame) {
-		gp_rrect_xywh(cfg->buf, self->x, self->y,
+		gp_rrect_xywh(cfg->buf, x_off, y_off,
 			      self->w, self->h, cfg->text_color);
 	}
 }
 
-static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void render(gp_widget *self, const gp_offset *offset,
+                   const gp_widget_render_cfg *cfg, int flags)
 {
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int x, y, cur_x, cur_y;
 
-	fill_padding(self, cfg, flags);
+	fill_padding(self, offset, cfg, flags);
 
 	for (y = 0; y < grid->rows; y++) {
-		cur_y = grid->rows_off[y];
+		cur_y = grid->rows_off[y] + offset->y;
 
 		for (x = 0; x < grid->cols; x++) {
-			cur_x = grid->cols_off[x];
+			cur_x = grid->cols_off[x] + offset->x;
 
 			struct gp_widget *widget = widget_grid_get(self, x, y);
 
@@ -342,57 +353,63 @@ static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 			if (widget->no_redraw && widget->no_redraw_child && flags != 1)
 				continue;
 
-			GP_DEBUG(3, "rendering widget %s [%u:%u]",
+			GP_DEBUG(3, "Rendering widget %s [%u:%u]",
 			         gp_widget_type_id(widget), x, y);
 
-			/* Fill unused space between widget */
-			unsigned int bw = widget->x - grid->cols_off[x];
-			unsigned int aw = grid->cols_w[x] - bw - widget->w;
+			/* Fill unused space between grid and widget */
 			gp_pixel bg = cfg->bg_color;
 
-			if (bw) {
-				gp_fill_rect_xywh(cfg->buf, cur_x, cur_y, bw,
-				                  grid->rows_h[y], bg);
+			if (widget->x) {
+				gp_fill_rect_xywh(cfg->buf, cur_x, cur_y,
+						  widget->x, grid->rows_h[y], bg);
 			}
 
-			if (aw) {
-				gp_fill_rect_xywh(cfg->buf, widget->x + widget->w,
-						cur_y, aw, grid->rows_h[y], bg);
+			if (widget->y) {
+				gp_fill_rect_xywh(cfg->buf, cur_x + widget->x, cur_y,
+						  widget->w, widget->y, bg);
 			}
 
-			unsigned int bh = widget->y - cur_y;
-			unsigned int ah = grid->rows_h[y] - bh - widget->h;
+			unsigned int wid_end_x = widget->x + widget->w;
+			unsigned int wid_after_w = grid->cols_w[x] - wid_end_x;
 
-			if (bh) {
-				gp_fill_rect_xywh(cfg->buf, widget->x, cur_y, widget->w,
-				                  bh, cfg->bg_color);
+			if (wid_after_w) {
+				gp_fill_rect_xywh(cfg->buf, cur_x + wid_end_x, cur_y,
+						  wid_after_w, grid->rows_h[y], bg);
 			}
 
-			if (ah) {
-				gp_fill_rect_xywh(cfg->buf, widget->x, widget->y + widget->h,
-						widget->w, ah, cfg->bg_color);
+			unsigned int wid_end_y = widget->y + widget->h;
+			unsigned int wid_after_h = grid->rows_h[y] - wid_end_y;
+
+			if (wid_after_h) {
+				gp_fill_rect_xywh(cfg->buf, cur_x + widget->x, cur_y + wid_end_y,
+						  widget->w, wid_after_h, bg);
 			}
 
-			gp_widget_ops_render(widget, cfg, flags);
+			gp_offset offset = {
+				.x = cur_x,
+				.y = cur_y,
+			};
+
+			gp_widget_ops_render(widget, &offset, cfg, flags);
 		}
 	}
 /*
 	gp_pixel col = random();
 
-	unsigned int sx = grid->cols_off[0];
-	unsigned int ex = grid->cols_off[grid->cols-1] + grid->cols_w[grid->cols-1];
+	unsigned int sx = grid->cols_off[0] + offset->x;
+	unsigned int ex = grid->cols_off[grid->cols-1] + grid->cols_w[grid->cols-1] + offset->x;
 
 	for (y = 0; y < grid->rows; y++) {
-		gp_hline_xxy(cfg->buf, sx, ex, grid->rows_off[y], col);
-		gp_hline_xxy(cfg->buf, sx, ex, grid->rows_off[y] + grid->rows_h[y], col);
+		gp_hline_xxy(cfg->buf, sx, ex, grid->rows_off[y] + offset->y, col);
+		gp_hline_xxy(cfg->buf, sx, ex, grid->rows_off[y] + grid->rows_h[y] + offset->y, col);
 	}
 
-	unsigned int sy = grid->rows_off[0];
-	unsigned int ey = grid->rows_off[grid->rows-1] + grid->rows_h[grid->rows-1];
+	unsigned int sy = grid->rows_off[0] + offset->y;
+	unsigned int ey = grid->rows_off[grid->rows-1] + grid->rows_h[grid->rows-1] + offset->y;
 
 	for (x = 0; x < grid->cols; x++) {
-		gp_vline_xyy(cfg->buf, grid->cols_off[x], sy, ey, col);
-		gp_vline_xyy(cfg->buf, grid->cols_off[x] + grid->cols_w[x], sy, ey, col);
+		gp_vline_xyy(cfg->buf, grid->cols_off[x] + offset->x, sy, ey, col);
+		gp_vline_xyy(cfg->buf, grid->cols_off[x] + grid->cols_w[x] + offset->x, sy, ey, col);
 	}
 */
 }
@@ -403,7 +420,19 @@ static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 
 	GP_DEBUG(3, "event widget %p (%s)", w, gp_widget_type_id(w));
 
-	return gp_widget_ops_event(w, cfg, ev);
+	gp_offset offset;
+
+	widget_grid_selected_offset(self, &offset);
+
+	ev->cursor_x -= offset.x;
+	ev->cursor_y -= offset.y;
+
+	int ret = gp_widget_ops_event(w, cfg, ev);
+
+	ev->cursor_x += offset.x;
+	ev->cursor_y += offset.y;
+
+	return ret;
 }
 
 static int try_select(gp_widget *self, unsigned int col, unsigned int row, int sel)
@@ -576,6 +605,9 @@ static int select_xy(gp_widget *self, const gp_widget_render_cfg *cfg,
 
 	if (col < 0 || row < 0)
 		return 0;
+
+	x -= self->grid->cols_off[col];
+	y -= self->grid->rows_off[row];
 
 	if (!gp_widget_ops_render_select_xy(widget_grid_get(self, col, row), cfg, x, y))
 		return 0;

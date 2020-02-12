@@ -178,7 +178,6 @@ static const char *valign_to_str(int align)
 }
 
 static void widget_resize(gp_widget *self,
-                          unsigned int x, unsigned int y,
                           unsigned int w, unsigned int h)
 {
 	unsigned int dw = w - self->min_w;
@@ -186,23 +185,16 @@ static void widget_resize(gp_widget *self,
 
 	self->no_redraw = 0;
 
-	GP_DEBUG(4,
-	         "Placing widget %p (%s) min size %ux%u %s|%s to %ux%u-%ux%u",
-		 self, gp_widget_type_id(self),
-	         self->min_w, self->min_h,
-		 halign_to_str(self->align), valign_to_str(self->align),
-		 x, y, w, h);
-
 	switch (GP_HALIGN_MASK & self->align) {
 	case GP_HCENTER_WEAK:
 	case GP_HCENTER:
-		self->x = x + dw/2;
+		self->x = dw/2;
 	break;
 	case GP_RIGHT:
-		self->x = x + dw;
+		self->x = dw;
 	break;
 	default:
-		self->x = x;
+		self->x = 0;
 	break;
 	}
 
@@ -214,13 +206,13 @@ static void widget_resize(gp_widget *self,
 	switch (GP_VALIGN_MASK & self->align) {
 	case GP_VCENTER_WEAK:
 	case GP_VCENTER:
-		self->y = y + dh/2;
+		self->y = dh/2;
 	break;
 	case GP_BOTTOM:
-		self->y = y + dh;
+		self->y = dh;
 	break;
 	default:
-		self->y = y;
+		self->y = 0;
 	break;
 	}
 
@@ -228,10 +220,16 @@ static void widget_resize(gp_widget *self,
 		self->h = h;
 	else
 		self->h = self->min_h;
+
+	GP_DEBUG(4,
+	         "Placing widget %p (%s) min size %ux%u %s|%s to %ux%u = %ux%u-%ux%u",
+		 self, gp_widget_type_id(self),
+	         self->min_w, self->min_h,
+		 halign_to_str(self->align), valign_to_str(self->align),
+		 w, h, self->x, self->y, self->w, self->h);
 }
 
 void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg,
-                                   unsigned int x, unsigned int y,
                                    unsigned int w, unsigned int h,
                                    int new_wh)
 {
@@ -259,7 +257,7 @@ void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_cfg *
 	unsigned int old_w = self->w;
 	unsigned int old_h = self->h;
 
-	widget_resize(self, x, y, w, h);
+	widget_resize(self, w, h);
 
 	if (self->w != old_w || self->h != old_h)
 		gp_widget_send_event(self, GP_WIDGET_EVENT_RESIZE, cfg);
@@ -289,10 +287,11 @@ void gp_widget_calc_size(gp_widget *self, const gp_widget_render_cfg *cfg,
 	w = GP_MAX(w, 1u);
 	h = GP_MAX(h, 1u);
 
-	gp_widget_ops_distribute_size(self, cfg, 0, 0, w, h, new_wh);
+	gp_widget_ops_distribute_size(self, cfg, w, h, new_wh);
 }
 
-void gp_widget_ops_render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
+                          const gp_widget_render_cfg *cfg, int flags)
 {
 	const struct gp_widget_ops *ops;
 
@@ -309,7 +308,7 @@ void gp_widget_ops_render(gp_widget *self, const gp_widget_render_cfg *cfg, int 
 	         self, ops->id, self->type, self->x, self->y,
 	         self->w, self->h, flags);
 
-	ops->render(self, cfg, flags);
+	ops->render(self, offset, cfg, flags);
 
 	self->no_redraw = 1;
 	self->no_redraw_child = 1;
@@ -492,7 +491,12 @@ void gp_widget_render(gp_widget *self, const gp_widget_render_cfg *cfg, int new_
 	                    gp_pixmap_w(cfg->buf),
 	                    gp_pixmap_h(cfg->buf), new_wh);
 
-	gp_widget_ops_render(self, cfg, 0);
+	gp_offset offset = {
+		.x = 0,
+		.y = 0,
+	};
+
+	gp_widget_ops_render(self, &offset, cfg, 0);
 }
 
 void gp_widget_redraw_child(gp_widget *self)

@@ -28,10 +28,11 @@ static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
 	return self->pixmap->min_h;
 }
 
-static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void render(gp_widget *self, const gp_offset *offset,
+                   const gp_widget_render_cfg *cfg, int flags)
 {
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	gp_coord x = self->x + offset->x;
+	gp_coord y = self->y + offset->y;
 
 	(void)flags;
 
@@ -39,14 +40,14 @@ static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
 		gp_pixmap pix;
 		gp_sub_pixmap(cfg->buf, &pix, self->x, self->y, self->w, self->h);
 		self->pixmap->pixmap = &pix;
+		//TODO: Send the offset size to the event handler.
 		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
 		self->pixmap->pixmap = NULL;
 		return;
 	}
 
 	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
-	             self->w, self->h,
-	             cfg->buf, x, y);
+	             self->w, self->h, cfg->buf, x, y);
 }
 
 /*

@@ -26,6 +26,11 @@ enum gp_widget_select_flag {
 
 struct json_object;
 
+typedef struct gp_offset {
+	gp_coord x;
+	gp_coord y;
+} gp_offset;
+
 struct gp_widget_ops {
 	void (*free)(gp_widget *self);
 
@@ -42,7 +47,7 @@ struct gp_widget_ops {
 	 * @cfg Render configuration.
 	 * @flags Force redraw whole layout.
 	 */
-	void (*render)(gp_widget *self,
+	void (*render)(gp_widget *self, const gp_offset *offset,
 	               const gp_widget_render_cfg *cfg, int flags);
 
 	/*
@@ -102,7 +107,8 @@ unsigned int gp_widget_align(gp_widget *self);
 
 int gp_widget_input_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev);
 
-void gp_widget_ops_render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags);
+void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
+                          const gp_widget_render_cfg *cfg, int flags);
 
 int gp_widget_ops_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev);
 
@@ -112,7 +118,6 @@ int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_cfg *
                                    unsigned int x, unsigned int y);
 
 void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg,
-                                   unsigned int x, unsigned int y,
                                    unsigned int w, unsigned int h, int new_wh);
 
 /**

@@ -38,11 +38,12 @@ static void cross(gp_pixmap *buf, unsigned int x, unsigned int y,
 	gp_line(buf, x + 3, y + h - 4, x + w - 4, y + 3, col);
 }
 
-static void render(gp_widget *self, const gp_widget_render_cfg *cfg, int flags)
+static void render(gp_widget *self, const gp_offset *offset,
+                   const gp_widget_render_cfg *cfg, int flags)
 {
 	unsigned int text_a = gp_text_ascent(cfg->font);
-	unsigned int x = self->x;
-	unsigned int y = self->y;
+	unsigned int x = self->x + offset->x;
+	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 
