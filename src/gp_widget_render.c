@@ -102,7 +102,7 @@ static void init_fonts(void)
 	render_font_bold = ffont_bold;
 
 	cfg.font->font = ffont;
-	cfg.font_bold->font = ffont;
+	cfg.font_bold->font = ffont_bold;
 }
 
 void gp_widget_render_init(void)
