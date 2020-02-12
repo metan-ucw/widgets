@@ -113,61 +113,61 @@ static gp_widget *json_to_int(enum gp_widget_type type, json_object *json, void 
 	return ret;
 }
 
-static unsigned int spin_min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int spin_min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	unsigned int min_digits = snprintf(NULL, 0, "%i", self->spin->min);
 	unsigned int max_digits = snprintf(NULL, 0, "%i", self->spin->max);
 
-	unsigned int ret = 2 * cfg->padd;
+	unsigned int ret = 2 * ctx->padd;
 
-	ret += gp_text_max_width_chars(cfg->font, "-0123456789",
+	ret += gp_text_max_width_chars(ctx->font, "-0123456789",
 			               GP_MAX(min_digits, max_digits));
 
-	ret += GP_ODD_UP(gp_text_max_width(cfg->font, 1));
+	ret += GP_ODD_UP(gp_text_max_width(ctx->font, 1));
 
 	return ret;
 }
 
-static unsigned int spin_min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int spin_min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void)self;
 
-	return 2 * cfg->padd + gp_text_ascent(cfg->font);
+	return 2 * ctx->padd + gp_text_ascent(ctx->font);
 }
 
 static void spin_render(gp_widget *self, const gp_offset *offset,
-                        const gp_widget_render_cfg *cfg, int flags)
+                        const gp_widget_render_ctx *ctx, int flags)
 {
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
-	unsigned int s = GP_ODD_UP(gp_text_max_width(cfg->font, 1));
+	unsigned int s = GP_ODD_UP(gp_text_max_width(ctx->font, 1));
 
 	(void)flags;
 
-	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
+	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
 
 	if (self->spin->alert) {
-		color = cfg->alert_color;
+		color = ctx->alert_color;
 		gp_widget_render_timer(self, GP_TIMER_RESCHEDULE, 500);
 	}
 
-	gp_fill_rrect_xywh(cfg->buf, x, y, w, h,
-	                   cfg->bg_color, cfg->fg_color, color);
+	gp_fill_rrect_xywh(ctx->buf, x, y, w, h,
+	                   ctx->bg_color, ctx->fg_color, color);
 
-	gp_print(cfg->buf, cfg->font, x + w - s - cfg->padd, y + cfg->padd,
+	gp_print(ctx->buf, ctx->font, x + w - s - ctx->padd, y + ctx->padd,
 		 GP_ALIGN_LEFT | GP_VALIGN_BELOW,
-		 cfg->text_color, cfg->bg_color, "%i", self->spin->val);
+		 ctx->text_color, ctx->bg_color, "%i", self->spin->val);
 
 
 	gp_coord rx = x + w - s;
 
-	gp_vline_xyh(cfg->buf, rx-1, y, h, color);
-	gp_hline_xyw(cfg->buf, rx, y + h/2, s, color);
+	gp_vline_xyh(ctx->buf, rx-1, y, h, color);
+	gp_hline_xyw(ctx->buf, rx, y + h/2, s, color);
 
-	gp_triangle_up(cfg->buf, x + w - s/2 - 1, y + h/4, s/2, cfg->text_color);
-	gp_triangle_down(cfg->buf, x + w - s/2 - 1, y + (h/4) * 3, s/2, cfg->text_color);
+	gp_triangle_up(ctx->buf, x + w - s/2 - 1, y + h/4, s/2, ctx->text_color);
+	gp_triangle_down(ctx->buf, x + w - s/2 - 1, y + (h/4) * 3, s/2, ctx->text_color);
 }
 
 static void schedule_alert(gp_widget *self)
@@ -202,9 +202,9 @@ static void spin_dec(gp_widget *self)
 	gp_widget_redraw(self);
 }
 
-static void spin_click(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static void spin_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	unsigned int s = gp_text_max_width(cfg->font, 1);
+	unsigned int s = gp_text_max_width(ctx->font, 1);
 	unsigned int min_x = self->x + self->w - s;
 	unsigned int max_x = self->x + self->w;
 	unsigned int min_y = self->y;
@@ -235,7 +235,7 @@ static void spin_max(gp_widget *self)
 	gp_widget_redraw(self);
 }
 
-static int spin_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int spin_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -244,7 +244,7 @@ static int spin_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event
 
 		switch (ev->val.val) {
 		case GP_BTN_LEFT:
-			spin_click(self, cfg, ev);
+			spin_click(self, ctx, ev);
 			return 1;
 		//TODO: Inc by 10 with Shift
 		case GP_KEY_UP:
@@ -297,10 +297,10 @@ static unsigned int ssteps(gp_widget *self)
 	return self->slider->max - self->slider->min;
 }
 
-static unsigned int slider_min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int slider_min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	unsigned int steps = ssteps(self);
-	unsigned int asc = gp_text_ascent(cfg->font) + 4;
+	unsigned int asc = gp_text_ascent(ctx->font) + 4;
 
 	switch (self->slider->dir) {
 	case GP_WIDGET_HORIZ:
@@ -312,10 +312,10 @@ static unsigned int slider_min_w(gp_widget *self, const gp_widget_render_cfg *cf
 	return 0;
 }
 
-static unsigned int slider_min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int slider_min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	unsigned int steps = ssteps(self);
-	unsigned int asc = gp_text_ascent(cfg->font) + 4;
+	unsigned int asc = gp_text_ascent(ctx->font) + 4;
 
 	switch (self->slider->dir) {
 	case GP_WIDGET_HORIZ:
@@ -328,7 +328,7 @@ static unsigned int slider_min_h(gp_widget *self, const gp_widget_render_cfg *cf
 }
 
 static void slider_render(gp_widget *self, const gp_offset *offset,
-                          const gp_widget_render_cfg *cfg, int flags)
+                          const gp_widget_render_ctx *ctx, int flags)
 {
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
@@ -336,14 +336,14 @@ static void slider_render(gp_widget *self, const gp_offset *offset,
 	unsigned int h = self->h;
 
 	unsigned int steps = ssteps(self);
-	unsigned int asc = gp_text_ascent(cfg->font);
+	unsigned int asc = gp_text_ascent(ctx->font);
 	int val = GP_ABS(self->slider->val);
 
 	(void)flags;
 
-	gp_pixel fr_color = self->selected ? cfg->sel_color : cfg->text_color;
+	gp_pixel fr_color = self->selected ? ctx->sel_color : ctx->text_color;
 
-	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, fr_color);
+	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color, ctx->fg_color, fr_color);
 
 	switch (self->slider->dir) {
 	case GP_WIDGET_HORIZ:
@@ -362,7 +362,7 @@ static void slider_render(gp_widget *self, const gp_offset *offset,
 	break;
 	}
 
-	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->fg_color, cfg->bg_color, cfg->text_color);
+	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->fg_color, ctx->bg_color, ctx->text_color);
 }
 
 static int coord_to_val(gp_widget *self, int coord,
@@ -406,9 +406,9 @@ static void slider_set_val(gp_widget *self, unsigned int ascent, gp_event *ev)
 	gp_widget_redraw(self);
 }
 
-static int slider_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int slider_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	unsigned int asc = gp_text_ascent(cfg->font);
+	unsigned int asc = gp_text_ascent(ctx->font);
 
 	switch (ev->type) {
 	case GP_EV_REL:

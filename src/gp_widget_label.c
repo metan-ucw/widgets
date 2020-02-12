@@ -13,9 +13,9 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	gp_text_style *font = self->label->bold ? cfg->font_bold : cfg->font;
+	gp_text_style *font = self->label->bold ? ctx->font_bold : ctx->font;
 	unsigned int max_width;
 
 	if (self->label->width)
@@ -24,19 +24,19 @@ static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
 		max_width = gp_text_width(font, self->label->text);
 
 	if (self->label->frame)
-		max_width += 2 * cfg->padd;
+		max_width += 2 * ctx->padd;
 
 	return max_width;
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void) self;
-	return 2 * cfg->padd + gp_text_ascent(cfg->font);
+	return 2 * ctx->padd + gp_text_ascent(ctx->font);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
-                   const gp_widget_render_cfg *cfg, int flags)
+                   const gp_widget_render_ctx *ctx, int flags)
 {
 	(void) flags;
 	unsigned int align;
@@ -46,16 +46,16 @@ static void render(gp_widget *self, const gp_offset *offset,
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 
-	gp_text_style *font = self->label->bold ? cfg->font_bold : cfg->font;
+	gp_text_style *font = self->label->bold ? ctx->font_bold : ctx->font;
 
 	if (self->label->frame) {
-		gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color,
-		                   cfg->fg_color, cfg->text_color);
+		gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color,
+		                   ctx->fg_color, ctx->text_color);
 
-		x += cfg->padd;
-		w -= 2 * cfg->padd;
+		x += ctx->padd;
+		w -= 2 * ctx->padd;
 	} else {
-		gp_fill_rect_xywh(cfg->buf, x, y, w, h, cfg->bg_color);
+		gp_fill_rect_xywh(ctx->buf, x, y, w, h, ctx->bg_color);
 	}
 
 	if (self->label->ralign) {
@@ -65,9 +65,9 @@ static void render(gp_widget *self, const gp_offset *offset,
 		align = GP_ALIGN_RIGHT;
 	}
 
-	gp_text(cfg->buf, font, x, y + cfg->padd,
+	gp_text(ctx->buf, font, x, y + ctx->padd,
 		align|GP_VALIGN_BELOW,
-		cfg->text_color, cfg->bg_color, self->label->text);
+		ctx->text_color, ctx->bg_color, self->label->text);
 }
 
 static gp_widget *json_to_label(json_object *json, void **uids)

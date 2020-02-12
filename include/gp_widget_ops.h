@@ -39,16 +39,16 @@ struct gp_widget_ops {
 	 *
 	 * @return Returns non-zero if event was handled.
 	 */
-	int (*event)(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev);
+	int (*event)(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev);
 
 	/**
 	 * @brief Renders (changes in) widget layout.
 	 *
-	 * @cfg Render configuration.
+	 * @ctx Render configuration.
 	 * @flags Force redraw whole layout.
 	 */
 	void (*render)(gp_widget *self, const gp_offset *offset,
-	               const gp_widget_render_cfg *cfg, int flags);
+	               const gp_widget_render_ctx *ctx, int flags);
 
 	/*
 	 * Moves to focused widget.
@@ -58,14 +58,14 @@ struct gp_widget_ops {
 	/*
 	 * Moves focus to widget on x, y coordinates.
 	 */
-	int (*select_xy)(gp_widget *self, const gp_widget_render_cfg *cfg,
+	int (*select_xy)(gp_widget *self, const gp_widget_render_ctx *ctx,
 	                 unsigned int x, unsigned int y);
 
 	/*
 	 * Called once to calculate minimal widget sizes.
 	 */
-	unsigned int (*min_w)(gp_widget *self, const gp_widget_render_cfg *cfg);
-	unsigned int (*min_h)(gp_widget *self, const gp_widget_render_cfg *cfg);
+	unsigned int (*min_w)(gp_widget *self, const gp_widget_render_ctx *ctx);
+	unsigned int (*min_h)(gp_widget *self, const gp_widget_render_ctx *ctx);
 
 	/**
 	 * @brief Recursively distributes widgets in a widget container.
@@ -73,11 +73,11 @@ struct gp_widget_ops {
 	 * Implemented only for non-leaf widgets.
 	 *
 	 * @self   Widget layout to be distributed.
-	 * @cfg    Render configuration.
+	 * @ctx    Render configuration.
 	 * @new_wh Force distribute size on layout size change.
 	 */
 	void (*distribute_size)(gp_widget *self,
-	                        const gp_widget_render_cfg *cfg,
+	                        const gp_widget_render_ctx *ctx,
 	                        int new_wh);
 
 	/*
@@ -99,25 +99,25 @@ const char *gp_widget_type_name(enum gp_widget_type type);
 
 void gp_widget_free(gp_widget *self);
 
-unsigned int gp_widget_min_w(gp_widget *self, const gp_widget_render_cfg *cfg);
+unsigned int gp_widget_min_w(gp_widget *self, const gp_widget_render_ctx *ctx);
 
-unsigned int gp_widget_min_h(gp_widget *self, const gp_widget_render_cfg *cfg);
+unsigned int gp_widget_min_h(gp_widget *self, const gp_widget_render_ctx *ctx);
 
 unsigned int gp_widget_align(gp_widget *self);
 
-int gp_widget_input_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev);
+int gp_widget_input_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev);
 
 void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
-                          const gp_widget_render_cfg *cfg, int flags);
+                          const gp_widget_render_ctx *ctx, int flags);
 
-int gp_widget_ops_event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev);
+int gp_widget_ops_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev);
 
 int gp_widget_ops_render_select(gp_widget *self, int flag);
 
-int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_cfg *cfg,
+int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                                    unsigned int x, unsigned int y);
 
-void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_cfg *cfg,
+void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx,
                                    unsigned int w, unsigned int h, int new_wh);
 
 /**
@@ -127,12 +127,12 @@ void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_cfg *
  * than WxH if align is not set to fill.
  *
  * @layout Widget layout.
- * @cfg    Render configuration, e.g. fonts, pixel type, padding size.
+ * @ctx    Render context, e.g. fonts, pixel type, padding size, etc.
  * @w      Width we are trying to fit into
  * @h      Height we are trying to fit into
  * @new_wh Force to position widgets on changed layout size
  */
-void gp_widget_calc_size(gp_widget *layout, const gp_widget_render_cfg *cfg,
+void gp_widget_calc_size(gp_widget *layout, const gp_widget_render_ctx *ctx,
                          unsigned int w, unsigned int h, int new_wh);
 
 /*
@@ -144,6 +144,6 @@ void gp_widget_resize(gp_widget *self);
 /*
  * Resizes and redraws changed widgets.
  */
-void gp_widget_render(gp_widget *self, const gp_widget_render_cfg *cfg, int new_wh);
+void gp_widget_render(gp_widget *self, const gp_widget_render_ctx *ctx, int new_wh);
 
 #endif /* GP_WIDGET_OPS_H__ */

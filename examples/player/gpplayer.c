@@ -206,9 +206,9 @@ static gp_pixmap *alloc_backing_pixmap(gp_widget_event *ev)
 	gp_pixmap *p;
 	gp_widget *pix = ev->self;
 
-	p = gp_pixmap_alloc(pix->w, pix->h, ev->cfg->pixel_type);
+	p = gp_pixmap_alloc(pix->w, pix->h, ev->ctx->pixel_type);
 	if (p)
-		gp_fill(p, ev->cfg->bg_color);
+		gp_fill(p, ev->ctx->bg_color);
 
 	return p;
 }

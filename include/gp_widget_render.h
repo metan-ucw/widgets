@@ -18,7 +18,7 @@
 
 #include <gp_widget.h>
 
-typedef struct gp_widget_render_cfg {
+typedef struct gp_widget_render_ctx {
 	/* colors */
 	gp_pixel text_color;
 	gp_pixel bg_color;
@@ -38,7 +38,7 @@ typedef struct gp_widget_render_cfg {
 	unsigned int padd;
 
 	gp_pixmap *buf;
-} gp_widget_render_cfg;
+} gp_widget_render_ctx;
 
 void gp_widget_render_init(void);
 

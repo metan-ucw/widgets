@@ -14,20 +14,20 @@
 #include <gp_widget_render.h>
 #include <gp_widget_json.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	return 2 * cfg->padd + gp_text_width(cfg->font, self->b->label);
+	return 2 * ctx->padd + gp_text_width(ctx->font, self->b->label);
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void)self;
 
-	return 2 * cfg->padd + gp_text_ascent(cfg->font);
+	return 2 * ctx->padd + gp_text_ascent(ctx->font);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
-                   const gp_widget_render_cfg *cfg, int flags)
+                   const gp_widget_render_ctx *ctx, int flags)
 {
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
@@ -36,17 +36,17 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
-	gp_pixel bg_color = self->b->val ? cfg->bg_color : cfg->fg_color;
-	gp_pixel fr_color = self->selected ? cfg->sel_color : cfg->text_color;
+	gp_pixel bg_color = self->b->val ? ctx->bg_color : ctx->fg_color;
+	gp_pixel fr_color = self->selected ? ctx->sel_color : ctx->text_color;
 
-	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, bg_color, fr_color);
+	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color, bg_color, fr_color);
 
 	unsigned int cx = x + self->w/2;
-	unsigned int cy = y + self->h/2 - gp_text_ascent(cfg->font)/2;
+	unsigned int cy = y + self->h/2 - gp_text_ascent(ctx->font)/2;
 
-	gp_text(cfg->buf, cfg->font,
+	gp_text(ctx->buf, ctx->font,
 		cx, cy, GP_ALIGN_CENTER|GP_VALIGN_BELOW,
-		cfg->text_color, bg_color, self->b->label);
+		ctx->text_color, bg_color, self->b->label);
 
 	if (self->b->val)
 		gp_widget_render_timer(self, 0, 200);
@@ -80,9 +80,9 @@ static void click(gp_widget *self, gp_event *ev)
 	set(self);
 }
 
-static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	(void) cfg;
+	(void) ctx;
 
 	switch (ev->type) {
 	case GP_EV_KEY:

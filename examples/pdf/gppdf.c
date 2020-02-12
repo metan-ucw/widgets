@@ -52,7 +52,7 @@ static void draw_page(gp_widget_event *ev)
 	GP_DEBUG(1, "Blitting context");
 	gp_pixmap page;
 	//TODO: Fill only the corners
-	gp_fill(pixmap, ev->cfg->bg_color);
+	gp_fill(pixmap, ev->ctx->bg_color);
 
 	gp_pixmap_init(&page, pix->w, pix->h, GP_PIXEL_RGB888, pix->samples);
 
@@ -139,7 +139,7 @@ static void allocate_backing_pixmap(gp_widget_event *ev)
 
 	gp_pixmap_free(w->pixmap->pixmap);
 
-	w->pixmap->pixmap = gp_pixmap_alloc(w->w, w->h, ev->cfg->pixel_type);
+	w->pixmap->pixmap = gp_pixmap_alloc(w->w, w->h, ev->ctx->pixel_type);
 }
 
 int pixmap_on_event(gp_widget_event *ev)

@@ -28,7 +28,7 @@ static struct gp_text_style font_bold = {
 	.font = &gp_default_font,
 };
 
-static struct gp_widget_render_cfg cfg = {
+static struct gp_widget_render_ctx ctx = {
 	.text_color = 0,
 	.bg_color = 0xdddddd,
 	.fg_color = 0xeeeeee,
@@ -101,15 +101,15 @@ static void init_fonts(void)
 	render_font = ffont;
 	render_font_bold = ffont_bold;
 
-	cfg.font->font = ffont;
-	cfg.font_bold->font = ffont_bold;
+	ctx.font->font = ffont;
+	ctx.font_bold->font = ffont_bold;
 }
 
 void gp_widget_render_init(void)
 {
 	init_fonts();
 
-	cfg.padd = 2 * gp_text_descent(cfg.font);
+	ctx.padd = 2 * gp_text_descent(ctx.font);
 }
 
 static gp_backend *backend;
@@ -131,7 +131,7 @@ static void timer_event(gp_event *ev)
 {
 	struct gp_widget *widget = ev->val.tmr->priv;
 
-	gp_widget_ops_event(widget, &cfg, ev);
+	gp_widget_ops_event(widget, &ctx, ev);
 
 	ev->val.tmr->priv = NULL;
 }
@@ -186,7 +186,7 @@ void gp_widgets_redraw(struct gp_widget *layout)
 		gp_backend_resize(backend, layout->w, layout->h);
 	}
 
-	gp_widget_render(layout, &cfg, 0);
+	gp_widget_render(layout, &ctx, 0);
 	gp_backend_flip(backend);
 }
 
@@ -221,10 +221,10 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 	if (!backend)
 		exit(1);
 
-	cfg.buf = backend->pixmap;
-	cfg.pixel_type = backend->pixmap->pixel_type;
+	ctx.buf = backend->pixmap;
+	ctx.pixel_type = backend->pixmap->pixel_type;
 
-	gp_widget_calc_size(layout, &cfg, 0, 0, 1);
+	gp_widget_calc_size(layout, &ctx, 0, 0, 1);
 
 	gp_backend_resize(backend, layout->w, layout->h);
 
@@ -238,7 +238,7 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 		flag = 1;
 	}
 
-	gp_widget_render(layout, &cfg, flag);
+	gp_widget_render(layout, &ctx, flag);
 	gp_backend_flip(backend);
 }
 
@@ -266,9 +266,9 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 		switch (ev->code) {
 		case GP_EV_SYS_RESIZE:
 			gp_backend_resize_ack(backend);
-			cfg.buf = backend->pixmap;
+			ctx.buf = backend->pixmap;
 			gp_fill(backend->pixmap, 0x444444);
-			gp_widget_render(layout, &cfg, 1);
+			gp_widget_render(layout, &ctx, 1);
 			gp_backend_flip(backend);
 			handled = 1;
 		break;
@@ -286,7 +286,7 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 	if (handled)
 		return 0;
 
-	handled = gp_widget_input_event(layout, &cfg, ev);
+	handled = gp_widget_input_event(layout, &ctx, ev);
 
 	if (handled)
 		return 0;

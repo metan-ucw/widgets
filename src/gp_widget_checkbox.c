@@ -13,22 +13,22 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	unsigned int text_a = gp_text_ascent(cfg->font);
+	unsigned int text_a = gp_text_ascent(ctx->font);
 	unsigned int text_w = 0;
 
 	if (self->b->label)
-		text_w = gp_text_width(cfg->font, self->b->label) + cfg->padd;
+		text_w = gp_text_width(ctx->font, self->b->label) + ctx->padd;
 
 	return text_a + text_w;
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void)self;
 
-	return gp_text_ascent(cfg->font) + 2 * cfg->padd;
+	return gp_text_ascent(ctx->font) + 2 * ctx->padd;
 }
 
 static void cross(gp_pixmap *buf, unsigned int x, unsigned int y,
@@ -39,9 +39,9 @@ static void cross(gp_pixmap *buf, unsigned int x, unsigned int y,
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
-                   const gp_widget_render_cfg *cfg, int flags)
+                   const gp_widget_render_ctx *ctx, int flags)
 {
-	unsigned int text_a = gp_text_ascent(cfg->font);
+	unsigned int text_a = gp_text_ascent(ctx->font);
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
@@ -49,27 +49,27 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
-	gp_fill_rect_xywh(cfg->buf, x, y, w, h, cfg->bg_color);
+	gp_fill_rect_xywh(ctx->buf, x, y, w, h, ctx->bg_color);
 
-	y += cfg->padd;
+	y += ctx->padd;
 
-	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
+	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
 
-	gp_fill_rrect_xywh(cfg->buf, x, y, text_a, text_a, cfg->bg_color, cfg->fg_color, color);
+	gp_fill_rrect_xywh(ctx->buf, x, y, text_a, text_a, ctx->bg_color, ctx->fg_color, color);
 
 	if (self->b->val) {
-		cross(cfg->buf, x, y,
-		      text_a, text_a, cfg->text_color);
+		cross(ctx->buf, x, y,
+		      text_a, text_a, ctx->text_color);
 	}
 
 	if (!self->b->label)
 		return;
 
-	gp_text(cfg->buf, cfg->font,
-		x + text_a + cfg->padd, y,
+	gp_text(ctx->buf, ctx->font,
+		x + text_a + ctx->padd, y,
 		GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
-		cfg->text_color,
-		cfg->bg_color, self->b->label);
+		ctx->text_color,
+		ctx->bg_color, self->b->label);
 }
 
 static void set(gp_widget *self, int val)
@@ -102,7 +102,7 @@ static void click(gp_widget *self, unsigned int padd, gp_event *ev)
 	toggle(self);
 }
 
-static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -115,7 +115,7 @@ static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 			return 1;
 		break;
 		case GP_BTN_LEFT:
-			click(self, cfg->padd, ev);
+			click(self, ctx->padd, ev);
 			return 1;
 		break;
 		}

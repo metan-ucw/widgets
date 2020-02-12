@@ -9,14 +9,14 @@
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	return self->misc->ops->min_w(self, cfg);
+	return self->misc->ops->min_w(self, ctx);
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	return self->misc->ops->min_h(self, cfg);
+	return self->misc->ops->min_h(self, ctx);
 }
 
 struct gp_widget_ops gp_widget_misc_ops = {

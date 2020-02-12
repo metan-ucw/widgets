@@ -14,22 +14,22 @@
 #include <gp_widget_render.h>
 #include <gp_widget_json.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	(void)cfg;
+	(void)ctx;
 
 	return self->pixmap->min_w;
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	(void)cfg;
+	(void)ctx;
 
 	return self->pixmap->min_h;
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
-                   const gp_widget_render_cfg *cfg, int flags)
+                   const gp_widget_render_ctx *ctx, int flags)
 {
 	gp_coord x = self->x + offset->x;
 	gp_coord y = self->y + offset->y;
@@ -38,31 +38,31 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	if (!self->pixmap->pixmap) {
 		gp_pixmap pix;
-		gp_sub_pixmap(cfg->buf, &pix, self->x, self->y, self->w, self->h);
+		gp_sub_pixmap(ctx->buf, &pix, self->x, self->y, self->w, self->h);
 		self->pixmap->pixmap = &pix;
 		//TODO: Send the offset size to the event handler.
-		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
+		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, ctx);
 		self->pixmap->pixmap = NULL;
 		return;
 	}
 
 	if (self->pixmap->update) {
 		self->pixmap->update = 0;
-		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, cfg);
+		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, ctx);
 	}
 
 	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
-	             self->w, self->h, cfg->buf, x, y);
+	             self->w, self->h, ctx->buf, x, y);
 }
 
 /*
  * Dummy event handler so that events are propagated to app event handler since
  * widgets without event handler can't get focus and events.
  */
-static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	(void)self;
-	(void)cfg;
+	(void)ctx;
 	(void)ev;
 	return 0;
 }

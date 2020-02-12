@@ -83,7 +83,7 @@ typedef struct gp_widget_event {
 	struct gp_widget *self;
 	enum gp_widget_event_type type;
 	/* internal DO NOT TOUCH */
-	const struct gp_widget_render_cfg *cfg;
+	const struct gp_widget_render_ctx *ctx;
 	union {
 		void *ptr;
 		long val;
@@ -115,21 +115,21 @@ static inline int gp_widget_send_event(gp_widget *self,
 	if (!(self->event_mask & (1<<type)))
 		return 0;
 
-	const struct gp_widget_render_cfg *cfg = NULL;
+	const struct gp_widget_render_ctx *ctx = NULL;
 
 	va_list va;
 	va_start(va, type);
 	if (type == GP_WIDGET_EVENT_INPUT ||
 	    type == GP_WIDGET_EVENT_RESIZE ||
 	    type == GP_WIDGET_EVENT_REDRAW)
-		cfg = va_arg(va, void*);
+		ctx = va_arg(va, void*);
 	long val = va_arg(va, long);
 	va_end(va);
 
 	gp_widget_event ev = {
 		.self = self,
 		.type = type,
-		.cfg = cfg,
+		.ctx = ctx,
 		.val = val,
 	};
 

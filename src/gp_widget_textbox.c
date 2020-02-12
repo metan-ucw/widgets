@@ -13,25 +13,25 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	size_t text_len = self->tbox->buf_len - 1;
-	unsigned int ret = 2 * cfg->padd;
+	unsigned int ret = 2 * ctx->padd;
 	const char *filter = self->tbox->filter;
 
 	if (filter)
-		ret += gp_text_max_width_chars(cfg->font, filter, text_len);
+		ret += gp_text_max_width_chars(ctx->font, filter, text_len);
 	else
-		ret += gp_text_max_width(cfg->font, text_len);
+		ret += gp_text_max_width(ctx->font, text_len);
 
 	return ret;
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void)self;
 
-	return 2 * cfg->padd + gp_text_ascent(cfg->font);
+	return 2 * ctx->padd + gp_text_ascent(ctx->font);
 }
 
 static const char *hidden_str(const char *buf)
@@ -46,7 +46,7 @@ static const char *hidden_str(const char *buf)
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
-                   const gp_widget_render_cfg *cfg, int flags)
+                   const gp_widget_render_ctx *ctx, int flags)
 {
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
@@ -61,27 +61,27 @@ static void render(gp_widget *self, const gp_offset *offset,
 	else
 		str = self->tbox->buf;
 
-	gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
+	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
 
 	if (self->tbox->alert) {
-		color = cfg->alert_color;
+		color = ctx->alert_color;
 		gp_widget_render_timer(self, GP_TIMER_RESCHEDULE, 500);
 	}
 
-	gp_fill_rrect_xywh(cfg->buf, x, y, w, h, cfg->bg_color, cfg->fg_color, color);
+	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color, ctx->fg_color, color);
 
 	if (self->selected) {
-		unsigned int cursor_x = x + cfg->padd;
-		cursor_x += gp_text_width_len(cfg->font, str,
+		unsigned int cursor_x = x + ctx->padd;
+		cursor_x += gp_text_width_len(ctx->font, str,
 		                              self->tbox->cur_pos);
-		gp_vline_xyh(cfg->buf, cursor_x, y + cfg->padd,
-			     gp_text_ascent(cfg->font), cfg->text_color);
+		gp_vline_xyh(ctx->buf, cursor_x, y + ctx->padd,
+			     gp_text_ascent(ctx->font), ctx->text_color);
 	}
 
-	gp_text(cfg->buf, cfg->font,
-		x + cfg->padd, y + cfg->padd,
+	gp_text(ctx->buf, ctx->font,
+		x + ctx->padd, y + ctx->padd,
 		GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
-		cfg->text_color, cfg->bg_color, str);
+		ctx->text_color, ctx->bg_color, str);
 }
 
 
@@ -192,9 +192,9 @@ static void key_end(gp_widget *self)
 	gp_widget_redraw(self);
 }
 
-static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	(void)cfg;
+	(void)ctx;
 
 	switch (ev->type) {
 	//TODO: Mouse clicks

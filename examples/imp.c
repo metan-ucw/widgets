@@ -223,7 +223,7 @@ static int table_on_event(gp_widget_event *ev)
 			return 1;
 		}
 
-		return gp_widget_ops_event(filter, ev->cfg, ev->input_ev);
+		return gp_widget_ops_event(filter, ev->ctx, ev->input_ev);
 	default:
 		return 0;
 	}

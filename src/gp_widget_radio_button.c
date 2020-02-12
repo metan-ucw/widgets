@@ -13,30 +13,30 @@
 #include <gp_widget_render.h>
 #include <gp_string.h>
 
-static unsigned int min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	unsigned int text_a = gp_text_ascent(cfg->font);
+	unsigned int text_a = gp_text_ascent(ctx->font);
 	unsigned int text_w = 0;
 	unsigned int i, w;
 
 	for (i = 0; i < self->choice->max; i++) {
-		w = gp_text_width(cfg->font, self->choice->choices[i]);
+		w = gp_text_width(ctx->font, self->choice->choices[i]);
 		text_w = GP_MAX(text_w, w);
 	}
 
-	return cfg->padd + text_a + text_w;
+	return ctx->padd + text_a + text_w;
 }
 
-static unsigned int min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	return cfg->padd +
-	       self->choice->max * (gp_text_ascent(cfg->font) + cfg->padd);
+	return ctx->padd +
+	       self->choice->max * (gp_text_ascent(ctx->font) + ctx->padd);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
-                   const gp_widget_render_cfg *cfg, int flags)
+                   const gp_widget_render_ctx *ctx, int flags)
 {
-	unsigned int text_a = gp_text_ascent(cfg->font);
+	unsigned int text_a = gp_text_ascent(ctx->font);
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
@@ -45,31 +45,31 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
-	gp_fill_rect_xywh(cfg->buf, x, y, w, h, cfg->bg_color);
+	gp_fill_rect_xywh(ctx->buf, x, y, w, h, ctx->bg_color);
 
-	y += cfg->padd;
+	y += ctx->padd;
 
 	for (i = 0; i < self->choice->max; i++) {
 		unsigned int r = text_a/2;
 		unsigned int cy = y + r;
 		unsigned int cx = x + r;
 
-		gp_fill_circle(cfg->buf, cx, cy, r, cfg->fg_color);
-		gp_pixel color = self->selected ? cfg->sel_color : cfg->text_color;
-		gp_circle(cfg->buf, cx, cy, r, color);
+		gp_fill_circle(ctx->buf, cx, cy, r, ctx->fg_color);
+		gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+		gp_circle(ctx->buf, cx, cy, r, color);
 
 		if (i == self->choice->sel) {
-			gp_fill_circle(cfg->buf, cx, cy, r - 3,
-			              cfg->text_color);
+			gp_fill_circle(ctx->buf, cx, cy, r - 3,
+			              ctx->text_color);
 		}
 
-		gp_text(cfg->buf, cfg->font,
-			x + cfg->padd + text_a, y,
+		gp_text(ctx->buf, ctx->font,
+			x + ctx->padd + text_a, y,
 		        GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
-                        cfg->text_color, cfg->bg_color,
+                        ctx->text_color, ctx->bg_color,
 			self->choice->choices[i]);
 
-		y += text_a + cfg->padd;
+		y += text_a + ctx->padd;
 	}
 }
 
@@ -107,13 +107,13 @@ static void key_down(gp_widget *self)
 		select_choice(self, self->choice->sel + 1);
 }
 
-static void radio_click(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static void radio_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	unsigned int min_x = self->x;
 	unsigned int max_x = self->x + self->w;
-	unsigned int min_y = self->y + cfg->padd;
-	unsigned int max_y = self->y + self->h - cfg->padd;
-	unsigned int text_h = gp_text_ascent(cfg->font) + cfg->padd;
+	unsigned int min_y = self->y + ctx->padd;
+	unsigned int max_y = self->y + self->h - ctx->padd;
+	unsigned int text_h = gp_text_ascent(ctx->font) + ctx->padd;
 
 	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
 		return;
@@ -126,7 +126,7 @@ static void radio_click(gp_widget *self, const gp_widget_render_cfg *cfg, gp_eve
 	select_choice(self, select);
 }
 
-static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
+static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -135,7 +135,7 @@ static int event(gp_widget *self, const gp_widget_render_cfg *cfg, gp_event *ev)
 
 		switch (ev->val.val) {
 		case GP_BTN_LEFT:
-			radio_click(self, cfg, ev);
+			radio_click(self, ctx, ev);
 			return 1;
 		case GP_KEY_DOWN:
 			key_down(self);

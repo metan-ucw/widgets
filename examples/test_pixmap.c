@@ -43,7 +43,7 @@ static void allocate_backing_pixmap(gp_widget_event *ev)
 
 	gp_pixmap_free(w->pixmap->pixmap);
 
-	w->pixmap->pixmap = gp_pixmap_alloc(w->w, w->h, ev->cfg->pixel_type);
+	w->pixmap->pixmap = gp_pixmap_alloc(w->w, w->h, ev->ctx->pixel_type);
 
 	fill_pixmap(w->pixmap->pixmap);
 }

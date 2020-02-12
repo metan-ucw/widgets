@@ -13,22 +13,22 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
-static unsigned int pbar_min_w(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int pbar_min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void)self;
 
-	return 2 * cfg->padd + gp_text_max_width(cfg->font, 7);
+	return 2 * ctx->padd + gp_text_max_width(ctx->font, 7);
 }
 
-static unsigned int pbar_min_h(gp_widget *self, const gp_widget_render_cfg *cfg)
+static unsigned int pbar_min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	(void)self;
 
-	return 2 * cfg->padd + gp_text_ascent(cfg->font);
+	return 2 * ctx->padd + gp_text_ascent(ctx->font);
 }
 
 static void pbar_render(gp_widget *self, const gp_offset *offset,
-                        const gp_widget_render_cfg *cfg, int flags)
+                        const gp_widget_render_ctx *ctx, int flags)
 {
 	unsigned int x = self->x + offset->x;
 	unsigned int y = self->y + offset->y;
@@ -41,21 +41,21 @@ static void pbar_render(gp_widget *self, const gp_offset *offset,
 
 	gp_pixmap p;
 
-	gp_sub_pixmap(cfg->buf, &p, x, y, wd, h);
+	gp_sub_pixmap(ctx->buf, &p, x, y, wd, h);
 	if (p.w > 0) {
-		gp_fill_rrect_xywh(&p, 0, 0, w, h, cfg->bg_color,
-		                   cfg->fg2_color, cfg->text_color);
+		gp_fill_rrect_xywh(&p, 0, 0, w, h, ctx->bg_color,
+		                   ctx->fg2_color, ctx->text_color);
 	}
 
-	gp_sub_pixmap(cfg->buf, &p, x+wd, y, w-wd, h);
+	gp_sub_pixmap(ctx->buf, &p, x+wd, y, w-wd, h);
 	if (p.w > 0) {
-		gp_fill_rrect_xywh(&p, -wd, 0, w, h, cfg->bg_color,
-		                   cfg->fg_color, cfg->text_color);
+		gp_fill_rrect_xywh(&p, -wd, 0, w, h, ctx->bg_color,
+		                   ctx->fg_color, ctx->text_color);
 	}
 
-	gp_print(cfg->buf, cfg->font, x + w/2, y + cfg->padd,
+	gp_print(ctx->buf, ctx->font, x + w/2, y + ctx->padd,
 		 GP_ALIGN_CENTER | GP_VALIGN_BELOW | GP_TEXT_NOBG,
-		 cfg->text_color, cfg->bg_color, "%.2f%%",
+		 ctx->text_color, ctx->bg_color, "%.2f%%",
 		 self->pbar->val);
 }
 
