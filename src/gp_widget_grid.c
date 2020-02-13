@@ -12,6 +12,7 @@
 
 #include <core/gp_debug.h>
 #include <core/gp_common.h>
+#include <gp_stack.h>
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_json.h>
@@ -933,9 +934,13 @@ gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows)
 
 	ret->grid->cols = cols;
 	ret->grid->rows = rows;
-	ret->grid->widgets = buf;
+	ret->grid->widgets = gp_stack_new(rows, sizeof(gp_stack*));
+
+	for (i = 0; i < rows; i++)
+		ret->grid->widgets[i] = gp_stack_new(cols, sizeof(gp_widget*));
+
 	buf += (cols * rows) * sizeof(void*);
-	ret->grid->cols_w = buf;
+	ret->grid->cols_w = gp_stack_new(cols, sizeof(unsigned int));
 	buf += cols * sizeof(unsigned int);
 	ret->grid->rows_h = buf;
 	buf += rows * sizeof(unsigned int);

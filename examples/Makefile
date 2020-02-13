@@ -1,7 +1,7 @@
 CFLAGS+=-W -Wall -Wextra -O2 -I../include/ `gfxprim-config --cflags` -ggdb
 LDFLAGS+=-L../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl
-BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout imp sysinfo bbox
+BINS=test t0 t3 t4 t5 test_login test_pixmap show_layout imp sysinfo bbox test_stack
 DEP=$(BINS:=.dep)
 SUBDIRS=disk_free login calc mixer clock player pdf
 
@@ -29,6 +29,7 @@ t5: t5.o
 imp: imp.o
 test_login: test_login.o
 test_pixmap: test_pixmap.o
+test_stack: test_stack.o
 show_layout: show_layout.o
 
 sysinfo: LDFLAGS+=-rdynamic
