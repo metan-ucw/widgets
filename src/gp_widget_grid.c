@@ -402,12 +402,12 @@ static void render(gp_widget *self, const gp_offset *offset,
 			GP_DEBUG(3, "Rendering widget %s [%u:%u]",
 			         gp_widget_type_id(widget), x, y);
 
-			gp_offset offset = {
+			gp_offset child_offset = {
 				.x = cur_x,
 				.y = cur_y,
 			};
 
-			gp_widget_ops_render(widget, &offset, ctx, flags);
+			gp_widget_ops_render(widget, &child_offset, ctx, flags);
 		}
 	}
 /*
