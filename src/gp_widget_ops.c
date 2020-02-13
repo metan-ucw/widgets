@@ -183,7 +183,7 @@ static void widget_resize(gp_widget *self,
 	unsigned int dw = w - self->min_w;
 	unsigned int dh = h - self->min_h;
 
-	self->no_redraw = 0;
+	self->redraw = 1;
 
 	switch (GP_HALIGN_MASK & self->align) {
 	case GP_HCENTER_WEAK:
@@ -295,7 +295,7 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 {
 	const struct gp_widget_ops *ops;
 
-	if (self->no_redraw && self->no_redraw_child && flags != 1)
+	if (!self->redraw_child && !gp_widget_should_redraw(self, flags))
 		return;
 
 	ops = gp_widget_ops(self);
@@ -313,8 +313,8 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 	if (ctx->flip)
 		GP_DEBUG(3, "render bbox " GP_BBOX_FMT, GP_BBOX_PARS(*ctx->flip));
 
-	self->no_redraw = 1;
-	self->no_redraw_child = 1;
+	self->redraw = 0;
+	self->redraw_child = 0;
 
 	//gp_rect_xywh(render->buf, self->x, self->y, self->w, self->h, 0x00ff00);
 }
@@ -507,12 +507,12 @@ void gp_widget_redraw_child(gp_widget *self)
 	if (!self)
 		return;
 
-	if (!self->no_redraw_child)
+	if (self->redraw_child)
 		return;
 
-	GP_DEBUG(3, "Widget %p (%s) no_redraw_child=0", self, gp_widget_type_id(self));
+	GP_DEBUG(3, "Widget %p (%s) redraw_child=1", self, gp_widget_type_id(self));
 
-	self->no_redraw_child = 0;
+	self->redraw_child = 1;
 
 	gp_widget_redraw_child(self->parent);
 }
@@ -522,12 +522,12 @@ void gp_widget_redraw(gp_widget *self)
 	if (!self)
 		return;
 
-	if (!self->no_redraw)
+	if (self->redraw)
 		return;
 
-	GP_DEBUG(3, "Widget %p (%s) no_redraw=0", self, gp_widget_type_id(self));
+	GP_DEBUG(3, "Widget %p (%s) redraw=1", self, gp_widget_type_id(self));
 
-	self->no_redraw = 0;
+	self->redraw = 1;
 
 	gp_widget_redraw_child(self->parent);
 }

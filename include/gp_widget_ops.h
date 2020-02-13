@@ -142,6 +142,11 @@ static inline void gp_widget_ops_blit(const gp_widget_render_ctx *ctx,
 		*ctx->flip = gp_bbox_merge(*ctx->flip, gp_bbox_pack(x, y, w, h));
 }
 
+static inline int gp_widget_should_redraw(gp_widget *self, int flags)
+{
+	return self->redraw || flags;
+}
+
 /**
  * @brief Calculates layout size recursively.
  *

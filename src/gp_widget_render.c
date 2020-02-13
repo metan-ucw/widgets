@@ -178,7 +178,7 @@ void gp_widgets_redraw(struct gp_widget *layout)
 		return;
 	}
 
-	if (layout->no_redraw && layout->no_redraw_child)
+	if (!layout->redraw && !layout->redraw_child)
 		return;
 
 	if (gp_pixmap_w(backend->pixmap) < layout->w ||

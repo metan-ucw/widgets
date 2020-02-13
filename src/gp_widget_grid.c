@@ -279,12 +279,9 @@ static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx, in
 }
 
 static void fill_padding(gp_widget *self, const gp_offset *offset,
-                         const gp_widget_render_ctx *ctx, int flags)
+                         const gp_widget_render_ctx *ctx)
 {
 	struct gp_widget_grid *grid = self->grid;
-
-	if ((self->no_redraw && flags != 1))
-		return;
 
 	GP_DEBUG(3, "Filling grid %p padding", self);
 
@@ -369,8 +366,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int x, y, cur_x, cur_y;
 
-	if (!self->no_redraw || flags == 1) {
-		fill_padding(self, offset, ctx, flags);
+	if (gp_widget_should_redraw(self, flags)) {
+		fill_padding(self, offset, ctx);
 		gp_widget_ops_blit(ctx,
 		                   self->x + offset->x, self->y + offset->y,
 		                   self->w, self->h);
@@ -384,19 +381,20 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 			struct gp_widget *widget = widget_grid_get(self, x, y);
 
-			if (!widget) {
+			if (!widget && gp_widget_should_redraw(self, flags)) {
 				gp_fill_rect_xywh(ctx->buf, cur_x, cur_y,
 						  grid->cols_w[x], grid->rows_h[y],
 						  ctx->bg_color);
 				continue;
 			}
 
-			if (!self->no_redraw || flags == 1) {
+			if (gp_widget_should_redraw(self, flags)) {
 				fill_unused(widget, ctx, cur_x, cur_y,
 				            grid->cols_w[x], grid->rows_h[y]);
 			}
 
-			if (widget->no_redraw && widget->no_redraw_child && flags != 1)
+			if (!widget->redraw_child &&
+			    !gp_widget_should_redraw(widget, flags))
 				continue;
 
 			GP_DEBUG(3, "Rendering widget %s [%u:%u]",

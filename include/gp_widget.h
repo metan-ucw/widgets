@@ -48,8 +48,18 @@ typedef struct gp_widget {
 
 	unsigned int align:16;
 	unsigned int no_resize:1;
-	unsigned int no_redraw:1;
-	unsigned int no_redraw_child:1;
+	/*
+	 * If set the widget_ops_render() is called next time layout is repainted.
+	 */
+	unsigned int redraw:1;
+	/*
+	 * If set there is a child widget to be repainted, the widget_ops_render()
+	 * function is called but the widget itself shouldn't be repainted.
+	 */
+	unsigned int redraw_child:1;
+	/*
+	 * Redraw whole subtree if content of a container widget changed.
+	 */
 	unsigned int redraw_subtree:1;
 	unsigned int selected:1;
 	unsigned int input_events:1;
