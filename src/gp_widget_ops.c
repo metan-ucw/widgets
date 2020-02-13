@@ -296,6 +296,12 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 	if (!self->redraw_child && !gp_widget_should_redraw(self, flags))
 		return;
 
+	ops = gp_widget_ops(self);
+	if (!ops->render) {
+		GP_WARN("%s->render not implemented!", ops->id);
+		return;
+	}
+
 	if (ctx->bbox) {
 		gp_bbox bbox = gp_bbox_pack(self->x + offset->x, self->y + offset->y,
 		                            self->w, self->h);
@@ -306,12 +312,6 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 				 GP_BBOX_PARS(*ctx->bbox));
 			return;
 		}
-	}
-
-	ops = gp_widget_ops(self);
-	if (!ops->render) {
-		GP_WARN("%s->render not implemented!", ops->id);
-		return;
 	}
 
 	GP_DEBUG(3, "rendering widget %p %s (%u) %ux%u-%ux%u flags=%x",
