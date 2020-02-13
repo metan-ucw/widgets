@@ -9,11 +9,11 @@
 #ifndef GP_WIDGETS_H__
 #define GP_WIDGETS_H__
 
+#include <gp_widget_ops.h>
 #include "gp_widget.h"
 #include "gp_widget_render.h"
 #include "gp_widget_grid.h"
 #include "gp_widget_tabs.h"
-#include "gp_widget_misc.h"
 #include "gp_widget_bool.h"
 #include "gp_widget_button.h"
 #include "gp_widget_checkbox.h"

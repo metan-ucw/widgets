@@ -16,7 +16,6 @@
 
 extern struct gp_widget_ops gp_widget_grid_ops;
 extern struct gp_widget_ops gp_widget_tabs_ops;
-extern struct gp_widget_ops gp_widget_misc_ops;
 extern struct gp_widget_ops gp_widget_button_ops;
 extern struct gp_widget_ops gp_widget_label_ops;
 extern struct gp_widget_ops gp_widget_check_box_ops;
@@ -31,7 +30,6 @@ extern struct gp_widget_ops gp_widget_pixmap_ops;
 static struct gp_widget_ops *widget_ops[] = {
 	[GP_WIDGET_GRID]        = &gp_widget_grid_ops,
 	[GP_WIDGET_TABS]        = &gp_widget_tabs_ops,
-	[GP_WIDGET_MISC]        = &gp_widget_misc_ops,
 	[GP_WIDGET_BUTTON]      = &gp_widget_button_ops,
 	[GP_WIDGET_CHECKBOX]    = &gp_widget_check_box_ops,
 	[GP_WIDGET_LABEL]       = &gp_widget_label_ops,

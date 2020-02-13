@@ -81,8 +81,6 @@ typedef struct gp_widget {
 		struct gp_widget_int *spin;
 		struct gp_widget_int *slider;
 
-		struct gp_widget_misc *misc;
-
 		struct gp_widget_textbox *tbox;
 
 		struct gp_widget_choice *choice;
@@ -99,7 +97,6 @@ typedef struct gp_widget {
 enum gp_widget_type {
 	GP_WIDGET_GRID,
 	GP_WIDGET_TABS,
-	GP_WIDGET_MISC,
 	GP_WIDGET_BUTTON,
 	GP_WIDGET_CHECKBOX,
 	GP_WIDGET_LABEL,
