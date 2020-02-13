@@ -37,6 +37,8 @@ static void pbar_render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
+	gp_widget_ops_blit(ctx, x, y, w, h);
+
 	unsigned int wd = self->pbar->val * w / 100;
 
 	gp_pixmap p;

@@ -186,8 +186,18 @@ void gp_widgets_redraw(struct gp_widget *layout)
 		gp_backend_resize(backend, layout->w, layout->h);
 	}
 
+	gp_bbox flip = {};
+
+	ctx.flip = &flip;
 	gp_widget_render(layout, &ctx, 0);
-	gp_backend_flip(backend);
+	ctx.flip = NULL;
+
+	if (gp_bbox_empty(flip))
+		return;
+
+	GP_DEBUG(1, "Updating area " GP_BBOX_FMT, GP_BBOX_PARS(flip));
+
+	gp_backend_update_rect_xywh(backend, flip.x, flip.y, flip.w, flip.h);
 }
 
 static uint32_t timer_callback(gp_timer *self)

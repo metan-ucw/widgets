@@ -11,6 +11,7 @@
 
 #include <input/gp_event.h>
 #include <gp_widget.h>
+#include <gp_bbox.h>
 #include <gp_widget_render.h>
 
 enum gp_widget_select_flag {
@@ -45,6 +46,7 @@ struct gp_widget_ops {
 	 * @brief Renders (changes in) widget layout.
 	 *
 	 * @ctx Render configuration.
+	 * @offset Ofset in pixmap to draw to
 	 * @flags Force redraw whole layout.
 	 */
 	void (*render)(gp_widget *self, const gp_offset *offset,
@@ -119,6 +121,26 @@ int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *
 
 void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx,
                                    unsigned int w, unsigned int h, int new_wh);
+
+/**
+ * @brief Marks an area to be blit on the screen from a buffer.
+ *
+ * This function is called by widgets so that the render knows which parts of
+ * the screen has to be updated after the call to the render function.
+ *
+ */
+static inline void gp_widget_ops_blit(const gp_widget_render_ctx *ctx,
+                                      gp_coord x, gp_coord y,
+                                      gp_size w, gp_size h)
+{
+	if (!ctx->flip)
+		return;
+
+	if (gp_bbox_empty(*ctx->flip))
+		*ctx->flip = gp_bbox_pack(x, y, w, h);
+	else
+		*ctx->flip = gp_bbox_merge(*ctx->flip, gp_bbox_pack(x, y, w, h));
+}
 
 /**
  * @brief Calculates layout size recursively.

@@ -327,13 +327,54 @@ static void fill_padding(gp_widget *self, const gp_offset *offset,
 	}
 }
 
+/* Fill unused space between grid and widget */
+static void fill_unused(gp_widget *widget, const gp_widget_render_ctx *ctx,
+                        unsigned int cur_x, unsigned int cur_y,
+			unsigned int cur_w, unsigned int cur_h)
+{
+	gp_pixel bg = ctx->bg_color;
+
+	GP_DEBUG(4, "Filling unused space around widget %p", widget);
+
+	if (widget->x) {
+		gp_fill_rect_xywh(ctx->buf, cur_x, cur_y,
+				  widget->x, cur_h, bg);
+	}
+
+	if (widget->y) {
+		gp_fill_rect_xywh(ctx->buf, cur_x + widget->x, cur_y,
+				  widget->w, widget->y, bg);
+	}
+
+	unsigned int wid_end_x = widget->x + widget->w;
+	unsigned int wid_after_w = cur_w - wid_end_x;
+
+	if (wid_after_w) {
+		gp_fill_rect_xywh(ctx->buf, cur_x + wid_end_x, cur_y,
+				  wid_after_w, cur_h, bg);
+	}
+
+	unsigned int wid_end_y = widget->y + widget->h;
+	unsigned int wid_after_h = cur_h - wid_end_y;
+
+	if (wid_after_h) {
+		gp_fill_rect_xywh(ctx->buf, cur_x + widget->x, cur_y + wid_end_y,
+				  widget->w, wid_after_h, bg);
+	}
+}
+
 static void render(gp_widget *self, const gp_offset *offset,
                    const gp_widget_render_ctx *ctx, int flags)
 {
 	struct gp_widget_grid *grid = self->grid;
 	unsigned int x, y, cur_x, cur_y;
 
-	fill_padding(self, offset, ctx, flags);
+	if (!self->no_redraw || flags == 1) {
+		fill_padding(self, offset, ctx, flags);
+		gp_widget_ops_blit(ctx,
+		                   self->x + offset->x, self->y + offset->y,
+		                   self->w, self->h);
+	}
 
 	for (y = 0; y < grid->rows; y++) {
 		cur_y = grid->rows_off[y] + offset->y;
@@ -350,40 +391,16 @@ static void render(gp_widget *self, const gp_offset *offset,
 				continue;
 			}
 
+			if (!self->no_redraw || flags == 1) {
+				fill_unused(widget, ctx, cur_x, cur_y,
+				            grid->cols_w[x], grid->rows_h[y]);
+			}
+
 			if (widget->no_redraw && widget->no_redraw_child && flags != 1)
 				continue;
 
 			GP_DEBUG(3, "Rendering widget %s [%u:%u]",
 			         gp_widget_type_id(widget), x, y);
-
-			/* Fill unused space between grid and widget */
-			gp_pixel bg = ctx->bg_color;
-
-			if (widget->x) {
-				gp_fill_rect_xywh(ctx->buf, cur_x, cur_y,
-						  widget->x, grid->rows_h[y], bg);
-			}
-
-			if (widget->y) {
-				gp_fill_rect_xywh(ctx->buf, cur_x + widget->x, cur_y,
-						  widget->w, widget->y, bg);
-			}
-
-			unsigned int wid_end_x = widget->x + widget->w;
-			unsigned int wid_after_w = grid->cols_w[x] - wid_end_x;
-
-			if (wid_after_w) {
-				gp_fill_rect_xywh(ctx->buf, cur_x + wid_end_x, cur_y,
-						  wid_after_w, grid->rows_h[y], bg);
-			}
-
-			unsigned int wid_end_y = widget->y + widget->h;
-			unsigned int wid_after_h = grid->rows_h[y] - wid_end_y;
-
-			if (wid_after_h) {
-				gp_fill_rect_xywh(ctx->buf, cur_x + widget->x, cur_y + wid_end_y,
-						  widget->w, wid_after_h, bg);
-			}
 
 			gp_offset offset = {
 				.x = cur_x,

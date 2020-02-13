@@ -111,6 +111,9 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	gp_widget *widget = self->tabs->widgets[self->tabs->active_tab];
 
+	if (!self->no_redraw)
+		gp_widget_ops_blit(ctx, x, y, self->w, self->h);
+
 	if (!widget) {
 		gp_fill_rect_xywh(ctx->buf, x, y,
 				  self->w, self->h, ctx->bg_color);

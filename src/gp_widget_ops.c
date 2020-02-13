@@ -310,6 +310,9 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 
 	ops->render(self, offset, ctx, flags);
 
+	if (ctx->flip)
+		GP_DEBUG(3, "render bbox " GP_BBOX_FMT, GP_BBOX_PARS(*ctx->flip));
+
 	self->no_redraw = 1;
 	self->no_redraw_child = 1;
 

@@ -146,6 +146,8 @@ static void spin_render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
+	gp_widget_ops_blit(ctx, x, y, w, h);
+
 	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
 
 	if (self->spin->alert) {
@@ -340,6 +342,8 @@ static void slider_render(gp_widget *self, const gp_offset *offset,
 	int val = GP_ABS(self->slider->val);
 
 	(void)flags;
+
+	gp_widget_ops_blit(ctx, x, y, w, h);
 
 	gp_pixel fr_color = self->selected ? ctx->sel_color : ctx->text_color;
 

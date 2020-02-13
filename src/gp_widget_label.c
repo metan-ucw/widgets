@@ -46,6 +46,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 
+	gp_widget_ops_blit(ctx, x, y, w, h);
+
 	gp_text_style *font = self->label->bold ? ctx->font_bold : ctx->font;
 
 	if (self->label->frame) {

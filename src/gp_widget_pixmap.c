@@ -33,6 +33,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 {
 	gp_coord x = self->x + offset->x;
 	gp_coord y = self->y + offset->y;
+	gp_size w = self->w;
+	gp_size h = self->h;
 
 	(void)flags;
 
@@ -42,6 +44,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 		self->pixmap->pixmap = &pix;
 		//TODO: Send the offset size to the event handler.
 		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, ctx);
+		//TODO: Let the application fill it in?
+		gp_widget_ops_blit(ctx, x, y, w, h);
 		self->pixmap->pixmap = NULL;
 		return;
 	}
@@ -53,6 +57,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
 	             self->w, self->h, ctx->buf, x, y);
+
+	gp_widget_ops_blit(ctx, x, y, w, h);
 }
 
 /*

@@ -17,6 +17,7 @@
 #include <input/gp_timer.h>
 
 #include <gp_widget.h>
+#include <gp_bbox.h>
 
 typedef struct gp_widget_render_ctx {
 	/* colors */
@@ -36,6 +37,9 @@ typedef struct gp_widget_render_ctx {
 
 	/* padding between widgets */
 	unsigned int padd;
+
+	/* area to update on a screen after a call to gp_widget_render() */
+	gp_bbox *flip;
 
 	gp_pixmap *buf;
 } gp_widget_render_ctx;

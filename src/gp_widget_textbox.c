@@ -56,6 +56,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
+	gp_widget_ops_blit(ctx, x, y, w, h);
+
 	if (self->tbox->hidden)
 		str = hidden_str(self->tbox->buf);
 	else
