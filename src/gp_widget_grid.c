@@ -364,7 +364,8 @@ static void render(gp_widget *self, const gp_offset *offset,
                    const gp_widget_render_ctx *ctx, int flags)
 {
 	struct gp_widget_grid *grid = self->grid;
-	unsigned int x, y, cur_x, cur_y;
+	gp_coord cur_x, cur_y;
+	unsigned int x, y;
 
 	if (gp_widget_should_redraw(self, flags)) {
 		fill_padding(self, offset, ctx);

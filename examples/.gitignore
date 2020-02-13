@@ -2,6 +2,7 @@
 *.o
 test
 t0
+t1
 t3
 sysinfo
 t4

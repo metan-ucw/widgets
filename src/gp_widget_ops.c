@@ -26,6 +26,7 @@ extern struct gp_widget_ops gp_widget_textbox_ops;
 extern struct gp_widget_ops gp_widget_radio_button_ops;
 extern struct gp_widget_ops gp_widget_table_ops;
 extern struct gp_widget_ops gp_widget_pixmap_ops;
+extern struct gp_widget_ops gp_widget_scroll_area_ops;
 
 static struct gp_widget_ops *widget_ops[] = {
 	[GP_WIDGET_GRID]        = &gp_widget_grid_ops,
@@ -40,6 +41,7 @@ static struct gp_widget_ops *widget_ops[] = {
 	[GP_WIDGET_RADIOBUTTON] = &gp_widget_radio_button_ops,
 	[GP_WIDGET_TABLE]       = &gp_widget_table_ops,
 	[GP_WIDGET_PIXMAP]      = &gp_widget_pixmap_ops,
+	[GP_WIDGET_SCROLL_AREA] = &gp_widget_scroll_area_ops,
 };
 
 const struct gp_widget_ops *gp_widget_ops(gp_widget *self)
@@ -302,14 +304,14 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 		return;
 	}
 
-	gp_coord x = self->x + offset->x;
-	gp_coord y = self->y + offset->y;
+	gp_coord x = (gp_coord)self->x + offset->x;
+	gp_coord y = (gp_coord)self->y + offset->y;
 
 	if (ctx->bbox) {
 		gp_bbox bbox = gp_bbox_pack(x, y, self->w, self->h);
 
 		if (!gp_bbox_intersects(*ctx->bbox, bbox)) {
-			GP_DEBUG(3, "Widget %p %s %ux%u %ux%u-%ux%u out of " GP_BBOX_FMT,
+			GP_DEBUG(3, "Widget %p %s %ix%i %ux%u-%ux%u out of " GP_BBOX_FMT,
 			         self, ops->id, x, y, self->x, self->y, self->w, self->h,
 				 GP_BBOX_PARS(*ctx->bbox));
 			return;
