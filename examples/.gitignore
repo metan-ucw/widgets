@@ -11,4 +11,5 @@ imp
 test_login
 test_pixmap
 show_layout
+test_vec
 bbox
