@@ -186,7 +186,7 @@ static void widget_resize(gp_widget *self,
 	switch (GP_HALIGN_MASK & self->align) {
 	case GP_HCENTER_WEAK:
 	case GP_HCENTER:
-		self->x = dw/2;
+		self->x = (dw+1)/2;
 	break;
 	case GP_RIGHT:
 		self->x = dw;
@@ -204,7 +204,7 @@ static void widget_resize(gp_widget *self,
 	switch (GP_VALIGN_MASK & self->align) {
 	case GP_VCENTER_WEAK:
 	case GP_VCENTER:
-		self->y = dh/2;
+		self->y = (dh+1)/2;
 	break;
 	case GP_BOTTOM:
 		self->y = dh;
