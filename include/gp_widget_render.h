@@ -41,6 +41,9 @@ typedef struct gp_widget_render_ctx {
 	/* area to update on a screen after a call to gp_widget_render() */
 	gp_bbox *flip;
 
+	/* passed down if only part of the layout has to be rendered */
+	gp_bbox *bbox;
+
 	gp_pixmap *buf;
 } gp_widget_render_ctx;
 
