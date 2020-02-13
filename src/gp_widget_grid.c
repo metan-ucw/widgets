@@ -381,10 +381,12 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 			struct gp_widget *widget = widget_grid_get(self, x, y);
 
-			if (!widget && gp_widget_should_redraw(self, flags)) {
-				gp_fill_rect_xywh(ctx->buf, cur_x, cur_y,
-						  grid->cols_w[x], grid->rows_h[y],
-						  ctx->bg_color);
+			if (!widget) {
+				if (gp_widget_should_redraw(self, flags)) {
+					gp_fill_rect_xywh(ctx->buf, cur_x, cur_y,
+							  grid->cols_w[x], grid->rows_h[y],
+							  ctx->bg_color);
+				}
 				continue;
 			}
 
