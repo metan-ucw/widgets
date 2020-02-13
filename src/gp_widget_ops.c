@@ -302,20 +302,22 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 		return;
 	}
 
+	gp_coord x = self->x + offset->x;
+	gp_coord y = self->y + offset->y;
+
 	if (ctx->bbox) {
-		gp_bbox bbox = gp_bbox_pack(self->x + offset->x, self->y + offset->y,
-		                            self->w, self->h);
+		gp_bbox bbox = gp_bbox_pack(x, y, self->w, self->h);
 
 		if (!gp_bbox_intersects(*ctx->bbox, bbox)) {
-			GP_DEBUG(3, "Widget %p %s %ux%u-%ux%u out of " GP_BBOX_FMT,
-			         self, ops->id, self->x, self->y, self->w, self->h,
+			GP_DEBUG(3, "Widget %p %s %ux%u %ux%u-%ux%u out of " GP_BBOX_FMT,
+			         self, ops->id, x, y, self->x, self->y, self->w, self->h,
 				 GP_BBOX_PARS(*ctx->bbox));
 			return;
 		}
 	}
 
-	GP_DEBUG(3, "rendering widget %p %s (%u) %ux%u-%ux%u flags=%x",
-	         self, ops->id, self->type, self->x, self->y,
+	GP_DEBUG(3, "rendering widget %p %s (%u) %ux%u %ux%u-%ux%u flags=%x",
+	         self, ops->id, self->type, x, y, self->x, self->y,
 	         self->w, self->h, flags);
 
 	ops->render(self, offset, ctx, flags);
@@ -326,7 +328,7 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 	self->redraw = 0;
 	self->redraw_child = 0;
 
-	//gp_rect_xywh(render->buf, self->x, self->y, self->w, self->h, 0x00ff00);
+	//gp_rect_xywh(render->buf, x, y, self->w, self->h, 0x00ff00);
 }
 
 static void select_widget(gp_widget *self, int sel)
