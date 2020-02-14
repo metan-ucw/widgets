@@ -56,6 +56,34 @@ static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 	return ret;
 }
 
+static struct gp_widget *widget_grid_insert_rows(gp_widget *self,
+						  unsigned int row,
+						  unsigned int rows)
+{
+	size_t i;
+	struct gp_widget_grid *g = self->grid;
+	/* TODO handle NULL */
+	g->widgets = GP_STACK_GAP(g->widgets, row, rows);
+	for (i = 0; i < GP_STACK_LEN(g->widgets); i++)
+		g->widgets[i] = gp_stack_new(g->cols, sizeof(gp_widget*));
+
+	g->rows_h = GP_STACK_GAP(g->rows_h, row, rows);
+	g->rows_off = GP_STACK_GAP(g->rows_off, row, rows);
+	g->row_padds = GP_STACK_GAP(g->row_padds, row, rows);
+	g->row_pfills = GP_STACK_GAP(g->row_pfills, row, rows);
+	g->row_fills = GP_STACK_GAP(g->row_fills, row, rows);
+
+	for (i = row; i < row + rows; i++)
+		g->row_padds[i] = 1;
+
+	for (i = row; i < row + rows; i++)
+		g->row_fills[i] = 1;
+
+	g->rows += rows;
+
+	return self;
+}
+
 static unsigned int padd_size(const gp_widget_render_ctx *ctx, int padd)
 {
 	return ctx->padd * padd;
@@ -938,6 +966,7 @@ gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows)
 
 	ret->grid->cols = cols;
 	ret->grid->rows = rows;
+	/* TODO handle NULL from gp_stack */
 	ret->grid->widgets = gp_stack_new(rows, sizeof(gp_widget**));
 	for (i = 0; i < rows; i++)
 		ret->grid->widgets[i] = gp_stack_new(cols, sizeof(gp_widget*));
@@ -946,10 +975,10 @@ gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows)
 	ret->grid->rows_h = gp_stack_new(rows, sizeof(unsigned int));
 	ret->grid->cols_off = gp_stack_new(cols, sizeof(unsigned int));
 	ret->grid->rows_off = gp_stack_new(rows, sizeof(unsigned int));
-	ret->grid->col_padds = gp_stack_new(cols, sizeof(uint8_t));
-	ret->grid->row_padds = gp_stack_new(rows, sizeof(uint8_t));
-	ret->grid->col_pfills = gp_stack_new(cols, sizeof(uint8_t));
-	ret->grid->row_pfills = gp_stack_new(rows, sizeof(uint8_t));
+	ret->grid->col_padds = gp_stack_new(cols + 1, sizeof(uint8_t));
+	ret->grid->row_padds = gp_stack_new(rows + 1, sizeof(uint8_t));
+	ret->grid->col_pfills = gp_stack_new(cols + 1, sizeof(uint8_t));
+	ret->grid->row_pfills = gp_stack_new(rows + 1, sizeof(uint8_t));
 	ret->grid->col_fills = gp_stack_new(cols, sizeof(uint8_t));
 	ret->grid->row_fills = gp_stack_new(rows, sizeof(uint8_t));
 
@@ -1007,6 +1036,15 @@ gp_widget *gp_widget_grid_put(gp_widget *self, unsigned int col, unsigned int ro
 	gp_widget_resize(self);
 
 	return ret;
+}
+
+gp_widget *gp_widget_grid_add_row(gp_widget *self)
+{
+	self =  widget_grid_insert_rows(self, self->grid->rows, 1);
+
+	gp_widget_resize(self);
+
+	return self;
 }
 
 gp_widget *gp_widget_grid_rem(gp_widget *self, unsigned int col, unsigned int row)
