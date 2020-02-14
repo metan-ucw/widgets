@@ -20,7 +20,7 @@
 static gp_widget *widget_grid_grid_get(struct gp_widget_grid *grid,
                                        unsigned int col, unsigned int row)
 {
-	return grid->widgets[row * grid->cols + col];
+	return ((gp_widget**)grid->widgets[row])[col];
 }
 
 static gp_widget *widget_grid_get(gp_widget *self,
@@ -46,9 +46,9 @@ static void widget_grid_selected_offset(gp_widget *self,
 static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 		                         unsigned int x, unsigned int y)
 {
-	gp_widget *ret = self->grid->widgets[y * self->grid->cols + x];
+	gp_widget *ret = widget_grid_get(self, x, y);
 
-	self->grid->widgets[y * self->grid->cols + x] = new;
+	((gp_widget**)self->grid->widgets[y])[x] = new;
 
 	if (new)
 		new->parent = self;
@@ -895,7 +895,23 @@ static void free_(gp_widget *self)
 	for (y = 0; y < self->grid->rows; y++) {
 		for (x = 0; x < self->grid->cols; x++)
 			gp_widget_free(widget_grid_get(self, x, y));
+
+		GP_STACK_FREE(self->grid->widgets[y]);
 	}
+	GP_STACK_FREE(self->grid->widgets);
+
+	GP_STACK_FREE(self->grid->cols_w);
+	GP_STACK_FREE(self->grid->rows_h);
+	GP_STACK_FREE(self->grid->cols_off);
+	GP_STACK_FREE(self->grid->rows_off);
+	GP_STACK_FREE(self->grid->col_padds);
+	GP_STACK_FREE(self->grid->row_padds);
+	GP_STACK_FREE(self->grid->col_pfills);
+	GP_STACK_FREE(self->grid->row_pfills);
+	GP_STACK_FREE(self->grid->col_fills);
+	GP_STACK_FREE(self->grid->row_fills);
+
+	free(self);
 }
 
 struct gp_widget_ops gp_widget_grid_ops = {
@@ -913,52 +929,29 @@ struct gp_widget_ops gp_widget_grid_ops = {
 
 gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows)
 {
-	size_t payload_size = sizeof(struct gp_widget_grid);
 	unsigned int i;
 	gp_widget *ret;
 
-	/* cols + rows widths heights and offsets */
-	payload_size += 2 * (cols + rows) * sizeof(unsigned int);
-	/* pads and pfills */
-	payload_size += 2 * (cols + rows + 2) * sizeof(uint8_t);
-	/* cell fills */
-	payload_size += (cols + rows) * sizeof(uint8_t);
-	/* widget pointers */
-	payload_size += (cols * rows) * sizeof(void*);
-
-	ret = gp_widget_new(GP_WIDGET_GRID, payload_size);
+	ret = gp_widget_new(GP_WIDGET_GRID, sizeof(struct gp_widget_grid));
 	if (!ret)
 		return NULL;
 
-	void *buf = ret->grid->payload;
-
 	ret->grid->cols = cols;
 	ret->grid->rows = rows;
-	ret->grid->widgets = gp_stack_new(rows, sizeof(gp_stack*));
-
+	ret->grid->widgets = gp_stack_new(rows, sizeof(gp_widget**));
 	for (i = 0; i < rows; i++)
 		ret->grid->widgets[i] = gp_stack_new(cols, sizeof(gp_widget*));
 
-	buf += (cols * rows) * sizeof(void*);
 	ret->grid->cols_w = gp_stack_new(cols, sizeof(unsigned int));
-	buf += cols * sizeof(unsigned int);
-	ret->grid->rows_h = buf;
-	buf += rows * sizeof(unsigned int);
-	ret->grid->cols_off = buf;
-	buf += cols * sizeof(unsigned int);
-	ret->grid->rows_off = buf;
-	buf += rows * sizeof(unsigned int);
-	ret->grid->col_padds = buf;
-	buf += (cols + 1) * sizeof(uint8_t);
-	ret->grid->row_padds = buf;
-	buf += (rows + 1) * sizeof(uint8_t);
-	ret->grid->col_pfills = buf;
-	buf += (cols + 1) * sizeof(uint8_t);
-	ret->grid->row_pfills = buf;
-	buf += (rows + 1) * sizeof(uint8_t);
-	ret->grid->col_fills = buf;
-	buf += cols * sizeof(uint8_t);
-	ret->grid->row_fills = buf;
+	ret->grid->rows_h = gp_stack_new(rows, sizeof(unsigned int));
+	ret->grid->cols_off = gp_stack_new(cols, sizeof(unsigned int));
+	ret->grid->rows_off = gp_stack_new(rows, sizeof(unsigned int));
+	ret->grid->col_padds = gp_stack_new(cols, sizeof(uint8_t));
+	ret->grid->row_padds = gp_stack_new(rows, sizeof(uint8_t));
+	ret->grid->col_pfills = gp_stack_new(cols, sizeof(uint8_t));
+	ret->grid->row_pfills = gp_stack_new(rows, sizeof(uint8_t));
+	ret->grid->col_fills = gp_stack_new(cols, sizeof(uint8_t));
+	ret->grid->row_fills = gp_stack_new(rows, sizeof(uint8_t));
 
 	for (i = 0; i <= cols; i++)
 		ret->grid->col_padds[i] = 1;
