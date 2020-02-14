@@ -53,6 +53,11 @@ gp_widget *gp_widget_grid_put(gp_widget *self, unsigned int col, unsigned int ro
 		              gp_widget *widget);
 
 /*
+ * Add a new (empty) row to the grid.
+ */
+void gp_widget_grid_add_row(gp_widget *self);
+
+/*
  * Removes widget at col, row.
  */
 gp_widget *gp_widget_grid_rem(gp_widget *self, unsigned int col, unsigned int row);

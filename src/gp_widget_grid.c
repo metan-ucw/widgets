@@ -56,6 +56,31 @@ static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 	return ret;
 }
 
+void widget_grid_insert_rows(gp_widget *self, unsigned int row, unsigned int rows)
+{
+	size_t i;
+	struct gp_widget_grid *g = self->grid;
+
+	/* TODO handle NULL */
+	g->widgets = gp_vec_insert(g->widgets, row, rows);
+	for (i = row; i < row + rows; i++)
+		g->widgets[i] = gp_vec_new(g->cols, sizeof(gp_widget*));
+
+	g->rows_h = gp_vec_insert(g->rows_h, row, rows);
+	g->rows_off = gp_vec_insert(g->rows_off, row, rows);
+	g->row_padds = gp_vec_insert(g->row_padds, row, rows);
+	g->row_pfills = gp_vec_insert(g->row_pfills, row, rows);
+	g->row_fills = gp_vec_insert(g->row_fills, row, rows);
+
+	for (i = row; i < row + rows; i++)
+		g->row_padds[i] = 1;
+
+	for (i = row; i < row + rows; i++)
+		g->row_fills[i] = 1;
+
+	g->rows += rows;
+}
+
 static unsigned int padd_size(const gp_widget_render_ctx *ctx, int padd)
 {
 	return ctx->padd * padd;
@@ -1009,6 +1034,13 @@ gp_widget *gp_widget_grid_put(gp_widget *self, unsigned int col, unsigned int ro
 	gp_widget_resize(self);
 
 	return ret;
+}
+
+void gp_widget_grid_add_row(gp_widget *self)
+{
+	widget_grid_insert_rows(self, self->grid->rows, 1);
+
+	gp_widget_resize(self);
 }
 
 gp_widget *gp_widget_grid_rem(gp_widget *self, unsigned int col, unsigned int row)
