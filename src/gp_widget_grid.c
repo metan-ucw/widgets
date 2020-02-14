@@ -64,7 +64,7 @@ static struct gp_widget *widget_grid_insert_rows(gp_widget *self,
 	struct gp_widget_grid *g = self->grid;
 	/* TODO handle NULL */
 	g->widgets = GP_STACK_GAP(g->widgets, row, rows);
-	for (i = 0; i < GP_STACK_LEN(g->widgets); i++)
+	for (i = row; i < row + rows; i++)
 		g->widgets[i] = gp_stack_new(g->cols, sizeof(gp_widget*));
 
 	g->rows_h = GP_STACK_GAP(g->rows_h, row, rows);
