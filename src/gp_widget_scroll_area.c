@@ -416,15 +416,17 @@ static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx, in
 {
 	gp_size child_min_w = gp_widget_min_w(self->scroll->widget, ctx);
 	gp_size child_min_h = gp_widget_min_h(self->scroll->widget, ctx);
-
-	gp_size child_w = GP_MAX(child_min_w, self->w);
-	gp_size child_h = GP_MAX(child_min_h, self->h);
+	gp_size w = self->w;
+	gp_size h = self->h;
 
 	if (self->scroll->scrollbar_x)
-		child_w -= scrollbar_size(ctx);
+		w -= scrollbar_size(ctx);
 
 	if (self->scroll->scrollbar_y)
-		child_h -= scrollbar_size(ctx);
+		h -= scrollbar_size(ctx);
+
+	gp_size child_w = GP_MAX(child_min_w, w);
+	gp_size child_h = GP_MAX(child_min_h, h);
 
 	gp_widget_ops_distribute_size(self->scroll->widget, ctx, child_w, child_h, new_wh);
 }
