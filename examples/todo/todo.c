@@ -16,7 +16,7 @@
 #include <gfxprim.h>
 #include <gp_widgets.h>
 
-#define TODO_MAX 50
+#define TODO_MAX 25
 
 typedef struct todo {
 	int active:1;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 	int i;
 	gp_widget *outer = gp_widget_grid_new(1, 2);
 
-	outer->align = GP_FILL;
+	outer->align = GP_HFILL | GP_TOP;
 
 	gp_widget_grid_put(outer, 0, 0, gp_widget_button_new("New", on_new, NULL));
 
