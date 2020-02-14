@@ -4,9 +4,12 @@
 #include <string.h>
 #include <gp_stack.h>
 
-static void *expand(gp_stack *self, size_t length)
+void *gp_stack_gap(gp_stack *self, size_t i, size_t length)
 {
 	size_t capacity = GP_MAX(2, self->capacity);
+
+	if (i > self->length)
+		return 0;
 
 	while (self->length + length >= capacity)
 		capacity *= 2;
@@ -21,7 +24,16 @@ static void *expand(gp_stack *self, size_t length)
 	self->capacity = capacity;
 	self->length += length;
 
-	return self;
+	if (i >= self->length - length)
+		goto out;
+
+	memmove(self->payload + (i + length) * self->unit,
+		self->payload + i * self->unit,
+		(self->length - length - i) * self->unit);
+
+out:
+	memset(self->payload + i * self->unit, 0, length * self->unit);
+	return (void *)self->payload;
 }
 
 void *gp_stack_new(size_t length, size_t unit)
@@ -34,31 +46,9 @@ void *gp_stack_new(size_t length, size_t unit)
 	memset(self, 0, sizeof(gp_stack));
 	self->unit = unit;
 
-	self = expand(self, length);
+	self = GP_STACK(gp_stack_gap(self, 0, length));
 	if (!self)
 		return 0;
 
-	return (void *)self->payload;
-}
-
-void *gp_stack_gap(gp_stack *self, size_t i, size_t length)
-{
-	if (i > self->length)
-		return 0;
-
-	self = expand(self, length);
-
-	if (!self)
-		return 0;
-
-	if (i >= self->length - length)
-		goto out;
-
-	memmove(self->payload + (i + length) * self->unit,
-		self->payload + i * self->unit,
-		(self->length - length - i) * self->unit);
-
-	memset(self->payload + i * self->unit, 0, length * self->unit);
-out:
 	return (void *)self->payload;
 }
