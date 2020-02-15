@@ -560,3 +560,17 @@ int gp_widget_scroll_area_move(gp_widget *self, gp_coord x_off, gp_coord y_off)
 
 	return 1;
 }
+
+gp_widget *gp_widget_scroll_area_put(gp_widget *self, gp_widget *widget)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_SCROLL_AREA, NULL);
+
+	gp_widget *ret = self->scroll->widget;
+
+	self->scroll->widget = widget;
+	widget->parent = self;
+
+	gp_widget_resize(self);
+
+	return ret;
+}

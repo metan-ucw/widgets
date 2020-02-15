@@ -34,4 +34,6 @@ gp_widget *gp_widget_scroll_area_new(gp_size min_w, gp_size min_h);
 
 int gp_widget_scroll_area_move(gp_widget *self, gp_coord x_off, gp_coord y_off);
 
+gp_widget *gp_widget_scroll_area_put(gp_widget *self, gp_widget *widget);
+
 #endif /* GP_WIDGET_SCROLL_AREA_H__ */
