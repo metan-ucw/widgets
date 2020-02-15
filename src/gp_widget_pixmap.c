@@ -38,14 +38,28 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
+	gp_offset off = {
+		.x = GP_MAX(0, -offset->x),
+		.y = GP_MAX(0, -offset->y),
+	};
+
+	gp_bbox box = gp_bbox_pack(x, y, w, h);
+
+	if (ctx->bbox)
+		box = gp_bbox_intersection(box, *ctx->bbox);
+
+
 	if (!self->pixmap->pixmap) {
 		gp_pixmap pix;
-		gp_sub_pixmap(ctx->buf, &pix, self->x, self->y, self->w, self->h);
+
+		gp_sub_pixmap(ctx->buf, &pix, box.x, box.y, box.w, box.h);
 		self->pixmap->pixmap = &pix;
-		//TODO: Send the offset size to the event handler.
-		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, ctx);
+
+		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, ctx, &off);
+
 		//TODO: Let the application fill it in?
 		gp_widget_ops_blit(ctx, x, y, w, h);
+
 		self->pixmap->pixmap = NULL;
 		return;
 	}
@@ -55,9 +69,10 @@ static void render(gp_widget *self, const gp_offset *offset,
 		gp_widget_send_event(self, GP_WIDGET_EVENT_REDRAW, ctx);
 	}
 
-	gp_blit_xywh(self->pixmap->pixmap, 0, 0,
-	             self->w, self->h, ctx->buf, x, y);
+	gp_blit_xywh(self->pixmap->pixmap, off.x, off.y,
+	             box.w, box.h, ctx->buf, box.x, box.y);
 
+	//TODO: compute blit box!
 	gp_widget_ops_blit(ctx, x, y, w, h);
 }
 
