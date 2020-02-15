@@ -123,11 +123,17 @@ static gp_size scrollbar_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 
 static gp_size max_x_off(gp_widget *self)
 {
+	if (self->w > self->scroll->widget->w)
+		return 0;
+
 	return self->scroll->widget->w - self->w;
 }
 
 static gp_size max_y_off(gp_widget *self)
 {
+	if (self->h > self->scroll->widget->h)
+		return 0;
+
 	return self->scroll->widget->h - self->h;
 }
 
@@ -414,21 +420,32 @@ static int select_event(gp_widget *self, int sel)
 
 static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx, int new_wh)
 {
-	gp_size child_min_w = gp_widget_min_w(self->scroll->widget, ctx);
-	gp_size child_min_h = gp_widget_min_h(self->scroll->widget, ctx);
+	struct gp_widget_scroll_area *area = self->scroll;
+
+	gp_size child_min_w = gp_widget_min_w(area->widget, ctx);
+	gp_size child_min_h = gp_widget_min_h(area->widget, ctx);
 	gp_size w = self->w;
 	gp_size h = self->h;
 
-	if (self->scroll->scrollbar_x)
+	if (area->scrollbar_x)
 		w -= scrollbar_size(ctx);
 
-	if (self->scroll->scrollbar_y)
+	if (area->scrollbar_y)
 		h -= scrollbar_size(ctx);
 
 	gp_size child_w = GP_MAX(child_min_w, w);
 	gp_size child_h = GP_MAX(child_min_h, h);
 
-	gp_widget_ops_distribute_size(self->scroll->widget, ctx, child_w, child_h, new_wh);
+	gp_coord x_off = max_x_off(self);
+	gp_coord y_off = max_y_off(self);
+
+	if (area->x_off > x_off)
+		area->x_off = x_off;
+
+	if (area->y_off > y_off)
+		area->y_off = y_off;
+
+	gp_widget_ops_distribute_size(area->widget, ctx, child_w, child_h, new_wh);
 }
 
 static gp_widget *json_to_scroll(json_object *json, void **uids)
