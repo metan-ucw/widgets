@@ -442,8 +442,18 @@ static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx, in
 	if (area->x_off > x_off)
 		area->x_off = x_off;
 
+	if (x_off == 0)
+		area->scrollbar_y = 0;
+	else
+		area->scrollbar_y = 1;
+
 	if (area->y_off > y_off)
 		area->y_off = y_off;
+
+	if (y_off == 0)
+		area->scrollbar_x = 0;
+	else
+		area->scrollbar_x = 1;
 
 	gp_widget_ops_distribute_size(area->widget, ctx, child_w, child_h, new_wh);
 }
