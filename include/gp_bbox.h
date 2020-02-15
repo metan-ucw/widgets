@@ -48,6 +48,18 @@ static inline gp_bbox gp_bbox_merge(gp_bbox box1, gp_bbox box2)
 	return box;
 }
 
+static inline gp_bbox gp_bbox_intersection(gp_bbox box1, gp_bbox box2)
+{
+	gp_bbox box = {
+		.x = GP_MAX(box1.x, box2.x),
+		.y = GP_MAX(box1.y, box2.y),
+		.w = GP_MIN(box1.x + box1.w, box2.x + box2.w) - GP_MAX(box1.x, box2.x),
+		.h = GP_MIN(box1.y + box1.h, box2.y + box2.h) - GP_MAX(box1.y, box2.y),
+	};
+
+	return box;
+}
+
 static inline int gp_bbox_intersects(gp_bbox box1, gp_bbox box2)
 {
 	if (box1.x > box2.x + (gp_coord)box2.w)
