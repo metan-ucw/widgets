@@ -30,15 +30,12 @@ static struct gp_text_style font_bold = {
 
 static struct gp_widget_render_ctx ctx = {
 	.text_color = 0,
-	.bg_color = 0xdddddd,
-	.fg_color = 0xeeeeee,
-	.fg2_color = 0x77bbff,
-	.sel_color = 0x1199ff,
-	.alert_color = 0xff5555,
 	.font = &font,
 	.font_bold = &font_bold,
 	.padd = 4,
 };
+
+static gp_pixel fill_color;
 
 static int font_size = 16;
 static gp_font_face *render_font;
@@ -234,6 +231,13 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 	ctx.buf = backend->pixmap;
 	ctx.pixel_type = backend->pixmap->pixel_type;
 
+	ctx.bg_color = gp_rgb_to_pixmap_pixel(0xdd, 0xdd, 0xdd, ctx.buf);
+	ctx.fg_color = gp_rgb_to_pixmap_pixel(0xee, 0xee, 0xee, ctx.buf);
+	ctx.fg2_color = gp_rgb_to_pixmap_pixel(0x77, 0xbb, 0xff, ctx.buf);
+	ctx.sel_color = gp_rgb_to_pixmap_pixel(0x11, 0x99, 0xff, ctx.buf);
+	ctx.alert_color = gp_rgb_to_pixmap_pixel(0xff, 0x55, 0x55, ctx.buf);
+	fill_color = gp_rgb_to_pixmap_pixel(0x44, 0x44, 0x44, ctx.buf);
+
 	gp_widget_calc_size(layout, &ctx, 0, 0, 1);
 
 	gp_backend_resize(backend, layout->w, layout->h);
@@ -244,7 +248,7 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 
 	if (layout->w != gp_pixmap_w(backend->pixmap) ||
 	    layout->h != gp_pixmap_h(backend->pixmap)) {
-		gp_fill(backend->pixmap, 0x444444);
+		gp_fill(backend->pixmap, fill_color);
 		flag = 1;
 	}
 
@@ -271,13 +275,21 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 			break;
 			}
 		}
+		if ((gp_event_get_key(ev, GP_KEY_LEFT_ALT) ||
+		     gp_event_get_key(ev, GP_KEY_LEFT_ALT)) &&
+		     ev->code == GP_EV_KEY_DOWN) {
+			switch (ev->val.val) {
+			case GP_KEY_F4:
+				return 1;
+			}
+		}
 	break;
 	case GP_EV_SYS:
 		switch (ev->code) {
 		case GP_EV_SYS_RESIZE:
 			gp_backend_resize_ack(backend);
 			ctx.buf = backend->pixmap;
-			gp_fill(backend->pixmap, 0x444444);
+			gp_fill(backend->pixmap, fill_color);
 			gp_widget_render(layout, &ctx, 1);
 			gp_backend_flip(backend);
 			handled = 1;
@@ -300,17 +312,6 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 
 	if (handled)
 		return 0;
-
-	if (ev->type == GP_EV_KEY) {
-		if ((gp_event_get_key(ev, GP_KEY_LEFT_ALT) ||
-		     gp_event_get_key(ev, GP_KEY_LEFT_ALT)) &&
-		     ev->code == GP_EV_KEY_DOWN) {
-			switch (ev->val.val) {
-			case GP_KEY_F4:
-				return 1;
-			}
-		}
-	}
 
 	return 0;
 }
