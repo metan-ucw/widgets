@@ -87,9 +87,17 @@ struct info_widgets {
 
 static void set_info(const char *artist, const char *album, const char *track)
 {
-	gp_widget_label_set(info_widgets.album, album);
-	gp_widget_label_set(info_widgets.artist, artist);
-	gp_widget_label_set(info_widgets.track, track);
+	GP_DEBUG(1, "Track name '%s' Album name '%s' Artist name '%s'",
+	            track, album, artist);
+
+	if (album)
+		gp_widget_label_set(info_widgets.album, album);
+
+	if (artist)
+		gp_widget_label_set(info_widgets.artist, artist);
+
+	if (track)
+		gp_widget_label_set(info_widgets.track, track);
 }
 
 static void show_album_art(unsigned char *data, size_t size)
@@ -163,12 +171,12 @@ int load_track(struct audio_output *out, mpg123_handle *mh, const char *name)
 //	uint32_t duration = (double)mpg123_length(mh) / rate + 0.5;
 	gp_widget_pbar_set(info_widgets.playback, 0);
 
+	set_info("Unknown", "Unknown", "Unknown");
 
 	if (v2 != NULL) {
-		GP_DEBUG(1, "Track name '%s' Album name '%s' Artist name '%s'",
-		            v2->title->p, v2->album->p, v2->artist->p);
-
-		set_info(v2->artist->p, v2->album->p, v2->title->p);
+		set_info(v2->artist ? v2->artist->p : NULL,
+			 v2->album ? v2->album->p : NULL,
+			 v2->title ? v2->title->p : NULL);
 
 		size_t i;
 
@@ -183,8 +191,6 @@ int load_track(struct audio_output *out, mpg123_handle *mh, const char *name)
 		set_info(v1->artist, v1->album, v1->title);
 		return 0;
 	}
-
-	set_info("Unknown", "Unknown", "Unknown");
 
 	return 0;
 }
