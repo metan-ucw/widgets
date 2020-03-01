@@ -41,10 +41,7 @@ struct gp_widget_grid {
 	uint8_t *row_fills;
 
 	struct gp_widget **widgets;
-	char payload[];
 };
-
-
 
 gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows);
 
