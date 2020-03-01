@@ -33,6 +33,16 @@ struct gp_widget_label {
 char *gp_widget_label_set(gp_widget *self, char *text);
 
 /**
+ * @brief Printf-like function to set label text.
+ * @param self Pointer to label widget.
+ * @param fmt  Printf formatting string.
+ * @param ...  Printf parameters.
+ * @return Number of characters printed.
+ */
+int gp_widget_label_printf(gp_widget *self, const char *fmt, ...)
+                           __attribute__((format (printf, 2, 3)));
+
+/**
  * @brief Turns on-off bold text attribute.
  */
 static inline void gp_widget_label_bold(gp_widget *self, int bold)
