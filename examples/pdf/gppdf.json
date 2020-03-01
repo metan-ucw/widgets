@@ -4,7 +4,7 @@
  "rfill": "0, 1",
  "widgets": [
   {
-   "cols": 2,
+   "cols": 5,
    "halign": "left",
    "border": "none",
    "widgets": [
@@ -17,6 +17,22 @@
      "type": "button",
      "label": "next",
      "on_event": "button_next_event"
+    },
+    {
+     "type": "label",
+     "text": "Page"
+    },
+    {
+     "type": "textbox",
+     "text": "1",
+     "size": "3",
+     "uid": "pg_nr",
+     "on_event": "load_page_event"
+    },
+    {
+     "type": "label",
+     "text": "of ?",
+     "uid": "pg_cnt"
     }
    ]
   },

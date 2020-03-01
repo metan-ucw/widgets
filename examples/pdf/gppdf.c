@@ -18,6 +18,8 @@ struct document {
 
 static struct controls {
 	gp_widget *page;
+	gp_widget *pg_cnt;
+	gp_widget *pg_nr;
 	struct document *doc;
 } controls;
 
@@ -78,7 +80,7 @@ static void load_page(struct document *doc, int page)
 	doc->cur_page = page;
 	doc->fz_pg = fz_load_page(doc->fz_ctx, doc->fz_doc, doc->cur_page);
 
-	//TODO: label with a page number
+	gp_widget_textbox_printf(controls.pg_nr, "%i", doc->cur_page+1);
 }
 
 static int load_document(struct document *doc, const char *filename)
@@ -115,6 +117,19 @@ static void load_and_redraw(struct document *doc, int i)
 	load_next_page(doc, i);
 	gp_widget_redraw(controls.page);
 	gp_widget_pixmap_update(controls.page);
+}
+
+int load_page_event(gp_widget_event *ev)
+{
+	gp_widget *tbox = ev->self;
+
+	if (ev->type != GP_WIDGET_EVENT_ACTION)
+		return 0;
+
+	load_page(controls.doc, atoi(tbox->tbox->buf)-1);
+	gp_widget_redraw(controls.page);
+	gp_widget_pixmap_update(controls.page);
+	return 1;
 }
 
 int button_prev_event(gp_widget_event *ev)
@@ -210,6 +225,10 @@ int main(int argc, char *argv[])
 
 	controls.doc = &doc;
 	controls.page = gp_widget_by_uid(uids, "page", GP_WIDGET_PIXMAP);
+	controls.pg_cnt = gp_widget_by_uid(uids, "pg_cnt", GP_WIDGET_LABEL);
+	controls.pg_nr = gp_widget_by_uid(uids, "pg_nr", GP_WIDGET_TEXTBOX);
+
+	gp_widget_label_printf(controls.pg_cnt, "of %i", doc.page_count);
 
 	gp_widget_event_unmask(controls.page, GP_WIDGET_EVENT_RESIZE);
 	gp_widget_event_unmask(controls.page, GP_WIDGET_EVENT_REDRAW);
