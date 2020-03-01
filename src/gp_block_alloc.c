@@ -6,6 +6,7 @@
 
  */
 
+#include <sys/mman.h>
 #include <core/gp_debug.h>
 #include <gp_block_alloc.h>
 
@@ -18,6 +19,17 @@ static size_t align(size_t size)
 	return (size + mask) & ~mask;
 }
 
+static void *alloc_block(void)
+{
+	return mmap(NULL, block_size, PROT_READ|PROT_WRITE,
+	            MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+}
+
+static void free_block(void *addr)
+{
+	munmap(addr, block_size);
+}
+
 static gp_block *new_block(void)
 {
 	gp_block *block;
@@ -27,7 +39,7 @@ static gp_block *new_block(void)
 
 	GP_DEBUG(1, "Allocating block size %zu", block_size);
 
-	block = malloc(block_size);
+	block = alloc_block();
 	if (!block)
 		return NULL;
 
@@ -43,7 +55,7 @@ void gp_block_free(gp_block **self)
 
 	for (i = *self; i;) {
 		j = i->next;
-		free(i);
+		free_block(i);
 		i = j;
 	}
 
