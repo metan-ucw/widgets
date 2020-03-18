@@ -35,6 +35,8 @@
   {
    "type": "progressbar",
    "halign": "fill",
+   "ptype": "seconds",
+   "inverse": true,
    "uid": "playback"
   },
   {

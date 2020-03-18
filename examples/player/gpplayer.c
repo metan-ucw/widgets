@@ -168,7 +168,8 @@ int load_track(struct audio_output *out, mpg123_handle *mh, const char *name)
 		mpg123_scan(mh);
 
 	// duration = length / bitrate
-//	uint32_t duration = (double)mpg123_length(mh) / rate + 0.5;
+	uint32_t duration = (double)mpg123_length(mh) / rate + 0.5;
+	gp_widget_pbar_set_max(info_widgets.playback, duration);
 	gp_widget_pbar_set(info_widgets.playback, 0);
 
 	set_info("Unknown", "Unknown", "Unknown");
@@ -336,7 +337,7 @@ int main(int argc, char *argv[])
 
 			uint32_t pos = (double)mpg123_tell(mh) / out->sample_rate + 0.5;
 
-			gp_widget_pbar_set(info_widgets.playback, 100.00 * mpg123_tell(mh) / mpg123_length(mh));
+			gp_widget_pbar_set(info_widgets.playback, pos);
 
 			// we are done, play next track
 			if (ret == MPG123_DONE) {

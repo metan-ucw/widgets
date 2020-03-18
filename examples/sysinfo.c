@@ -151,7 +151,7 @@ gp_widget *init_cpu_bars(void)
 		cpu_stats[i].load = 0;
 		if (i != 0)
 			sprintf(buf, "cpu%i", i);
-		gp_widget_grid_put(bars, 1, i, gp_widget_pbar_new(0));
+		gp_widget_grid_put(bars, 1, i, gp_widget_pbar_new(0, 100, GP_WIDGET_PBAR_PERCENTS));
 		gp_widget_grid_put(bars, 0, i, gp_widget_label_new(buf, 0, 0));
 	}
 
