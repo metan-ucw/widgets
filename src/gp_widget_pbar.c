@@ -165,6 +165,7 @@ gp_widget *gp_widget_pbar_new(float val, float max, enum gp_widget_pbar_type typ
 
 	ret->pbar->val = val;
 	ret->pbar->type = type;
+	ret->pbar->max = max;
 
 	return ret;
 }
