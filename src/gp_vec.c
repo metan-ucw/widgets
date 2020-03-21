@@ -97,3 +97,44 @@ out:
 	memset(vec->payload + i * vec->unit, 0, length * vec->unit);
 	return (void *)vec->payload;
 }
+
+void *gp_vec_delete(void *self, size_t i, size_t length)
+{
+	gp_vec *vec = GP_VEC(self);
+
+	if (length == 0)
+		return self;
+
+	if (i + length > vec->length) {
+		GP_WARN("Block (%zu-%zu) out of vector %p size %zu",
+		        i, length, self, vec->length);
+		return NULL;
+	}
+
+	memmove(vec->payload + i * vec->unit,
+		vec->payload + (i + length) * vec->unit,
+		(vec->length - length - i) * vec->unit);
+
+	memset(vec->payload + (vec->length - length) * vec->unit,
+	       0xff, length * vec->unit);
+
+	vec->length -= length;
+
+	size_t capacity = vec->capacity;
+
+	while ((capacity >> 1) > vec->length && (capacity >> 1) > 2u)
+		capacity >>= 1;
+
+	if (capacity == vec->capacity)
+		goto ret;
+
+	gp_vec *rvec = realloc(vec, sizeof(*vec) + capacity * vec->unit);
+
+	if (rvec) {
+		vec = rvec;
+		vec->capacity = capacity;
+	}
+
+ret:
+	return (void *)vec->payload;
+}

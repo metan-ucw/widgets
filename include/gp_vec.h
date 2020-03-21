@@ -72,4 +72,9 @@ static inline size_t gp_vec_len(const void *self)
  */
 void *gp_vec_insert(void *self, size_t i, size_t length);
 
+/*
+ * Deletes a range from the vector.
+ */
+void *gp_vec_delete(void *self, size_t i, size_t lenght);
+
 #endif	/* GP_VEC_H__ */

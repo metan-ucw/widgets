@@ -60,6 +60,22 @@ int main(void)
 	printf("\nInsert 3 of 0 at 5: ");
 	print_int_vec(ints);
 
+	ints = gp_vec_delete(ints, 5, 3);
+	printf("\nDelete 3 of 0 at 5: ");
+	print_int_vec(ints);
+
+	ints = gp_vec_delete(ints, 4, 1);
+	printf("\nDelete -1 at 4: ");
+	print_int_vec(ints);
+
+	ints = gp_vec_delete(ints, 11, 1);
+	printf("\nDelete 11 at 11: ");
+	print_int_vec(ints);
+
+	ints = gp_vec_delete(ints, 0, 1);
+	printf("\nDelete 0 at 0: ");
+	print_int_vec(ints);
+
 	gp_vec_free(ints);
 
 	strs = gp_vec_new(10, sizeof(char*));
