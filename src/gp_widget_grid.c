@@ -12,7 +12,7 @@
 
 #include <core/gp_debug.h>
 #include <core/gp_common.h>
-#include <gp_vec.h>
+#include <utils/gp_vec.h>
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_json.h>
