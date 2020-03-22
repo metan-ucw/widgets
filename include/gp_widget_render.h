@@ -93,6 +93,10 @@ void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms)
 
 void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires_ms);
 
+/*
+ * Parses options, returns positional arguments, e.g. paths.
+ */
+void gp_widgets_getopt(int *argc, char **argv[]);
 
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
                         void (*init)(void), int argc, char *argv[]);

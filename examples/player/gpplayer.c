@@ -314,6 +314,8 @@ int main(int argc, char *argv[])
 
 	mpg123_param(mh, MPG123_ADD_FLAGS, MPG123_PICTURE, 1.0);
 
+	gp_widgets_getopt(&argc, &argv);
+
 	tracks.tracks    = argc;
 	tracks.cur_track = 0;
 	tracks.paths     = (const char**)argv;
@@ -321,7 +323,8 @@ int main(int argc, char *argv[])
 	tracks.mh        = mh;
 	tracks.playing   = 1;
 
-	load_track(out, mh, argv[1]);
+	if (argc)
+		load_track(out, mh, argv[0]);
 
 	gp_widgets_layout_init(layout, "gpplayer");
 

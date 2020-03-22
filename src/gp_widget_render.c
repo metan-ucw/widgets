@@ -343,11 +343,11 @@ static void print_options(int exit_val)
 	exit(exit_val);
 }
 
-static void parse_args(int argc, char *argv[])
+void gp_widgets_getopt(int *argc, char **argv[])
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "b:f:h")) != -1) {
+	while ((opt = getopt(*argc, *argv, "b:f:h")) != -1) {
 		switch (opt) {
 		case 'b':
 			backend_init_str = optarg;
@@ -362,6 +362,9 @@ static void parse_args(int argc, char *argv[])
 			print_options(1);
 		}
 	}
+
+	*argv = *argv + optind;
+	*argc -= optind;
 }
 
 #define MAX_POLL_FDS 10
@@ -463,7 +466,8 @@ gp_widget *gp_widget_layout_replace(gp_widget *layout)
 void gp_widgets_main_loop(gp_widget *layout, const char *label,
                           void (*init)(void), int argc, char *argv[])
 {
-	parse_args(argc, argv);
+	if (argv)
+		gp_widgets_getopt(&argc, &argv);
 
 	gp_widgets_layout_init(layout, label);
 

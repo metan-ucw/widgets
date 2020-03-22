@@ -32,6 +32,11 @@ static void draw_page(gp_widget_event *ev)
 
 	struct document *doc = controls.doc;
 
+	if (!doc->fz_ctx) {
+		gp_fill(pixmap, ev->ctx->fg_color);
+		return;
+	}
+
 	// Determines page size at 72 DPI
 	fz_rect rect = fz_bound_page(doc->fz_ctx, doc->fz_pg);
 
@@ -212,14 +217,14 @@ static void canvas_callback(struct MW_Widget *self, GP_Event *ev)
 int main(int argc, char *argv[])
 {
 	void *uids;
-	struct document doc;
+	struct document doc = {};
 
-	if (load_document(&doc, argv[1])) {
-		GP_WARN("Can't load document '%s'", argv[1]);
+	gp_widgets_getopt(&argc, &argv);
+
+	if (argc && load_document(&doc, argv[0])) {
+		GP_WARN("Can't load document '%s'", argv[0]);
 		return 1;
 	}
-
-	argc--; argv++;
 
 	gp_widget *layout = gp_widget_layout_json("gppdf.json", &uids);
 
@@ -235,7 +240,7 @@ int main(int argc, char *argv[])
 
 	controls.page->on_event = pixmap_on_event;
 
-	gp_widgets_main_loop(layout, "gppdf", NULL, argc, argv);
+	gp_widgets_main_loop(layout, "gppdf", NULL, 0, NULL);
 
 	return 0;
 }
