@@ -256,6 +256,13 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 	gp_backend_flip(backend);
 }
 
+static int (*app_event_callback)(gp_event *);
+
+void gp_widgets_register_callback(int (*event_callback)(gp_event *))
+{
+	app_event_callback = event_callback;
+}
+
 int gp_widgets_event(gp_event *ev, gp_widget *layout)
 {
 	int handled = 0;
@@ -312,6 +319,9 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 
 	if (handled)
 		return 0;
+
+	if (app_event_callback)
+		app_event_callback(ev);
 
 	return 0;
 }

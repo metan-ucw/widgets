@@ -98,6 +98,14 @@ void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires_ms);
  */
 void gp_widgets_getopt(int *argc, char **argv[]);
 
+/*
+ * Register application event callback.
+ *
+ * All input events that are not handled by the widget library are passed to
+ * the callback registered by this function.
+ */
+void gp_widgets_register_callback(int (*event_callback)(gp_event *));
+
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
                         void (*init)(void), int argc, char *argv[]);
 

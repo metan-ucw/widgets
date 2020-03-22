@@ -222,44 +222,44 @@ int pixmap_on_event(gp_widget_event *ev)
 	return 0;
 }
 
-/*
-static void canvas_callback(struct MW_Widget *self, GP_Event *ev)
+static int app_ev_callback(gp_event *ev)
 {
-	struct document *doc = self->callback_priv;
+	struct document *doc = controls.doc;
 
 	switch (ev->type) {
 	case GP_EV_KEY:
 		if (ev->code == GP_EV_KEY_UP)
-			return;
+			return 0;
 
 		switch (ev->val.key.key) {
-		case GP_KEY_SPACE:
-		case GP_KEY_ENTER:
 		case GP_KEY_RIGHT:
-		case GP_KEY_UP:
+		case GP_KEY_PAGE_DOWN:
+		case GP_KEY_DOWN:
 			load_and_redraw(doc, 1);
 		break;
 		case GP_KEY_LEFT:
-		case GP_KEY_DOWN:
-		case GP_KEY_BACKSPACE:
+		case GP_KEY_UP:
+		case GP_KEY_PAGE_UP:
 			load_and_redraw(doc, -1);
 		break;
-		case GP_KEY_F:
-			toggle_fullscreen();
-		break;
+		//case GP_KEY_F:
+		//	toggle_fullscreen();
+		//break;
 		}
 	break;
 	default:
-	break;
+		return 0;
 	}
+
+	return 1;
 }
-*/
 
 int main(int argc, char *argv[])
 {
 	void *uids;
 	struct document doc = {};
 
+	gp_widgets_register_callback(app_ev_callback);
 	gp_widgets_getopt(&argc, &argv);
 
 	if (argc && load_document(&doc, argv[0])) {
