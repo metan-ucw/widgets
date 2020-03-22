@@ -131,14 +131,35 @@ static void load_page_and_redraw(int page)
 	gp_widget_pixmap_update(controls.page);
 }
 
+static int page_number_check(gp_widget_event *ev)
+{
+	gp_widget *tbox = ev->self;
+	int val = atoi(tbox->tbox->buf) * 10 + ev->val - '0';
+
+	if (val <= 0 || val > controls.doc->page_count)
+		return 1;
+
+	return 0;
+}
+
 int load_page_event(gp_widget_event *ev)
 {
 	gp_widget *tbox = ev->self;
 
-	if (ev->type == GP_WIDGET_EVENT_ACTION)
+	switch (ev->type) {
+	case GP_WIDGET_EVENT_NEW:
+		tbox->tbox->filter = GP_TEXT_BOX_FILTER_INT;
+	break;
+	case GP_WIDGET_EVENT_ACTION:
 		load_page_and_redraw(atoi(tbox->tbox->buf) - 1);
+	break;
+	case GP_WIDGET_EVENT_FILTER:
+		return page_number_check(ev);
+	default:
+		return 0;
+	}
 
-	return 0;
+	return 1;
 }
 
 int button_prev_event(gp_widget_event *ev)
