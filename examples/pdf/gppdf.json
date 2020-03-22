@@ -4,19 +4,29 @@
  "rfill": "0, 1",
  "widgets": [
   {
-   "cols": 5,
+   "cols": 7,
    "halign": "left",
    "border": "none",
    "widgets": [
     {
      "type": "button",
-     "label": "prev",
+     "label": "<<",
+     "on_event": "button_first_event"
+    },
+    {
+     "type": "button",
+     "label": "<",
      "on_event": "button_prev_event"
     },
     {
      "type": "button",
-     "label": "next",
+     "label": ">",
      "on_event": "button_next_event"
+    },
+    {
+     "type": "button",
+     "label": ">>",
+     "on_event": "button_last_event"
     },
     {
      "type": "label",

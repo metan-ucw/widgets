@@ -124,17 +124,21 @@ static void load_and_redraw(struct document *doc, int i)
 	gp_widget_pixmap_update(controls.page);
 }
 
+static void load_page_and_redraw(int page)
+{
+	load_page(controls.doc, page);
+	gp_widget_redraw(controls.page);
+	gp_widget_pixmap_update(controls.page);
+}
+
 int load_page_event(gp_widget_event *ev)
 {
 	gp_widget *tbox = ev->self;
 
-	if (ev->type != GP_WIDGET_EVENT_ACTION)
-		return 0;
+	if (ev->type == GP_WIDGET_EVENT_ACTION)
+		load_page_and_redraw(atoi(tbox->tbox->buf) - 1);
 
-	load_page(controls.doc, atoi(tbox->tbox->buf)-1);
-	gp_widget_redraw(controls.page);
-	gp_widget_pixmap_update(controls.page);
-	return 1;
+	return 0;
 }
 
 int button_prev_event(gp_widget_event *ev)
@@ -149,6 +153,22 @@ int button_next_event(gp_widget_event *ev)
 {
 	if (ev->type == GP_WIDGET_EVENT_ACTION)
 		load_and_redraw(controls.doc, 1);
+
+	return 0;
+}
+
+int button_first_event(gp_widget_event *ev)
+{
+	if (ev->type == GP_WIDGET_EVENT_ACTION)
+		load_page_and_redraw(0);
+
+	return 0;
+}
+
+int button_last_event(gp_widget_event *ev)
+{
+	if (ev->type == GP_WIDGET_EVENT_ACTION)
+		load_page_and_redraw(controls.doc->page_count - 1);
 
 	return 0;
 }
