@@ -121,7 +121,7 @@ static gp_size scrollbar_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 	return self->h;
 }
 
-static gp_size max_x_off(gp_widget *self)
+static gp_coord max_x_off(gp_widget *self)
 {
 	if (self->w > self->scroll->widget->w)
 		return 0;
@@ -129,7 +129,7 @@ static gp_size max_x_off(gp_widget *self)
 	return self->scroll->widget->w - self->w;
 }
 
-static gp_size max_y_off(gp_widget *self)
+static gp_coord max_y_off(gp_widget *self)
 {
 	if (self->h > self->scroll->widget->h)
 		return 0;
@@ -258,7 +258,7 @@ static void set_y_off(gp_widget *self, int y_off)
 		return;
 	}
 
-	if ((gp_size)y_off > max_y_off(self)) {
+	if (y_off > max_y_off(self)) {
 		GP_WARN("y_off > max y_off");
 		return;
 	}
@@ -279,7 +279,7 @@ static void set_x_off(gp_widget *self, int x_off)
 		return;
 	}
 
-	if ((gp_size)x_off > max_x_off(self)) {
+	if (x_off > max_x_off(self)) {
 		GP_WARN("y_off > max y_off");
 		return;
 	}
@@ -340,6 +340,32 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 			return 1;
 		}
 	}
+
+	if (area->selected) {
+		if (ev->type != GP_EV_KEY)
+			return 0;
+
+		if (ev->code == GP_EV_KEY_UP)
+			return 0;
+
+		switch (ev->val.val) {
+		case GP_KEY_LEFT:
+			set_x_off(self, GP_MAX(0, area->x_off - 10));
+		break;
+		case GP_KEY_RIGHT:
+			set_x_off(self, GP_MIN(max_x_off(self), area->x_off + 10));
+		break;
+		case GP_KEY_UP:
+			set_y_off(self, GP_MAX(0, area->y_off - 10));
+		break;
+		case GP_KEY_DOWN:
+			set_y_off(self, GP_MIN(max_y_off(self), area->y_off + 10));
+		break;
+		}
+
+		return 0;
+	}
+
 
 	ev->cursor_x += area->x_off;
 	ev->cursor_y += area->y_off;
