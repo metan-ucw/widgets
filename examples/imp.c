@@ -98,27 +98,22 @@ next:
 	}
 }
 
-static int notify_callback(gp_widget_poll *self)
+static int notify_callback(struct gp_fd *self, struct pollfd *pfd)
 {
+	(void) pfd;
+
 	if (gp_dir_cache_inotify(self->priv))
 		redraw_table(NULL);
 
 	return 0;
 }
 
-static struct gp_widget_poll notify_poll;
-
 static gp_dir_cache *load_dir_cache(void)
 {
 	gp_dir_cache *cache = gp_dir_cache_new(path->tbox->buf);
 
-	if (cache->inotify_fd > 0) {
-		notify_poll.events = POLLIN,
-		notify_poll.fd = cache->inotify_fd;
-		notify_poll.priv = cache;
-		notify_poll.callback = notify_callback;
-		gp_widgets_poll_add(&notify_poll);
-	}
+	if (cache->inotify_fd > 0)
+		gp_fds_add(gp_widgets_fds, cache->inotify_fd, POLLIN, notify_callback, cache);
 
 	return cache;
 }
@@ -126,7 +121,7 @@ static gp_dir_cache *load_dir_cache(void)
 static void free_dir_cache(struct gp_dir_cache *self)
 {
 	if (self->inotify_fd > 0)
-		gp_widgets_poll_rem(&notify_poll);
+		gp_fds_rem(gp_widgets_fds, self->inotify_fd);
 
 	gp_dir_cache_free(self);
 }

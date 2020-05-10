@@ -355,14 +355,14 @@ static snd_mixer_t *do_mixer_init(uint8_t id)
 	return mixer;
 }
 
-static int mixer_poll_callback(gp_widget_poll *self)
+static int mixer_poll_callback(struct gp_fd *self, struct pollfd *pfd)
 {
+	(void) pfd;
+
 	snd_mixer_handle_events(self->priv);
 
 	return 0;
 }
-
-struct gp_widget_poll *mixer_polls;
 
 static void init_poll(snd_mixer_t *mixer)
 {
@@ -374,21 +374,10 @@ static void init_poll(snd_mixer_t *mixer)
 		return;
 	}
 
-	mixer_polls = malloc(sizeof(struct gp_widget_poll) * nfds);
-	if (!mixer_polls) {
-		GP_DEBUG(1, "Malloc failed :(");
-		return;
-	}
-
 	GP_DEBUG(1, "Initializing poll for %i fds\n", nfds);
 
 	for (i = 0; i < nfds; i++) {
-		mixer_polls[i].fd = pfds[i].fd;
-		mixer_polls[i].events = pfds[i].events;
-		mixer_polls[i].priv = mixer;
-		mixer_polls[i].callback = mixer_poll_callback;
-
-		gp_widgets_poll_add(&mixer_polls[i]);
+		gp_fds_add(gp_widgets_fds, pfds[i].fd, pfds[i].events, mixer_poll_callback, mixer);
 	}
 }
 

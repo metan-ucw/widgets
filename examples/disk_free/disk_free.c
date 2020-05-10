@@ -141,11 +141,12 @@ static int open_proc_mounts(void)
 	return fd;
 }
 
-static int proc_mounts_poll(gp_widget_poll *self)
+static int proc_mounts_event(struct gp_fd *self, struct pollfd *pfd)
 {
 	gp_widget *layout, *old_layout;
 
-	(void)self;
+	(void) self;
+	(void) pfd;
 
 	gp_htable_free(fs_widget_groups);
 	fs_widget_groups = gp_htable_new(0, GP_HTABLE_COPY_KEY);
@@ -168,13 +169,7 @@ int main(int argc, char *argv[])
 	int fd = open_proc_mounts();
 	gp_widget *layout = load_fsinfo();
 
-	struct gp_widget_poll proc_mounts = {
-		.callback = proc_mounts_poll,
-		.events = POLLPRI,
-		.fd = fd,
-	};
-
-	gp_widgets_poll_add(&proc_mounts);
+	gp_fds_add(gp_widgets_fds, fd, POLLPRI, proc_mounts_event, NULL);
 
 	gp_widgets_main_loop(layout, "Disk Free", NULL, argc, argv);
 

@@ -17,7 +17,10 @@ static void redraw(gp_widget_event *ev)
 	gp_pixmap *dst = pixmap->pixmap->pixmap;
 	gp_offset *offset = ev->ptr;
 
-	gp_blit_xywh(image, offset->x, offset->y, dst->w, dst->h, dst, 0, 0);
+	if (image)
+		gp_blit_xywh(image, offset->x, offset->y, dst->w, dst->h, dst, 0, 0);
+	else
+		gp_fill(dst, ev->ctx->fg_color);
 }
 
 static void alloc_and_blit(gp_widget_event *ev)
@@ -54,9 +57,12 @@ int main(int argc, char *argv[])
 	layout->align = GP_FILL;
 	area->align = GP_FILL;
 
+	gp_widgets_getopt(&argc, &argv);
+
 	gp_widget_grid_put(layout, 0, 0, area);
 
-	image = gp_load_image(argv[1], NULL);
+	if (argv[0])
+		image = gp_load_image(argv[0], NULL);
 
 	gp_widget *pixmap = gp_widget_pixmap_new(image->w, image->h, pixmap_on_event, NULL);
 

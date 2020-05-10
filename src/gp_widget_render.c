@@ -6,12 +6,12 @@
 
  */
 
-#include <poll.h>
 #include <errno.h>
 #include <string.h>
 
 #include <core/gp_debug.h>
 #include <core/gp_common.h>
+#include <utils/gp_fds.h>
 #include <backends/gp_backends.h>
 #include <gp_widget_render.h>
 #include <gp_widget_ops.h>
@@ -333,7 +333,7 @@ int gp_widgets_process_events(gp_widget *layout)
 	while (gp_backend_poll_event(backend, &ev)) {
 		if (gp_widgets_event(&ev, layout)) {
 			gp_backend_exit(backend);
-			return 1;
+			exit(0);
 		}
 	}
 
@@ -377,89 +377,7 @@ void gp_widgets_getopt(int *argc, char **argv[])
 	*argc -= optind;
 }
 
-#define MAX_POLL_FDS 10
-
-static unsigned int poll_fds = 1;
-struct gp_widget_poll *polls[MAX_POLL_FDS];
-struct pollfd pfds[MAX_POLL_FDS];
-
-void gp_widgets_poll_add(struct gp_widget_poll *poll)
-{
-	if (poll_fds+1 >= MAX_POLL_FDS) {
-		GP_WARN("Too many fds to poll!");
-		return;
-	}
-
-	poll->flag = 0;
-
-	polls[poll_fds] = poll;
-	pfds[poll_fds].fd = poll->fd;
-	pfds[poll_fds].events = poll->events;
-	pfds[poll_fds].revents = 0;
-
-	poll_fds++;
-}
-
-static void widgets_poll_rem(unsigned int i)
-{
-	polls[i] = polls[--poll_fds];
-	pfds[i] = pfds[poll_fds];
-}
-
-void gp_widgets_poll_rem(struct gp_widget_poll *poll)
-{
-	unsigned int i;
-
-	for (i = 0; i < poll_fds; i++) {
-		if (polls[i] == poll) {
-			widgets_poll_rem(i);
-			return;
-		}
-	}
-
-	GP_WARN("No poll %p to remove!", poll);
-}
-
 static gp_widget *win_layout;
-
-static void do_poll(void)
-{
-	unsigned int i;
-	int ret, cleanup = 0;
-
-	ret = poll(pfds, poll_fds, gp_backend_timer_timeout(backend));
-
-	if (ret < 0) {
-		GP_WARN("poll: %s", strerror(errno));
-		return;
-	}
-
-	if (ret == 0) {
-		/* process timers */
-		gp_backend_poll(backend);
-		gp_widgets_process_events(win_layout);
-		return;
-	}
-
-	for (i = 1; i < poll_fds; i++) {
-		if (pfds[i].revents) {
-			GP_DEBUG(4, "Events for fd %i", polls[i]->fd);
-			if (polls[i]->callback(polls[i])) {
-				polls[i]->flag = 1;
-				cleanup = 1;
-			}
-			pfds[i].revents = 0;
-		}
-	}
-
-	if (!cleanup)
-		return;
-
-	for (i = 1; i < poll_fds; i++) {
-		if (polls[i]->flag)
-			widgets_poll_rem(i);
-	}
-}
 
 gp_widget *gp_widget_layout_replace(gp_widget *layout)
 {
@@ -472,6 +390,21 @@ gp_widget *gp_widget_layout_replace(gp_widget *layout)
 
 	return ret;
 }
+
+static int backend_event(struct gp_fd *self, struct pollfd *pfd)
+{
+	(void) pfd;
+	(void) self;
+
+	if (gp_widgets_process_events(win_layout))
+		return 1;
+
+	return 0;
+}
+
+static struct gp_fds fds = GP_FDS_INIT;
+
+struct gp_fds *gp_widgets_fds = &fds;
 
 void gp_widgets_main_loop(gp_widget *layout, const char *label,
                           void (*init)(void), int argc, char *argv[])
@@ -486,20 +419,16 @@ void gp_widgets_main_loop(gp_widget *layout, const char *label,
 	if (init)
 		init();
 
-	pfds[0].fd = gp_widgets_fd();
-	pfds[0].events = POLLIN;
-	pfds[0].revents = 0;
+	gp_fds_add(&fds, backend->fd, POLLIN, backend_event, NULL);
 
 	for (;;) {
-		do_poll();
-
-		if (pfds[0].revents) {
-			if (gp_widgets_process_events(win_layout))
-				return;
-			pfds[0].revents = 0;
+		int ret = gp_fds_poll(&fds, gp_backend_timer_timeout(backend));
+		/* handle timers */
+		if (ret == 0) {
+			gp_backend_poll(backend);
+			gp_widgets_process_events(win_layout);
 		}
-
-		gp_widgets_redraw(layout);
+		gp_widgets_redraw(win_layout);
 	}
 }
 

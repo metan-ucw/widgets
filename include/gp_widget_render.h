@@ -9,8 +9,6 @@
 #ifndef GP_WIDGET_RENDER_H__
 #define GP_WIDGET_RENDER_H__
 
-#include <poll.h>
-
 #include <core/gp_core.h>
 #include <gfx/gp_gfx.h>
 #include <text/gp_text.h>
@@ -60,34 +58,7 @@ enum gp_widget_render_timer_flags {
 	GP_TIMER_RESCHEDULE = 0x01,
 };
 
-/*
- * @callback Function that is called when data are ready on a file descriptor a
- *            non-zero return value removes the poll.
- * @priv A user pointer.
- * @fd File descriptor to be polled for POLLIN.
- * @events Poll events to watch for e.g. POLLIN, POLLPRI, ...
- */
-typedef struct gp_widget_poll {
-	int (*callback)(struct gp_widget_poll *self);
-	void *priv;
-	int fd;
-	short events;
-	short flag;
-} gp_widget_poll;
-
-/*
- * Adds a file descriptor to the widgets main loop poll().
- *
- * @poll A structure with a file descriptor and callback.
- */
-void gp_widgets_poll_add(struct gp_widget_poll *poll);
-
-/*
- * Removes existing poll.
- *
- * @poll Pointer to a structure to be removed.
- */
-void gp_widgets_poll_rem(struct gp_widget_poll *poll);
+extern struct gp_fds *gp_widgets_fds;
 
 void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms);
 
