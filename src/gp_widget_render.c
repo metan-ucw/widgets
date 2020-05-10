@@ -384,7 +384,7 @@ gp_widget *gp_widget_layout_replace(gp_widget *layout)
 	gp_widget *ret = win_layout;
 
 	gp_widget_resize(layout);
-        gp_widgets_redraw(layout);
+	gp_widget_redraw(layout);
 
 	win_layout = layout;
 
