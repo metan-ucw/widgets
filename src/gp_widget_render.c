@@ -183,6 +183,10 @@ void gp_widgets_redraw(struct gp_widget *layout)
 		gp_backend_resize(backend, layout->w, layout->h);
 	}
 
+	if (gp_pixmap_w(backend->pixmap) == 0 ||
+	    gp_pixmap_h(backend->pixmap) == 0)
+		return;
+
 	gp_bbox flip = {};
 
 	ctx.flip = &flip;
@@ -251,6 +255,10 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 		gp_fill(backend->pixmap, fill_color);
 		flag = 1;
 	}
+
+	if (gp_pixmap_w(backend->pixmap) == 0 ||
+	    gp_pixmap_h(backend->pixmap) == 0)
+		return;
 
 	gp_widget_render(layout, &ctx, flag);
 	gp_backend_flip(backend);
