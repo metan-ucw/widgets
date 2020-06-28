@@ -16,13 +16,13 @@
     {
      "type": "textbox",
      "text": "ffffff",
-     "size": 6,
+     "max_size" : 6,
      "on_event": "set_fg_color"
     },
     {
      "type": "textbox",
      "text": "000000",
-     "size": 6,
+     "max_size" : 6,
      "on_event": "set_bg_color"
     }
    ]

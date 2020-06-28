@@ -20,9 +20,12 @@ struct gp_widget_textbox {
 	int hidden:1; /* password prompt */
 	int alert:1;
 
+	size_t max_size;
 	size_t cur_pos;
-	size_t buf_len;
+	size_t size;
 	char *buf;
+
+	size_t off_left;
 
 	char payload[];
 };
@@ -34,7 +37,17 @@ enum gp_widget_text_box_flags {
 #define GP_TEXT_BOX_FILTER_INT "0123456789"
 #define GP_TEXT_BOX_FILTER_HEX "0123456789abcdefABCDEF"
 
-struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
+/*
+ * @brief Creates a new textbox.
+ *
+ * @text     Initial textbox text.
+ * @length   Expected text length, used for widget computation.
+ * @filter   If set only characters from the string can be typed into the textbox.
+ * @on_event Callback called on textbox event, e.g. key press.
+ * @priv     User private pointer, unused by the widget library.
+ * @flags    Mask of enum gp_widget_text_box_flags.
+ */
+struct gp_widget *gp_widget_textbox_new(const char *text, unsigned int length,
                                         const char *filter,
                                         int (*on_event)(gp_widget_event *),
                                         void *priv, int flags);

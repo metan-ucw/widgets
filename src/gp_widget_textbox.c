@@ -9,15 +9,17 @@
 #include <string.h>
 #include <json-c/json.h>
 
+#include <utils/gp_vec_str.h>
+
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
 static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	size_t text_len = self->tbox->buf_len - 1;
 	unsigned int ret = 2 * ctx->padd;
 	const char *filter = self->tbox->filter;
+	size_t text_len = self->tbox->size;
 
 	if (filter)
 		ret += gp_text_max_width_chars(ctx->font, filter, text_len);
@@ -72,18 +74,48 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color, ctx->fg_color, color);
 
+	size_t left = GP_MIN(self->tbox->off_left, self->tbox->cur_pos);
+	size_t right = gp_vec_strlen(self->tbox->buf);
+
+	while (gp_text_width_len(ctx->font, str+left, right - left) > self->w - 2 * ctx->padd) {
+		if (right > self->tbox->cur_pos)
+			right--;
+		else
+			left++;
+	}
+
+	self->tbox->off_left = left;
+
+	gp_coord cy = y + ctx->padd + (gp_text_ascent(ctx->font)+1)/2;
+	gp_coord s = ctx->padd/4;
+
+	if (left) {
+		gp_coord cx = x + ctx->padd/2;
+
+		gp_line(ctx->buf, cx-s, cy, cx, cy-s, ctx->text_color);
+		gp_line(ctx->buf, cx-s, cy, cx, cy+s, ctx->text_color);
+	}
+
+	if (right < gp_vec_strlen(self->tbox->buf)) {
+		gp_coord cx = x + w - 1 - ctx->padd/2;
+
+		gp_line(ctx->buf, cx+s, cy, cx, cy-s, ctx->text_color);
+		gp_line(ctx->buf, cx+s, cy, cx, cy+s, ctx->text_color);
+	}
+
 	if (self->selected) {
 		unsigned int cursor_x = x + ctx->padd;
-		cursor_x += gp_text_width_len(ctx->font, str,
-		                              self->tbox->cur_pos);
+		cursor_x += gp_text_width_len(ctx->font, str + left,
+		                              self->tbox->cur_pos - left);
 		gp_vline_xyh(ctx->buf, cursor_x, y + ctx->padd,
 			     gp_text_ascent(ctx->font), ctx->text_color);
 	}
 
-	gp_text(ctx->buf, ctx->font,
-		x + ctx->padd, y + ctx->padd,
-		GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
-		ctx->text_color, ctx->bg_color, str);
+	str += left;
+	gp_text_ext(ctx->buf, ctx->font,
+		    x + ctx->padd, y + ctx->padd,
+		    GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
+		    ctx->text_color, ctx->bg_color, str, right - left);
 }
 
 
@@ -108,9 +140,8 @@ static int filter(const char *filter, char ch)
 
 static void ascii_key(gp_widget *self, char ch)
 {
-	unsigned int i;
-
-	if (self->tbox->cur_pos + 1 >= self->tbox->buf_len) {
+	if (self->tbox->max_size &&
+	    gp_vec_strlen(self->tbox->buf) >= self->tbox->max_size) {
 		schedule_alert(self);
 		return;
 	}
@@ -122,18 +153,12 @@ static void ascii_key(gp_widget *self, char ch)
 		return;
 	}
 
-	if (self->tbox->buf[self->tbox->cur_pos]) {
-		if (self->tbox->buf[self->tbox->buf_len-2]) {
-			schedule_alert(self);
-			return;
-		}
+	char *tmp = gp_vec_chins(self->tbox->buf, self->tbox->cur_pos, ch);
+	if (!tmp)
+		return;
 
-		for (i = self->tbox->buf_len-1; i > self->tbox->cur_pos; i--)
-			self->tbox->buf[i] = self->tbox->buf[i-1];
-	}
-
-	self->tbox->buf[self->tbox->cur_pos++] = ch;
-	self->tbox->buf[self->tbox->cur_pos] = 0;
+	self->tbox->buf = tmp;
+	self->tbox->cur_pos++;
 
 	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
 
@@ -142,8 +167,6 @@ static void ascii_key(gp_widget *self, char ch)
 
 static void key_backspace(gp_widget *self)
 {
-	unsigned int i;
-
 	if (self->tbox->cur_pos <= 0) {
 		schedule_alert(self);
 		return;
@@ -151,8 +174,7 @@ static void key_backspace(gp_widget *self)
 
 	self->tbox->cur_pos--;
 
-	for (i = self->tbox->cur_pos; i < self->tbox->buf_len-1; i++)
-		self->tbox->buf[i] = self->tbox->buf[i + 1];
+	self->tbox->buf = gp_vec_strdel(self->tbox->buf, self->tbox->cur_pos, 1);
 
 	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
 
@@ -169,8 +191,7 @@ static void key_left(gp_widget *self)
 
 static void key_right(gp_widget *self)
 {
-	if (self->tbox->cur_pos < self->tbox->buf_len &&
-	    self->tbox->buf[self->tbox->cur_pos]) {
+	if (self->tbox->cur_pos < gp_vec_strlen(self->tbox->buf)) {
 		self->tbox->cur_pos++;
 		gp_widget_redraw(self);
 	}
@@ -190,7 +211,7 @@ static void key_end(gp_widget *self)
 	if (!self->tbox->buf[self->tbox->cur_pos])
 		return;
 
-	self->tbox->cur_pos = strlen(self->tbox->buf);
+	self->tbox->cur_pos = gp_vec_strlen(self->tbox->buf);
 	gp_widget_redraw(self);
 }
 
@@ -245,9 +266,11 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 
 static gp_widget *json_to_textbox(json_object *json, void **uid)
 {
+	gp_widget *ret;
 	const char *text = NULL;
 	int flags = 0;
-	int len = 0;
+	int size = 0;
+	int max_size = 0;
 
 	(void)uid;
 
@@ -255,22 +278,37 @@ static gp_widget *json_to_textbox(json_object *json, void **uid)
 		if (!strcmp(key, "text"))
 			text = json_object_get_string(val);
 		else if (!strcmp(key, "size"))
-			len = json_object_get_int(val);
+			size = json_object_get_int(val);
 		else if (!strcmp(key, "hidden"))
 			flags |= json_object_get_boolean(val) ? GP_WIDGET_TEXT_BOX_HIDDEN : 0;
+		else if (!strcmp(key, "max_size"))
+			max_size = json_object_get_int(val);
 		else
 			GP_WARN("Invalid textbox key '%s'", key);
 	}
 
-	if (len <= 0 && !text) {
+	if (size <= 0 && !text) {
 		GP_WARN("At least one of size or text has to be set!");
 		return NULL;
 	}
 
-	if (len <= 0)
-		len = strlen(text);
+	if (max_size < 0) {
+		GP_WARN("max_size must be >= 0");
+		return NULL;
+	}
 
-	return gp_widget_textbox_new(text, len, NULL, NULL, NULL, flags);
+	if (size <= 0)
+		size = strlen(text);
+
+
+	if (text && max_size)
+		max_size = GP_MAX(max_size, (int)strlen(text));
+
+	ret = gp_widget_textbox_new(text, size, NULL, NULL, NULL, flags);
+
+	ret->tbox->max_size = max_size;
+
+	return ret;
 }
 
 struct gp_widget_ops gp_widget_textbox_ops = {
@@ -282,34 +320,41 @@ struct gp_widget_ops gp_widget_textbox_ops = {
 	.id = "textbox",
 };
 
-struct gp_widget *gp_widget_textbox_new(const char *text, size_t str_len,
+struct gp_widget *gp_widget_textbox_new(const char *text, unsigned int size,
                                         const char *filter,
                                         int (*on_event)(gp_widget_event *),
                                         void *priv, int flags)
 {
-	gp_widget *ret;
-	size_t size = sizeof(struct gp_widget_textbox) + str_len + 1;
-
-	ret = gp_widget_new(GP_WIDGET_TEXTBOX, size);
+	gp_widget *ret = gp_widget_new(GP_WIDGET_TEXTBOX, sizeof(struct gp_widget_textbox));
 	if (!ret)
 		return NULL;
 
 	ret->on_event = on_event;
 	ret->priv = priv;
-	ret->tbox->buf_len = str_len + 1;
-	ret->tbox->buf = ret->tbox->payload;
+	ret->tbox->size = size ? size : strlen(text);
 	ret->tbox->filter = filter;
 
 	if (flags & GP_WIDGET_TEXT_BOX_HIDDEN)
 		ret->tbox->hidden = 1;
 
 	if (text) {
+		ret->tbox->buf = gp_vec_strdup(text);
+
+		if (!ret->tbox->buf)
+			goto err;
+
 		ret->tbox->cur_pos = strlen(text);
-		strncpy(ret->tbox->buf, text, str_len);
-		ret->tbox->buf[str_len] = 0;
+	} else {
+		ret->tbox->buf = gp_vec_str_new();
+
+		if (!ret->tbox->buf)
+			goto err;
 	}
 
 	return ret;
+err:
+	free(ret);
+	return NULL;
 }
 
 int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
@@ -323,19 +368,15 @@ int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
 	len = vsnprintf(NULL, 0, fmt, ap)+1;
 	va_end(ap);
 
-	char *tmp = malloc(len);
-	if (!tmp) {
-		GP_DEBUG(1, "Malloc failed :(");
+	char *tmp = gp_vec_resize(self->tbox->buf, len + 1);
+	if (!tmp)
 		return -1;
-	}
 
 	va_start(ap, fmt);
 	vsprintf(tmp, fmt, ap);
 	va_end(ap);
 
-	strncpy(self->tbox->buf, tmp, self->tbox->buf_len);
-	free(tmp);
-	self->tbox->buf[self->tbox->buf_len - 1] = 0;
+	self->tbox->buf = tmp;
 
 	gp_widget_redraw(self);
 
@@ -346,7 +387,7 @@ void gp_widget_textbox_clear(gp_widget *self)
 {
 	GP_WIDGET_ASSERT(self, GP_WIDGET_TEXTBOX, );
 
-	self->tbox->buf[0] = 0;
+	self->tbox->buf = gp_vec_strclr(self->tbox->buf);
 	self->tbox->cur_pos = 0;
 
 	gp_widget_redraw(self);
