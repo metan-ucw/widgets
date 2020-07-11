@@ -13,6 +13,7 @@
 #include <core/gp_debug.h>
 #include <core/gp_common.h>
 #include <utils/gp_vec.h>
+#include <utils/gp_matrix.h>
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_json.h>
@@ -20,7 +21,7 @@
 static gp_widget *widget_grid_grid_get(struct gp_widget_grid *grid,
                                        unsigned int col, unsigned int row)
 {
-	return ((gp_widget**)grid->widgets[row])[col];
+	return grid->widgets[gp_matrix_idx(grid->rows, col, row)];
 }
 
 static gp_widget *widget_grid_get(gp_widget *self,
@@ -46,9 +47,12 @@ static void widget_grid_selected_offset(gp_widget *self,
 static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 		                         unsigned int x, unsigned int y)
 {
-	gp_widget *ret = widget_grid_get(self, x, y);
+	struct gp_widget_grid *g = self->grid;
+	size_t idx = gp_matrix_idx(g->rows, x, y);
 
-	((gp_widget**)self->grid->widgets[y])[x] = new;
+	gp_widget *ret = g->widgets[idx];
+
+	g->widgets[idx] = new;
 
 	if (new)
 		new->parent = self;
@@ -61,10 +65,7 @@ void widget_grid_insert_rows(gp_widget *self, unsigned int row, unsigned int row
 	size_t i;
 	struct gp_widget_grid *g = self->grid;
 
-	/* TODO handle NULL */
-	g->widgets = gp_vec_insert(g->widgets, row, rows);
-	for (i = row; i < row + rows; i++)
-		g->widgets[i] = gp_vec_new(g->cols, sizeof(gp_widget*));
+	g->widgets = gp_matrix_insert_rows(g->widgets, g->cols, g->rows, row, rows);
 
 	g->rows_h = gp_vec_insert(g->rows_h, row, rows);
 	g->rows_off = gp_vec_insert(g->rows_off, row, rows);
@@ -916,15 +917,7 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 
 static void free_(gp_widget *self)
 {
-	unsigned int x, y;
-
-	for (y = 0; y < self->grid->rows; y++) {
-		for (x = 0; x < self->grid->cols; x++)
-			gp_widget_free(widget_grid_get(self, x, y));
-
-		gp_vec_free(self->grid->widgets[y]);
-	}
-	gp_vec_free(self->grid->widgets);
+	gp_matrix_free(self->grid->widgets);
 
 	gp_vec_free(self->grid->cols_w);
 	gp_vec_free(self->grid->rows_h);
@@ -964,10 +957,7 @@ gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows)
 
 	ret->grid->cols = cols;
 	ret->grid->rows = rows;
-	/* TODO handle NULL from gp_stack */
-	ret->grid->widgets = gp_vec_new(rows, sizeof(gp_widget**));
-	for (i = 0; i < rows; i++)
-		ret->grid->widgets[i] = gp_vec_new(cols, sizeof(gp_widget*));
+	ret->grid->widgets = gp_matrix_new(cols, rows, sizeof(gp_widget*));
 
 	ret->grid->cols_w = gp_vec_new(cols, sizeof(unsigned int));
 	ret->grid->rows_h = gp_vec_new(rows, sizeof(unsigned int));

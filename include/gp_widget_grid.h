@@ -40,7 +40,7 @@ struct gp_widget_grid {
 	uint8_t *col_fills;
 	uint8_t *row_fills;
 
-	struct gp_widget **widgets;
+	gp_widget **widgets;
 };
 
 gp_widget *gp_widget_grid_new(unsigned int cols, unsigned int rows);
