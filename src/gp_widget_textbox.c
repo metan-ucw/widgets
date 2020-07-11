@@ -181,6 +181,20 @@ static void key_backspace(gp_widget *self)
 	gp_widget_redraw(self);
 }
 
+static void key_delete(gp_widget *self)
+{
+	if (self->tbox->cur_pos == gp_vec_strlen(self->tbox->buf)) {
+		schedule_alert(self);
+		return;
+	}
+
+	self->tbox->buf = gp_vec_strdel(self->tbox->buf, self->tbox->cur_pos, 1);
+
+	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
+
+	gp_widget_redraw(self);
+}
+
 static void key_left(gp_widget *self)
 {
 	if (self->tbox->cur_pos > 0) {
@@ -246,6 +260,9 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 			return 1;
 		case GP_KEY_BACKSPACE:
 			key_backspace(self);
+			return 1;
+		case GP_KEY_DELETE:
+			key_delete(self);
 			return 1;
 		}
 
