@@ -133,9 +133,10 @@ static void timer_event(gp_event *ev)
 	ev->val.tmr->priv = NULL;
 }
 
+static struct gp_timer timers[10];
+
 void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms)
 {
-	static struct gp_timer timers[10];
 	unsigned int i;
 
 	for (i = 0; i < GP_ARRAY_SIZE(timers); i++) {
@@ -166,6 +167,22 @@ void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms)
 	timers[i].priv = self;
 
 	gp_backend_add_timer(backend, &timers[i]);
+}
+
+void gp_widget_render_timer_cancel(gp_widget *self)
+{
+	unsigned int i;
+
+	for (i = 0; i < GP_ARRAY_SIZE(timers); i++) {
+		if (timers[i].priv == self) {
+			gp_backend_rem_timer(backend, &timers[i]);
+			timers[i].priv = NULL;
+			return;
+		}
+
+		if (!timers[i].priv)
+			break;
+	}
 }
 
 void gp_widgets_redraw(struct gp_widget *layout)
