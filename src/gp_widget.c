@@ -2,7 +2,7 @@
 
 /*
 
-   Copyright (c) 2014-2019 Cyril Hrubis <metan@ucw.cz>
+   Copyright (c) 2014-2020 Cyril Hrubis <metan@ucw.cz>
 
  */
 
@@ -11,8 +11,6 @@
 #include <core/gp_common.h>
 #include <gp_widget.h>
 #include <gp_widget_ops.h>
-#include <gp_widget_grid.h>
-#include <gp_widget_tabs.h>
 
 gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size)
 {

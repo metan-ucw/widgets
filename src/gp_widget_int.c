@@ -2,7 +2,7 @@
 
 /*
 
-   Copyright (c) 2014-2019 Cyril Hrubis <metan@ucw.cz>
+   Copyright (c) 2014-2020 Cyril Hrubis <metan@ucw.cz>
 
  */
 
