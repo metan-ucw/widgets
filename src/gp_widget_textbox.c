@@ -118,11 +118,24 @@ static void render(gp_widget *self, const gp_offset *offset,
 		    ctx->text_color, ctx->bg_color, str, right - left);
 }
 
-
 static void schedule_alert(gp_widget *self)
 {
 	self->tbox->alert = 1;
 	gp_widget_redraw(self);
+}
+
+static void clear_alert(gp_widget *self)
+{
+	if (self->tbox->alert) {
+		gp_widget_render_timer_cancel(self);
+		self->tbox->alert = 0;
+	}
+}
+
+static void send_edit_event(gp_widget *self)
+{
+	clear_alert(self);
+	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
 }
 
 static int filter(const char *filter, char ch)
@@ -160,7 +173,7 @@ static void ascii_key(gp_widget *self, char ch)
 	self->tbox->buf = tmp;
 	self->tbox->cur_pos++;
 
-	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
+	send_edit_event(self);
 
 	gp_widget_redraw(self);
 }
@@ -176,7 +189,7 @@ static void key_backspace(gp_widget *self)
 
 	self->tbox->buf = gp_vec_strdel(self->tbox->buf, self->tbox->cur_pos, 1);
 
-	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
+	send_edit_event(self);
 
 	gp_widget_redraw(self);
 }
@@ -190,7 +203,7 @@ static void key_delete(gp_widget *self)
 
 	self->tbox->buf = gp_vec_strdel(self->tbox->buf, self->tbox->cur_pos, 1);
 
-	gp_widget_send_event(self, GP_WIDGET_EVENT_EDIT);
+	send_edit_event(self);
 
 	gp_widget_redraw(self);
 }
@@ -201,6 +214,8 @@ static void key_left(gp_widget *self)
 		self->tbox->cur_pos--;
 		gp_widget_redraw(self);
 	}
+
+	clear_alert(self);
 }
 
 static void key_right(gp_widget *self)
@@ -209,10 +224,14 @@ static void key_right(gp_widget *self)
 		self->tbox->cur_pos++;
 		gp_widget_redraw(self);
 	}
+
+	clear_alert(self);
 }
 
 static void key_home(gp_widget *self)
 {
+	clear_alert(self);
+
 	if (self->tbox->cur_pos == 0)
 		return;
 
@@ -222,6 +241,8 @@ static void key_home(gp_widget *self)
 
 static void key_end(gp_widget *self)
 {
+	clear_alert(self);
+
 	if (!self->tbox->buf[self->tbox->cur_pos])
 		return;
 
@@ -240,8 +261,6 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 			return 0;
 
 		switch (ev->val.val) {
-		case GP_KEY_TAB:
-			return 0;
 		case GP_KEY_ENTER:
 			if (ev->code == GP_EV_KEY_DOWN)
 				gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
@@ -406,6 +425,8 @@ void gp_widget_textbox_clear(gp_widget *self)
 
 	self->tbox->buf = gp_vec_strclr(self->tbox->buf);
 	self->tbox->cur_pos = 0;
+
+	send_edit_event(self);
 
 	gp_widget_redraw(self);
 }
