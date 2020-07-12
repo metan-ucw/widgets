@@ -18,7 +18,7 @@
 #include <sys/inotify.h>
 
 #include <core/gp_debug.h>
-#include <gp_block_alloc.h>
+#include <utils/gp_block_alloc.h>
 #include <gp_dir_cache.h>
 
 static gp_dir_entry *new_entry(gp_dir_cache *self, size_t size,
