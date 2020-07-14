@@ -441,6 +441,7 @@ static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_ev
 				gp_widget_ops_render_select(self, GP_SELECT_NEXT);
 
 			return 1;
+		case GP_BTN_PEN:
 		case GP_BTN_LEFT:
 			gp_widget_ops_render_select_xy(self, ctx, ev->cursor_x, ev->cursor_y);
 			return 0;

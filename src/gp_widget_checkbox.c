@@ -116,6 +116,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 			toggle(self);
 			return 1;
 		break;
+		case GP_BTN_PEN:
 		case GP_BTN_LEFT:
 			click(self, ctx->padd, ev);
 			return 1;

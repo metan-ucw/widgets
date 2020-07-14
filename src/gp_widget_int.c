@@ -245,6 +245,7 @@ static int spin_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event
 			return 0;
 
 		switch (ev->val.val) {
+		case GP_BTN_PEN:
 		case GP_BTN_LEFT:
 			spin_click(self, ctx, ev);
 			return 1;
@@ -383,7 +384,7 @@ static void slider_set_val(gp_widget *self, unsigned int ascent, gp_event *ev)
 	int val = 0;
 	int coord;
 
-	if (!gp_event_get_key(ev, GP_BTN_LEFT))
+	if (ev->type == GP_EV_REL && !gp_event_get_key(ev, GP_BTN_LEFT))
 		return;
 
 	switch (self->slider->dir) {
@@ -416,6 +417,7 @@ static int slider_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_eve
 
 	switch (ev->type) {
 	case GP_EV_REL:
+	case GP_EV_ABS:
 		slider_set_val(self, asc, ev);
 	break;
 	case GP_EV_KEY:
@@ -423,6 +425,7 @@ static int slider_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_eve
 			return 0;
 
 		switch (ev->val.val) {
+		case GP_BTN_PEN:
 		case GP_BTN_LEFT:
 			slider_set_val(self, asc, ev);
 			return 1;

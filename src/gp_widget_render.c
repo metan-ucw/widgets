@@ -13,6 +13,7 @@
 #include <core/gp_common.h>
 #include <utils/gp_fds.h>
 #include <backends/gp_backends.h>
+#include <input/gp_input_driver_linux.h>
 #include <gp_widget_render.h>
 #include <gp_widget_ops.h>
 
@@ -42,6 +43,7 @@ static gp_font_face *render_font;
 static gp_font_face *render_font_bold;
 
 const char *arg_fonts;
+const char *input_str;
 
 static void set_default_font(void)
 {
@@ -356,6 +358,8 @@ int gp_widgets_process_events(gp_widget *layout)
 	gp_event ev;
 
 	while (gp_backend_poll_event(backend, &ev)) {
+		gp_event_dump(&ev);
+		fflush(stdout);
 		if (gp_widgets_event(&ev, layout)) {
 			gp_backend_exit(backend);
 			exit(0);
@@ -375,6 +379,7 @@ static void print_options(int exit_val)
 	printf("Options:\n--------\n");
 	printf("\t-b backend init string (pass -b help for options)\n");
 	printf("\t-f fonts\n\t\tdefault\n\t\thaxor-15\n\t\thaxor-16\n\t\thaxor-17\n");
+	printf("\t-i input_string\n");
 	exit(exit_val);
 }
 
@@ -382,7 +387,7 @@ void gp_widgets_getopt(int *argc, char **argv[])
 {
 	int opt;
 
-	while ((opt = getopt(*argc, *argv, "b:f:h")) != -1) {
+	while ((opt = getopt(*argc, *argv, "b:f:hi:")) != -1) {
 		switch (opt) {
 		case 'b':
 			backend_init_str = optarg;
@@ -392,6 +397,9 @@ void gp_widgets_getopt(int *argc, char **argv[])
 		break;
 		case 'f':
 			arg_fonts = optarg;
+		break;
+		case 'i':
+			input_str = optarg;
 		break;
 		default:
 			print_options(1);
@@ -427,6 +435,16 @@ static int backend_event(struct gp_fd *self, struct pollfd *pfd)
 	return 0;
 }
 
+static int input_event(struct gp_fd *self, struct pollfd *pfd)
+{
+	while (gp_input_linux_read(self->priv, &backend->event_queue) > 0);
+
+	if (gp_widgets_process_events(win_layout))
+		return 1;
+
+	return 0;
+}
+
 static struct gp_fds fds = GP_FDS_INIT;
 
 struct gp_fds *gp_widgets_fds = &fds;
@@ -445,6 +463,13 @@ void gp_widgets_main_loop(gp_widget *layout, const char *label,
 		init();
 
 	gp_fds_add(&fds, backend->fd, POLLIN, backend_event, NULL);
+
+	if (input_str) {
+		gp_input_linux *input = gp_input_linux_by_devstr(input_str);
+
+		if (input)
+			gp_fds_add(&fds, input->fd, POLLIN, input_event, input);
+	}
 
 	for (;;) {
 		int ret = gp_fds_poll(&fds, gp_backend_timer_timeout(backend));
