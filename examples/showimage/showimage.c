@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
 	gp_widget_scroll_area_put(area, pixmap);
 
-	gp_widgets_main_loop(layout, "Show Image", NULL, argc, argv);
+	gp_widgets_main_loop(layout, "Show Image", NULL, 0, NULL);
 
 	return 0;
 }
