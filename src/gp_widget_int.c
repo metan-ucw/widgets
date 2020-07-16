@@ -371,7 +371,7 @@ static void slider_render(gp_widget *self, const gp_offset *offset,
 }
 
 static int coord_to_val(gp_widget *self, int coord,
-                        unsigned int ascent, unsigned int size)
+                        int ascent, unsigned int size)
 {
 	int steps = ssteps(self);
 	int div = (size - ascent - 4);
