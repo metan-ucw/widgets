@@ -26,6 +26,7 @@
 #include "gp_widget_pbar.h"
 #include <gp_widget_pixmap.h>
 #include <gp_widget_scroll_area.h>
+#include <gp_widget_frame.h>
 
 #include <gp_widget_json.h>
 

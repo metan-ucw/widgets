@@ -91,6 +91,8 @@ typedef struct gp_widget {
 
 		struct gp_widget_scroll_area *scroll;
 
+		struct gp_widget_frame *frame;
+
 		void *payload;
 	};
 	char buf[];
@@ -110,6 +112,7 @@ enum gp_widget_type {
 	GP_WIDGET_TABLE,
 	GP_WIDGET_PIXMAP,
 	GP_WIDGET_SCROLL_AREA,
+	GP_WIDGET_FRAME,
 	GP_WIDGET_MAX,
 };
 
