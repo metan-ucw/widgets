@@ -1,3 +1,6 @@
-* text box
-  - clear alert on typing
-  - gray helper text/tooltip
+* Move widget->x and widget->y to containter widgets as x_off and y_off
+
+* Spinner long click == continuous increase
+
+* Unify widget int events
+* Widget int subclasses?
