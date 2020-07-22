@@ -72,10 +72,46 @@ void gp_widget_int_set(gp_widget *self, int val)
 	//TODO: On event?
 }
 
+
+void gp_widget_int_set_max(gp_widget *self, int max)
+{
+	//TODO: Check widget type!
+
+	if (max < self->i->min) {
+		GP_WARN("Widget %s (%p) max (%i) < min (%i)",
+			gp_widget_type_name(self->type), self,
+			max, self->i->min);
+		return;
+	}
+
+	self->i->max = max;
+
+	if (self->i->val > max)
+		gp_widget_int_set(self, max);
+}
+
+void gp_widget_int_set_min(gp_widget *self, int min)
+{
+	//TODO: Check widget type!
+
+	if (min > self->i->max) {
+		GP_WARN("Widget %s (%p) min (%i) > max (%i)",
+			gp_widget_type_name(self->type), self,
+			min, self->i->max);
+		return;
+	}
+
+	self->i->min = min;
+
+	if (self->i->val < min)
+		gp_widget_int_set(self, min);
+}
+
+
 static gp_widget *json_to_int(enum gp_widget_type type, json_object *json, void **uids)
 {
 	const char *dir = NULL;
-	int min = 0, max = 0, ival = 0;
+	int min = 0, max = 0, ival = 0, val_set = 0;
 	gp_widget *ret;
 
 	(void)uids;
@@ -85,13 +121,17 @@ static gp_widget *json_to_int(enum gp_widget_type type, json_object *json, void 
 			min = json_object_get_int(val);
 		else if (!strcmp(key, "max"))
 			max = json_object_get_int(val);
-		else if (!strcmp(key, "val"))
+		else if (!strcmp(key, "val")) {
 			ival = json_object_get_int(val);
-		else if (!strcmp(key, "dir") && type == GP_WIDGET_SLIDER)
+			val_set = 1;
+		} else if (!strcmp(key, "dir") && type == GP_WIDGET_SLIDER)
 			dir = json_object_get_string(val);
 		else
 			GP_WARN("Invalid int key '%s'", key);
 	}
+
+	if (!val_set)
+		ival = min;
 
 	if (check_min_max(min, max))
 		return NULL;
