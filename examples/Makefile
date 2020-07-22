@@ -3,7 +3,7 @@ LDFLAGS+=-L../src/
 LDLIBS=`gfxprim-config --libs --libs-loaders --libs-backends` -lgfxprim-widgets -ldl
 BINS=test t0 t1 t3 t4 t5 test_login test_pixmap show_layout imp sysinfo bbox
 DEP=$(BINS:=.dep)
-SUBDIRS=disk_free login calc mixer clock player pdf showimage todo
+SUBDIRS=disk_free login calc mixer clock player pdf showimage todo datetime
 
 all: $(DEP) $(BINS) $(SUBDIRS)
 clean: $(SUBDIRS)
