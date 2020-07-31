@@ -81,20 +81,19 @@ int pixmap_on_event(gp_widget_event *ev)
 	}
 }
 
-static uint32_t timer_callback(void *pixmap)
+static uint32_t timer_callback(gp_timer *self)
 {
+	gp_widget *pixmap = self->priv;
 	gp_widget_redraw(pixmap);
 	return 1000;
 }
 
-static gp_widget_timer tmr = {
+static gp_timer tmr = {
+	.expires = 1000,
+	.period = 0,
 	.callback = timer_callback,
+	.id = "Clock redraw"
 };
-
-static void start_timer(void)
-{
-	gp_widgets_timer_add(&tmr, 1000);
-}
 
 int main(int argc, char *argv[])
 {
@@ -106,5 +105,7 @@ int main(int argc, char *argv[])
 
 	gp_widget_event_unmask(layout, GP_WIDGET_EVENT_REDRAW);
 
-	gp_widgets_main_loop(layout, "Clock", start_timer, argc, argv);
+	gp_widgets_timer_ins(&tmr);
+
+	gp_widgets_main_loop(layout, "Clock", NULL, argc, argv);
 }

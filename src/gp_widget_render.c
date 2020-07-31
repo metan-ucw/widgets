@@ -220,28 +220,9 @@ void gp_widgets_redraw(struct gp_widget *layout)
 	gp_backend_update_rect_xywh(backend, flip.x, flip.y, flip.w, flip.h);
 }
 
-static uint32_t timer_callback(gp_timer *self)
-{
-	gp_widget_timer *tmr = self->priv;
-	uint32_t expires = tmr->callback(tmr->priv);
-
-	gp_widgets_redraw(app_layout);
-
-	return expires;
-}
-
-void gp_widgets_timer_add(struct gp_widget_timer *tmr, uint32_t expires)
-{
-	tmr->tmr.priv = tmr;
-	tmr->tmr.callback = timer_callback;
-	tmr->tmr.expires = expires;
-	tmr->tmr.period = 0;
-	tmr->tmr.id = "App Timer";
-
-	gp_backend_add_timer(backend, &tmr->tmr);
-}
-
 static char *backend_init_str = "x11";
+
+void gp_widget_timer_queue_switch(gp_timer **);
 
 void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 {
@@ -250,6 +231,8 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 	backend = gp_backend_init(backend_init_str, win_tittle);
 	if (!backend)
 		exit(1);
+
+	gp_widget_timer_queue_switch(&backend->timers);
 
 	ctx.buf = backend->pixmap;
 	ctx.pixel_type = backend->pixmap->pixel_type;

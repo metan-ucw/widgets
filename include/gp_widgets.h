@@ -29,6 +29,7 @@
 #include <gp_widget_frame.h>
 
 #include <gp_widget_json.h>
+#include <gp_widget_timer.h>
 
 #include <utils/gp_htable.h>
 #include <gp_file_size.h>

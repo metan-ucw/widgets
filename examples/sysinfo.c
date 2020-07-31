@@ -170,7 +170,7 @@ static void update_cpu_usage(void)
 	}
 }
 
-static uint32_t timer_callback(void *unused)
+static uint32_t timer_callback(gp_timer *unused)
 {
 	(void) unused;
 	update_mem_usage();
@@ -179,14 +179,12 @@ static uint32_t timer_callback(void *unused)
 	return 500;
 }
 
-static gp_widget_timer tmr = {
+static gp_timer tmr = {
+	.expires = 1000,
+	.period = 0,
 	.callback = timer_callback,
+	.id = "Recalc mem/cpu usage"
 };
-
-static void start_timer(void)
-{
-	gp_widgets_timer_add(&tmr, 1000);
-}
 
 int main(int argc, char *argv[])
 {
@@ -204,7 +202,9 @@ int main(int argc, char *argv[])
 	init_sysinfo(grid);
 	update_mem_usage();
 
-	gp_widgets_main_loop(layout, "System Information", start_timer, argc, argv);
+	gp_widgets_timer_ins(&tmr);
+
+	gp_widgets_main_loop(layout, "System Information", NULL, argc, argv);
 
 	return 0;
 }
