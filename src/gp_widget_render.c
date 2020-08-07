@@ -16,6 +16,7 @@
 #include <input/gp_input_driver_linux.h>
 #include <gp_widget_render.h>
 #include <gp_widget_ops.h>
+#include <gp_key_repeat_timer.h>
 
 static struct gp_text_style font = {
 	.pixel_xmul = 1,
@@ -234,6 +235,8 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 
 	gp_widget_timer_queue_switch(&backend->timers);
 
+	gp_key_repeat_timer_init(&backend->event_queue, &backend->timers);
+
 	ctx.buf = backend->pixmap;
 	ctx.pixel_type = backend->pixmap->pixel_type;
 
@@ -276,6 +279,8 @@ void gp_widgets_register_callback(int (*event_callback)(gp_event *))
 int gp_widgets_event(gp_event *ev, gp_widget *layout)
 {
 	int handled = 0;
+
+	gp_handle_key_repeat_timer(ev);
 
 	switch (ev->type) {
 	case GP_EV_KEY:
