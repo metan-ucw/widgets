@@ -26,7 +26,7 @@ static gp_timer **timer_queue;
 static uint32_t repeat_delay = 1000;
 static uint32_t repeat_period = 100;
 
-void gp_key_repeat_timer_init(struct gp_event_queue *ev_queue, gp_timer **tmr_queue)
+void gp_key_repeat_timer_init(gp_event_queue *ev_queue, gp_timer **tmr_queue)
 {
 	event_queue = ev_queue;
 	timer_queue = tmr_queue;

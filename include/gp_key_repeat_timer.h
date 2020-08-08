@@ -9,8 +9,9 @@
 #ifndef GP_KEY_REPEAT_TIMER__
 #define GP_KEY_REPEAT_TIMER__
 
-void gp_key_repeat_timer_init(struct gp_event_queue *ev_queue,
-                              gp_timer **tmr_queue);
+#include <input/gp_types.h>
+
+void gp_key_repeat_timer_init(gp_event_queue *ev_queue, gp_timer **tmr_queue);
 
 void gp_handle_key_repeat_timer(gp_event *ev);
 
