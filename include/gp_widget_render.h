@@ -91,23 +91,4 @@ void gp_widgets_redraw(gp_widget *layout);
 
 void gp_widget_render_zoom(int zoom_inc);
 
-void gp_text_fit(gp_pixmap *pix, const gp_text_style *style,
-                gp_coord x, gp_coord y, gp_size w, int align,
-		gp_pixel fg_color, gp_pixel bg_color, const char *str);
-
-void gp_fill_rrect_xywh(gp_pixmap *pix, gp_coord x, gp_coord y, gp_size w, gp_size h,
-                        gp_pixel bg_color, gp_pixel fg_color, gp_pixel fr_color);
-
-void gp_rrect_xywh(gp_pixmap *pix, gp_coord x, gp_coord y,
-                   gp_size w, gp_size h, gp_pixel color);
-
-void gp_triangle_up(gp_pixmap *pix, gp_coord x_center, gp_coord y_center,
-                    gp_size base, gp_pixel color);
-
-void gp_triangle_down(gp_pixmap *pix, gp_coord x_center, gp_coord y_center,
-                      gp_size base, gp_pixel color);
-
-void gp_triangle_updown(gp_pixmap *pix, gp_coord x_center, gp_coord y_center,
-                        gp_size base, gp_pixel color);
-
 #endif /* GP_WIDGET_RENDER_H__ */

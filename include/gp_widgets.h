@@ -12,6 +12,7 @@
 #include <gp_widget_ops.h>
 #include "gp_widget.h"
 #include "gp_widget_render.h"
+#include <gp_widget_gfx.h>
 #include "gp_widget_grid.h"
 #include "gp_widget_tabs.h"
 #include "gp_widget_bool.h"
