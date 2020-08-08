@@ -1,4 +1,10 @@
 * Move widget->x and widget->y to containter widgets as x_off and y_off
 
 * Unify widget int events
+
 * Widget int subclasses?
+
+* Disabled widgets?
+
+* Shall we filter mouse clicks & touch events if the coordinates are outside of
+  the widget? Many widgets do that in their event handlers anyways
