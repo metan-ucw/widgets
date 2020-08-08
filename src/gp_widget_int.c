@@ -419,12 +419,20 @@ static int coord_to_val(gp_widget *self, int coord,
 	return ((coord - 2 - ascent/2) * steps + div/2) / div;
 }
 
+#define IS_IN_RANGE(i, min, len) ((i) >= (min) && (i) <= ((min) + (len)))
+
 static void slider_set_val(gp_widget *self, unsigned int ascent, gp_event *ev)
 {
 	int val = 0;
 	int coord;
 
 	if (ev->type == GP_EV_REL && !gp_event_get_key(ev, GP_BTN_LEFT))
+		return;
+
+	if (!IS_IN_RANGE(ev->cursor_x, self->x, self->w))
+		return;
+
+	if (!IS_IN_RANGE(ev->cursor_y, self->y, self->h))
 		return;
 
 	switch (self->slider->dir) {
