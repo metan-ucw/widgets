@@ -6,6 +6,9 @@
 
  */
 
+#include <string.h>
+#include <json-c/json.h>
+
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
@@ -409,13 +412,57 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	return 0;
 }
 
+static gp_widget *json_to_table(json_object *json, void **uids)
+{
+	int cols = -1, min_rows = -1;
+	void *set_row = NULL, *get_elem = NULL;
+
+	(void)uids;
+
+	json_object_object_foreach(json, key, val) {
+		if (!strcmp(key, "cols"))
+			cols = json_object_get_int(val);
+		else if (!strcmp(key, "min_rows"))
+			min_rows = json_object_get_int(val);
+		else if (!strcmp(key, "set_row"))
+			set_row = gp_widget_callback_addr(json_object_get_string(val));
+		else if (!strcmp(key, "get_elem"))
+			get_elem = gp_widget_callback_addr(json_object_get_string(val));
+		else
+			GP_WARN("Invalid table key '%s'", key);
+	}
+
+	if (cols < 0) {
+		GP_WARN("Invalid or missing cols");
+		return NULL;
+	}
+
+	if (min_rows < 0) {
+		GP_WARN("Invalid or missing min_rows");
+		return NULL;
+	}
+
+	if (!set_row) {
+		GP_WARN("Invalid or missing set_row callback");
+		return NULL;
+	}
+
+	if (!get_elem) {
+		GP_WARN("Invalid or missing get_elem callback");
+		return NULL;
+	}
+
+	return gp_widget_table_new(cols, min_rows, NULL, set_row, get_elem);
+}
+
 struct gp_widget_ops gp_widget_table_ops = {
 	.min_w = min_w,
 	.min_h = min_h,
 	.distribute_size = distribute_size,
 	.render = render,
 	.event = event,
-	.id = "Table",
+	.from_json = json_to_table,
+	.id = "table",
 };
 
 struct gp_widget *gp_widget_table_new(unsigned int cols, unsigned int min_rows,
