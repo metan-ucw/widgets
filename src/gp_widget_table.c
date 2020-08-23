@@ -169,7 +169,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
-	unsigned int cy = y + ctx->padd;
+	unsigned int cy = y;
 	unsigned int i, j;
 
 	(void)flags;
@@ -181,7 +181,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	if (tbl->headers) {
 		header_render(self, x, y, ctx);
-		cy = y + header_h(self, ctx);
+		cy += header_h(self, ctx);
 	}
 
 	tbl->row(self, GP_TABLE_ROW_RESET, 0);
@@ -194,7 +194,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	for (j = 0; j < tbl->cols-1; j++) {
 		cx += tbl->cols_w[j] + ctx->padd;
-		gp_vline_xyy(ctx->buf, cx, cy+1, self->y + self->h - 2, ctx->bg_color);
+		gp_vline_xyy(ctx->buf, cx, cy+1, self->y + offset->y + self->h - 2, ctx->bg_color);
 		cx += ctx->padd;
 	}
 
