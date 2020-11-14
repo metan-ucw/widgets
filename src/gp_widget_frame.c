@@ -23,8 +23,10 @@ static unsigned int frame_w(const gp_widget_render_ctx *ctx)
 
 static unsigned int frame_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	if (self->frame->has_label)
-		return ctx->padd + gp_text_height(ctx->font);
+	if (self->frame->has_label) {
+		return ctx->padd +
+		       gp_text_height(self->frame->bold ? ctx->font_bold : ctx->font);
+	}
 
 	return 2 * ctx->padd;
 }
@@ -119,12 +121,13 @@ static void render(gp_widget *self, const gp_offset *offset,
 		              h - ctx->padd/2 - payload_off_y(self, ctx)/2, ctx->text_color);
 
 		if (frame->has_label) {
-			unsigned int sw = gp_text_width(ctx->font, self->frame->label) + ctx->padd;
+			gp_text_style *font = self->frame->bold ? ctx->font_bold : ctx->font;
+			unsigned int sw = gp_text_width(font, self->frame->label) + ctx->padd;
 
 			gp_fill_rect_xywh(ctx->buf, x + ctx->padd + ctx->padd/2, y,
-			                  sw, gp_text_height(ctx->font), ctx->bg_color);
+			                  sw, gp_text_height(font), ctx->bg_color);
 
-			gp_text(ctx->buf, ctx->font, x + 2 * ctx->padd, y, GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
+			gp_text(ctx->buf, font, x + 2 * ctx->padd, y, GP_ALIGN_RIGHT|GP_VALIGN_BELOW,
 				ctx->text_color, ctx->bg_color, self->frame->label);
 		}
 	}
@@ -178,18 +181,21 @@ static gp_widget *json_to_frame(json_object *json, void **uids)
 {
 	const char *label = NULL;
 	json_object *jwidget = NULL;
+	int bold = 0;
 
 	json_object_object_foreach(json, key, val) {
 		if (!strcmp(key, "label"))
 			label = json_object_get_string(val);
 		else if (!strcmp(key, "widget"))
 			jwidget = val;
+		else if (!strcmp(key, "bold"))
+			bold = 1;
 		else
 			GP_WARN("Invalid frame key '%s'", key);
 	}
 
 	gp_widget *widget = gp_widget_from_json(jwidget, uids);
-	gp_widget *ret = gp_widget_frame_new(label, widget);
+	gp_widget *ret = gp_widget_frame_new(label, bold, widget);
 
 	return ret;
 }
@@ -206,10 +212,13 @@ struct gp_widget_ops gp_widget_frame_ops = {
 	.id = "frame",
 };
 
-gp_widget *gp_widget_frame_new(const char *label, gp_widget *widget)
+gp_widget *gp_widget_frame_new(const char *label, int bold, gp_widget *widget)
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_frame);
+
+	if (bold && !label)
+		GP_WARN("Bold set for a frame without a label!");
 
 	if (label)
 		size += strlen(label) + 1;
@@ -219,6 +228,7 @@ gp_widget *gp_widget_frame_new(const char *label, gp_widget *widget)
 		return NULL;
 
 	ret->frame->widget = widget;
+	ret->frame->bold = bold;
 
 	if (label) {
 		ret->frame->has_label = 1;
