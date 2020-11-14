@@ -412,10 +412,65 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	return 0;
 }
 
+static gp_widget_table_header *parse_header(json_object *json, int *cols)
+{
+	gp_widget_table_header *header;
+	int i;
+
+	if (!json)
+		return NULL;
+
+	if (!json_object_is_type(json, json_type_array)) {
+		GP_WARN("Table header must be array!");
+		return NULL;
+	}
+
+	if (*cols == -1) {
+		*cols = json_object_array_length(json);
+	} else if (json_object_array_length(json) != (size_t)(*cols)) {
+		GP_WARN("Table header is not equal to number of columns!");
+		return NULL;
+	}
+
+	header = malloc(sizeof(*header) * (*cols));
+	if (!header)
+		return NULL;
+
+	for (i = 0; i < *cols; i++) {
+		json_object *elem = json_object_array_get_idx(json, i);
+		json_object *tmp;
+
+		if (!elem) {
+			GP_WARN("Table header parse error!");
+			goto err;
+		}
+
+		tmp = json_object_object_get(elem, "label");
+		if (!tmp) {
+			GP_WARN("Table header %i is missing label", i);
+			goto err;
+		}
+
+		header[i].text = strdup(json_object_get_string(tmp));
+
+		if ((tmp = json_object_object_get(elem, "sortable")))
+			header[i].sortable = json_object_get_boolean(tmp);
+
+		header[i].text_align = 0;
+	}
+
+	return header;
+err:
+	free(header);
+	return NULL;
+}
+
 static gp_widget *json_to_table(json_object *json, void **uids)
 {
 	int cols = -1, min_rows = -1;
-	void *set_row = NULL, *get_elem = NULL;
+	void *set_row = NULL, *get_elem = NULL, *sort = NULL;
+	json_object *header = NULL;
+	gp_widget_table_header *table_header;
 
 	(void)uids;
 
@@ -428,9 +483,15 @@ static gp_widget *json_to_table(json_object *json, void **uids)
 			set_row = gp_widget_callback_addr(json_object_get_string(val));
 		else if (!strcmp(key, "get_elem"))
 			get_elem = gp_widget_callback_addr(json_object_get_string(val));
+		else if (!strcmp(key, "sort"))
+			sort = gp_widget_callback_addr(json_object_get_string(val));
+		else if (!strcmp(key, "header"))
+			header = val;
 		else
 			GP_WARN("Invalid table key '%s'", key);
 	}
+
+	table_header = parse_header(header, &cols);
 
 	if (cols < 0) {
 		GP_WARN("Invalid or missing cols");
@@ -452,7 +513,15 @@ static gp_widget *json_to_table(json_object *json, void **uids)
 		return NULL;
 	}
 
-	return gp_widget_table_new(cols, min_rows, NULL, set_row, get_elem);
+	gp_widget *table = gp_widget_table_new(cols, min_rows, table_header, set_row, get_elem);
+
+	//TODO: Free header
+	if (!table)
+		return NULL;
+
+	table->tbl->sort = sort;
+
+	return table;
 }
 
 struct gp_widget_ops gp_widget_table_ops = {
