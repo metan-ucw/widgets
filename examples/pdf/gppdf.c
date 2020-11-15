@@ -11,6 +11,7 @@
 struct document {
 	int page_count;
 	int cur_page;
+	fz_matrix page_transform;
 	fz_context *fz_ctx;
 	fz_document *fz_doc;
 	fz_page *fz_pg;
@@ -18,6 +19,8 @@ struct document {
 
 static struct controls {
 	gp_widget *page;
+	unsigned int x_off;
+	unsigned int y_off;
 	gp_widget *pg_cnt;
 	gp_widget *pg_nr;
 	struct document *doc;
@@ -48,12 +51,12 @@ static void draw_page(gp_widget_event *ev)
 	float y_rat = 1.00 * pixmap->h / (rect.y1 - rect.y0);
 	float rat = GP_MIN(x_rat, y_rat);
 
-	fz_matrix transform = fz_scale(rat, rat);
+	doc->page_transform = fz_scale(rat, rat);
 
 	fz_pixmap *pix;
 
 	pix = fz_new_pixmap_from_page_number(doc->fz_ctx, doc->fz_doc, doc->cur_page,
-	                                     transform, fz_device_bgr(doc->fz_ctx), 0);
+	                                     doc->page_transform, fz_device_bgr(doc->fz_ctx), 0);
 
 	// Blit the pixmap
 	GP_DEBUG(1, "Blitting context");
@@ -63,10 +66,10 @@ static void draw_page(gp_widget_event *ev)
 
 	gp_pixmap_init(&page, pix->w, pix->h, GP_PIXEL_RGB888, pix->samples);
 
-	uint32_t cx = (pixmap->w - page.w)/2;
-	uint32_t cy = (pixmap->h - page.h)/2;
+	controls.x_off = (pixmap->w - page.w)/2;
+	controls.y_off = (pixmap->h - page.h)/2;
 
-	gp_blit(&page, 0, 0, page.w, page.h, pixmap, cx, cy);
+	gp_blit(&page, 0, 0, page.w, page.h, pixmap, controls.x_off, controls.y_off);
 
 	fz_drop_pixmap(doc->fz_ctx, pix);
 }
@@ -192,6 +195,43 @@ int button_last_event(gp_widget_event *ev)
 		load_page_and_redraw(controls.doc->page_count - 1);
 
 	return 0;
+}
+
+int textbox_search_event(gp_widget_event *ev)
+{
+	struct document *doc = controls.doc;
+	gp_widget *tbox = ev->self;
+
+	if (ev->type != GP_WIDGET_EVENT_ACTION)
+		return 0;
+
+	fz_rect page_bbox = fz_bound_page(doc->fz_ctx, doc->fz_pg);
+	fz_stext_page *text = fz_new_stext_page(doc->fz_ctx, page_bbox);
+	fz_stext_options opts = {0};
+	fz_device *text_dev = fz_new_stext_device(doc->fz_ctx, text, &opts);
+
+	fz_run_page_contents(doc->fz_ctx, doc->fz_pg, text_dev, doc->page_transform, NULL);
+
+	int i, ret;
+	fz_quad hitbox[128];
+
+	ret = fz_search_stext_page(doc->fz_ctx, text, tbox->tbox->buf, hitbox, 128);
+
+	gp_pixmap *p = controls.page->pixmap->pixmap;
+
+	for (i = 0; i < ret; i++) {
+		unsigned int x0 = controls.x_off + hitbox[i].ul.x;
+		unsigned int y0 = controls.y_off + hitbox[i].ul.y;
+		unsigned int x1 = controls.x_off + hitbox[i].lr.x;
+		unsigned int y1 = controls.y_off + hitbox[i].lr.y;
+
+		gp_rect_xyxy(p, x0, y0, x1, y1, 0xff0000);
+	}
+
+	if (ret)
+		gp_widget_redraw(controls.page);
+
+	return 1;
 }
 
 static void allocate_backing_pixmap(gp_widget_event *ev)

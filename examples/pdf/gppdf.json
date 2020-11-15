@@ -4,7 +4,7 @@
  "rfill": "0, 1",
  "widgets": [
   {
-   "cols": 7,
+   "cols": 8,
    "halign": "left",
    "border": "none",
    "widgets": [
@@ -43,6 +43,11 @@
      "type": "label",
      "text": "of ?",
      "uid": "pg_cnt"
+    },
+    {
+     "type": "textbox",
+     "size": 10,
+     "on_event": "textbox_search_event"
     }
    ]
   },
