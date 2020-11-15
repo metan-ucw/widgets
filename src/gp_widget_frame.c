@@ -78,7 +78,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	(void)flags;
 
-	if (self->redraw) {
+	if (gp_widget_should_redraw(self, flags)) {
 		gp_widget_ops_blit(ctx, x, y, w, h);
 
 		gp_fill_rect_xywh(ctx->buf, x, y, w, payload_off_y(self, ctx), ctx->bg_color);
