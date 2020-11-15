@@ -269,6 +269,11 @@ void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle)
 	gp_backend_flip(backend);
 }
 
+const gp_widget_render_ctx *gp_widgets_render_ctx(void)
+{
+	return &ctx;
+}
+
 static int (*app_event_callback)(gp_event *);
 
 void gp_widgets_register_callback(int (*event_callback)(gp_event *))

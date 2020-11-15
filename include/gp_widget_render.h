@@ -63,6 +63,8 @@ extern struct gp_fds *gp_widgets_fds;
 void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms);
 void gp_widget_render_timer_cancel(gp_widget *self);
 
+const gp_widget_render_ctx *gp_widgets_render_ctx(void);
+
 /*
  * Parses options, returns positional arguments, e.g. paths.
  */
