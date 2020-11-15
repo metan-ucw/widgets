@@ -13,13 +13,18 @@
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
 
+static const gp_text_style *label_font(gp_widget *self, const gp_widget_render_ctx *ctx)
+{
+	return self->label->bold ? ctx->font_bold : ctx->font;
+}
+
 static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	gp_text_style *font = self->label->bold ? ctx->font_bold : ctx->font;
 	unsigned int max_width;
+	const gp_text_style *font = label_font(self, ctx);
 
 	if (self->label->width)
-		max_width = gp_text_max_width(font, self->label->width);
+		max_width = gp_text_max_width_chars(font, self->label->set, self->label->width);
 	else
 		max_width = gp_text_width(font, self->label->text);
 
@@ -128,35 +133,42 @@ static void copy_text(struct gp_widget_label *label, const char *text, size_t le
 	}
 }
 
-char *gp_widget_label_set(gp_widget *self, char *text)
+/*
+ * Do not shrink by default so that the layout will not jump up and down all
+ * the time.
+ */
+void gp_widget_label_set(gp_widget *self, const char *text)
 {
 	struct gp_widget_label *label = self->label;
+	unsigned int old_min_w = self->min_w;
+	const gp_widget_render_ctx *ctx;
 
-	GP_WIDGET_ASSERT(self, GP_WIDGET_LABEL, NULL);
+	GP_WIDGET_ASSERT(self, GP_WIDGET_LABEL, );
 
 	char *ret = label->text;
 
 	GP_DEBUG(3, "Setting widget label (%p) text '%s' -> '%s'",
 		 self, ret, text);
 
-	if (label->width)
-		copy_text(label, text, label->width);
-	else
-		label->text = text;
+	copy_text(label, text, label->size);
+	gp_widget_redraw(self);
 
-	if (label->width)
-		gp_widget_redraw(self);
-	else
+	if (self->label->width)
+		return;
+
+	ctx = gp_widgets_render_ctx();
+	if (old_min_w < min_w(self, ctx)) {
+		GP_DEBUG(0, "Resizing widget label (%p) %i -> %i",
+		         self, old_min_w, min_w(self, ctx));
 		gp_widget_resize(self);
-
-	return ret;
+	}
 }
 
-gp_widget *gp_widget_label_new(const char *text, unsigned int size, int bold)
+gp_widget *gp_widget_label_new(const char *text, unsigned int width, int bold)
 {
 	size_t payload_size = sizeof(struct gp_widget_label);
 	gp_widget *ret;
-	size_t strsize = size ? size + 1 : strlen(text) + 1;
+	size_t strsize = width ? width + 1 : strlen(text) + 1;
 
 	payload_size += strsize;
 
@@ -166,9 +178,8 @@ gp_widget *gp_widget_label_new(const char *text, unsigned int size, int bold)
 
 	ret->label->text = ret->label->payload;
 	ret->label->bold = !!bold;
-
-	if (size)
-		ret->label->width = size + 1;
+	ret->label->width = width;
+	ret->label->size = strsize;
 
 	if (text)
 		copy_text(ret->label, text, strsize);
@@ -223,7 +234,7 @@ int gp_widget_label_printf(gp_widget *self, const char *fmt, ...)
 
 	gp_widget_label_set(self, buf);
 
-	//free(buf);
+	free(buf);
 
 	return 0;
 }

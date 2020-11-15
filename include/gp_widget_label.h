@@ -1,5 +1,4 @@
 //SPDX-License-Identifier: LGPL-2.0-or-later
-
 /*
 
    Copyright (c) 2014-2020 Cyril Hrubis <metan@ucw.cz>
@@ -12,29 +11,30 @@
 #include <stdlib.h>
 
 struct gp_widget_label {
+	char *text;
+	/* widget size hints */
+	const char *set;
 	unsigned int width:8;
+	/* text buffer size */
+	unsigned int size:8;
+	/* attributes */
 	unsigned int bold:1;
 	unsigned int ralign:1;
 	unsigned int frame:1;
-	char *text;
 	char payload[];
 };
 
 /**
- * @brief Sets the label text, may trigger application resize.
+ * @brief Sets the label text.
  *
- * If the strings passed to the label are allocated the function is supposed to
- * be used as free(gp_widget_label_set(widget, strdup(string)).
- *
- * @param self Widget label pointer.
- * @param text New widget label text, the pointer is stored and the string is not copied.
- * @return Pointer to the previous label text.
+ * @param self Pointer to a label widget.
+ * @param text New widget label text.
  */
-char *gp_widget_label_set(gp_widget *self, char *text);
+void gp_widget_label_set(gp_widget *self, const char *text);
 
 /**
  * @brief Printf-like function to set label text.
- * @param self Pointer to label widget.
+ * @param self Pointer to a label widget.
  * @param fmt  Printf formatting string.
  * @param ...  Printf parameters.
  * @return Number of characters printed.
@@ -51,19 +51,44 @@ static inline void gp_widget_label_bold(gp_widget *self, int bold)
 
 	self->label->bold = bold;
 
-	//TODO: do we need resize?
 	gp_widget_redraw(self);
+}
+
+/**
+ * @brief Changes widget minimal width.
+ *
+ * @self Pointer to a label widget.
+ * @width New label width, the unit for the width is font characters.
+ */
+static inline void gp_widget_label_set_width(gp_widget *self, unsigned int width)
+{
+	self->label->width = width;
+	gp_widget_resize(self);
 }
 
 /**
  * @brief Allocates a label widget.
  *
- * If width is set, the text buffer is allocated to be width in size, otherwise
- * it's allocated to fit the text.
+ * Label minimal width is a bit more complicated topic since labels can change
+ * content and hence size dynamically. There are two different modes of
+ * operation.
  *
- * @param text Widget label text, the string is copied with strdup().
- * @param width Maximal expected text width, if set this is used to callculate
- *              the label size, otherise the size fits only the label text.
+ * - If width is set, the size is set to stone so that the label can hold width
+ *   characters. The main problem is that for proprotional fonts the allocated
+ *   space is huge because we account for maximal character width. To
+ *   accomodate for that you can also pass a string with subset of characters
+ *   that are expected to appear in the label to make that computation more
+ *   precise.
+ *
+ * - If width is not set, i.e. set to zero, the size is computed accordintly to
+ *   the current label text, however by default the widget does not shrink,
+ *   e.g. if the new string width is shorter than the last one we do not
+ *   trigger resize, which avoids for the layout to size to jump on label text
+ *   changes. You can manually trigger shrinking by calling gp_widget_resize().
+ *
+ * @param text A label text.
+ * @param width Maximal expected text width, if set to non-zero it's used to
+ *              callculate the label size.
  * @param bold Sets the bold text attribute.
  * @return Newly allocated label widget.
  */
