@@ -24,12 +24,12 @@
 #ifndef GP_WIDGET_MARKUP_H__
 #define GP_WIDGET_MARKUP_H__
 
+struct gp_markup;
+
 struct gp_widget_markup {
 	char *text;
 	char *(*get)(unsigned int var_id, char *old_val);
-	unsigned int lines;
-	unsigned int cnt;
-	char payload[];
+	struct gp_markup *markup;
 };
 
 gp_widget *gp_widget_markup_new(const char *markup,

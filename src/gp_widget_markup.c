@@ -14,170 +14,39 @@
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
+#include <gp_markup_parser.h>
 
-enum markup_elem_type {
-	MARKUP_STR,
-	MARKUP_VAR,
-	MARKUP_NEWLINE,
-};
-
-enum markup_elem_attr {
-	MARKUP_BOLD = 0x01,
-};
-
-struct markup_elem {
-	int type:4;
-	int attrs:4;
-	const char *start;
-	unsigned int len;
-	char *var;
-};
-
-#define MARKUP_ELEMS(widget) ((void*)(widget)->markup->payload)
-
-static int parse_markup_var(const char *markup, unsigned int attrs, struct markup_elem **elems)
+static gp_text_style *get_font(const gp_widget_render_ctx *ctx, int attrs)
 {
-	unsigned int i = 1;
-
-	while (markup[i] && markup[i] != '}')
-		i++;
-
-	if (!markup[i]) {
-		GP_WARN("Unfinished markup variable!");
-		return -1;
+	if (attrs & GP_MARKUP_BIG) {
+		if (attrs & GP_MARKUP_BOLD)
+			return ctx->font_big_bold;
+		else
+			return ctx->font_big;
 	}
 
-	i++;
+	if (attrs & GP_MARKUP_BOLD)
+		return ctx->font_bold;
 
-	if (*elems) {
-		(*elems)->type = MARKUP_VAR;
-		(*elems)->start = markup;
-		(*elems)->len = i;
-		(*elems)->attrs = attrs;
-		(*elems)++;
-	}
-
-	return i;
-}
-
-static int parse_markup_string(const char *markup, unsigned int *j, unsigned int i, unsigned int attrs, struct markup_elem **elems)
-{
-	if (*j == i)
-		return 0;
-
-	if (!(*elems))
-		goto exit;
-
-	(*elems)->type = MARKUP_STR;
-	(*elems)->start = &markup[*j];
-	(*elems)->len = i - *j;
-	(*elems)->attrs = attrs;
-	(*elems)++;
-
-exit:
-	*j = i;
-	return 1;
-}
-
-static void markup_newline(const char *markup, unsigned int i, struct markup_elem **elems)
-{
-	if (!(*elems))
-		return;
-
-	(*elems)->type = MARKUP_NEWLINE;
-	(*elems)->start = &markup[i];
-	(*elems)->len = 1;
-	(*elems)++;
-}
-
-static int parse_markup(const char *markup, struct markup_elem *elems, unsigned int *lines)
-{
-	unsigned int i;
-	unsigned int j = 0;
-	int ret = 0;
-	int r;
-	char prev_ch = 0;
-	int attrs = 0;
-
-	if (lines)
-		*lines = 1;
-
-	for (i = 0; markup[i]; i++) {
-		switch (markup[i]) {
-		case '{':
-			if (prev_ch == '\\') {
-				ret += parse_markup_string(markup, &j, i-1, attrs, &elems);
-				j = i;
-				continue;
-			}
-
-			ret += parse_markup_string(markup, &j, i, attrs, &elems);
-			r = parse_markup_var(&markup[i], attrs, &elems);
-			if (r < 0)
-				return -1;
-
-			i += r;
-			j = i;
-			ret++;
-		break;
-		case '\n':
-			ret += parse_markup_string(markup, &j, i, attrs, &elems);
-			markup_newline(markup, i, &elems);
-			if (lines)
-				(*lines)++;
-			j = i + 1;
-			ret++;
-		break;
-		case '*':
-			if (prev_ch == '\\') {
-				ret += parse_markup_string(markup, &j, i-1, attrs, &elems);
-				j = i;
-				continue;
-			}
-
-			ret += parse_markup_string(markup, &j, i, attrs, &elems);
-			attrs ^= MARKUP_BOLD;
-			j = i + 1;
-		break;
-		}
-
-		prev_ch = markup[i];
-	}
-
-	ret += parse_markup_string(markup, &j, i, attrs, &elems);
-
-	return ret;
+	return ctx->font;
 }
 
 static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	unsigned int max_width = 0;
 	unsigned int width = 0;
-	unsigned int i;
-	struct markup_elem *elems = MARKUP_ELEMS(self);
-	const gp_text_style *font;
+	gp_markup_elem *e;
 
-	for (i = 0; i < self->markup->cnt; i++) {
+	for (e = gp_markup_first(self->markup->markup); e; e = gp_markup_next(e)) {
+		const gp_text_style *font = get_font(ctx, e->attrs);
+		const char *str = gp_markup_elem_str(e);
 
-		if (elems[i].attrs & MARKUP_BOLD)
-			font = ctx->font_bold;
-		else
-			font = ctx->font;
+		if (str)
+			width += gp_text_width(font, str);
 
-		switch (elems[i].type) {
-		case MARKUP_STR:
-			width += gp_text_width_len(font, elems[i].start, elems[i].len);
-		break;
-		case MARKUP_VAR:
-			if (elems[i].var)
-				width += gp_text_width(font, elems[i].var);
-			else
-				width += gp_text_width_len(font, elems[i].start + 1, elems[i].len - 2);
-		break;
-		case MARKUP_NEWLINE:
+		if (e->type == GP_MARKUP_NEWLINE) {
 			max_width = GP_MAX(max_width, width);
 			width = 0;
-		break;
 		}
 	}
 
@@ -186,7 +55,49 @@ static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 
 static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	return ctx->padd + self->markup->lines * (ctx->padd + gp_text_ascent(ctx->font));
+	unsigned int height = 0;
+	unsigned int max_h = 0;
+	gp_markup_elem *e;
+
+	for (e = gp_markup_first(self->markup->markup); e; e = gp_markup_next(e)) {
+		const gp_text_style *font = get_font(ctx, e->attrs);
+
+		switch (e->type) {
+		case GP_MARKUP_STR:
+		case GP_MARKUP_VAR:
+			max_h = GP_MAX(max_h, gp_text_ascent(font));
+		break;
+		case GP_MARKUP_NEWLINE:
+			//max_h = GP_MAX(max_h, gp_text_ascent(font));
+			height += max_h + ctx->padd;
+			max_h = 0;
+		break;
+		}
+	}
+
+	return ctx->padd + height + max_h + (max_h ? ctx->padd : 0);
+}
+
+static void line_bbox(const gp_markup_elem *e, const gp_widget_render_ctx *ctx,
+                      gp_size *w, gp_size *h)
+{
+	gp_size width = 0;
+	gp_size height = 0;
+
+	while (e->type != GP_MARKUP_END && e->type != GP_MARKUP_NEWLINE) {
+		const gp_text_style *font = get_font(ctx, e->attrs);
+		const char *str = gp_markup_elem_str(e);
+
+		if (str)
+			width += gp_text_width(font, str);
+
+		height = GP_MAX(height, gp_text_ascent(font));
+
+		e++;
+	}
+
+	*w = width;
+	*h = height;
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
@@ -198,44 +109,34 @@ static void render(gp_widget *self, const gp_offset *offset,
 	unsigned int y = self->y + offset->y;
 	unsigned int w = self->w;
 	unsigned int h = self->h;
-	unsigned int ascent = gp_text_ascent(ctx->font);
-	const gp_text_style *font;
 
 	gp_widget_ops_blit(ctx, x, y, w, h);
 	gp_fill_rect_xywh(ctx->buf, x, y, w, h, ctx->bg_color);
 
-	unsigned int i;
-	int align = GP_ALIGN_RIGHT | GP_VALIGN_BELOW;
-	struct markup_elem *elems = MARKUP_ELEMS(self);
+	gp_markup_elem *e = gp_markup_first(self->markup->markup);
 
-	for (i = 0; i < self->markup->cnt; i++) {
+	for (;;) {
+		gp_coord cur_x = x;
+		gp_size w, h;
 
-		if (elems[i].attrs & MARKUP_BOLD)
-			font = ctx->font_bold;
-		else
-			font = ctx->font;
+		line_bbox(e, ctx, &w, &h);
 
-		switch (elems[i].type) {
-		case MARKUP_STR:
-			x += gp_text_ext(ctx->buf, font, x, y + ctx->padd, align,
-					 ctx->text_color, ctx->bg_color,
-			                 elems[i].start, elems[i].len);
-		break;
-		case MARKUP_VAR:
-			if (!elems[i].var) {
-				x += gp_text_ext(ctx->buf, font, x, y + ctx->padd, align,
-				                 ctx->text_color, ctx->bg_color,
-				                 elems[i].start + 1, elems[i].len - 2);
-			} else {
-				x += gp_text(ctx->buf, font, x, y + ctx->padd, align,
-				             ctx->text_color, ctx->bg_color, elems[i].var);
-			}
-		break;
-		case MARKUP_NEWLINE:
-			y += ctx->padd + ascent;
-			x = self->x + offset->x;
-		break;
+		while (e->type != GP_MARKUP_NEWLINE) {
+			const gp_text_style *font = get_font(ctx, e->attrs);
+			const char *str = gp_markup_elem_str(e);
+
+			if (e->type == GP_MARKUP_END)
+				return;
+
+			cur_x += gp_text(ctx->buf, font, cur_x, y + ctx->padd + h,
+			                 GP_ALIGN_RIGHT | GP_VALIGN_BASELINE,
+			                 ctx->text_color, ctx->bg_color, str);
+
+			e++;
 		}
+
+		y += ctx->padd + h;
+		e++;
 	}
 }
 
@@ -249,17 +150,17 @@ static void try_resize(gp_widget *self)
 
 void gp_widget_markup_refresh(gp_widget *self)
 {
-	struct markup_elem *elems = MARKUP_ELEMS(self);
-	unsigned int i, var_id = 0;
+	unsigned int var_id = 0;
+	gp_markup_elem *e;
 
 	if (!self->markup->get)
 		return;
 
-	for (i = 0; i < self->markup->cnt; i++) {
-		if (elems[i].type != MARKUP_VAR)
+	for (e = gp_markup_first(self->markup->markup); e; e = gp_markup_next(e)) {
+		if (e->type != GP_MARKUP_VAR)
 			continue;
 
-		elems[i].var = self->markup->get(var_id++, elems[i].var);
+		e->var = self->markup->get(var_id++, e->var);
 	}
 
 	try_resize(self);
@@ -301,47 +202,39 @@ struct gp_widget_ops gp_widget_markup_ops = {
 	.id = "markup",
 };
 
-gp_widget *gp_widget_markup_new(const char *markup,
+gp_widget *gp_widget_markup_new(const char *markup_str,
                                 char *(*get)(unsigned int var_id, char *old_val))
 {
 	size_t payload_size = sizeof(struct gp_widget_markup);
-	int elem_cnt;
 	gp_widget *ret;
+	gp_markup *markup = gp_markup_parse(markup_str);
 
-	elem_cnt = parse_markup(markup, NULL, NULL);
-	if (elem_cnt < 0)
+	if (!markup)
 		return NULL;
-
-	size_t elems_size = elem_cnt * sizeof(struct markup_elem);
-
-	payload_size += strlen(markup) + 1;
-	payload_size += elems_size;
 
 	ret = gp_widget_new(GP_WIDGET_MARKUP, payload_size);
-	if (!ret)
+	if (!ret) {
+		gp_markup_free(markup);
 		return NULL;
+	}
 
-	ret->markup->text = ret->markup->payload + elems_size;
 	ret->markup->get = get;
-	ret->markup->cnt = elem_cnt;
-
-	strcpy(ret->markup->text, markup);
-	parse_markup(ret->markup->text, MARKUP_ELEMS(ret), &(ret->markup->lines));
+	ret->markup->markup = markup;
 
 	return ret;
 }
 
-static struct markup_elem *get_var_by_id(gp_widget *self, unsigned int var_id)
+static gp_markup_elem *get_var_by_id(gp_widget *self, unsigned int var_id)
 {
-	struct markup_elem *elems = MARKUP_ELEMS(self);
-	unsigned int i, cur_id = 0;
+	unsigned int cur_id = 0;
+	gp_markup_elem *e;
 
-	for (i = 0; i < self->markup->cnt; i++) {
-		if (elems[i].type != MARKUP_VAR)
+	for (e = gp_markup_first(self->markup->markup); e; e = gp_markup_next(e)) {
+		if (e->type != GP_MARKUP_VAR)
 			continue;
 
 		if (cur_id == var_id)
-			return &elems[i];
+			return e;
 
 		cur_id++;
 	}
@@ -351,7 +244,7 @@ static struct markup_elem *get_var_by_id(gp_widget *self, unsigned int var_id)
 
 void gp_widget_markup_set_var(gp_widget *self, unsigned int var_id, const char *fmt, ...)
 {
-	struct markup_elem *var;
+	gp_markup_elem *var;
 	va_list va;
 
 	GP_WIDGET_ASSERT(self, GP_WIDGET_MARKUP, );
