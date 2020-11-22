@@ -30,6 +30,9 @@ typedef struct gp_widget_render_ctx {
 	gp_text_style *font;
 	gp_text_style *font_bold;
 
+	gp_text_style *font_big;
+	gp_text_style *font_big_bold;
+
 	/* pixel type used for drawing */
 	gp_pixel_type pixel_type;
 
