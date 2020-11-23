@@ -54,8 +54,7 @@ static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
 
 	g->widgets[idx] = new;
 
-	if (new)
-		new->parent = self;
+	gp_widget_set_parent(new, self);
 
 	return ret;
 }
@@ -666,22 +665,40 @@ static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
 	return 1;
 }
 
-static void set_hborder(gp_widget *self, uint8_t border)
+static void set_hborder_padd(gp_widget *self, uint8_t border)
 {
 	self->grid->col_padds[0] = border;
 	self->grid->col_padds[self->grid->cols] = border;
 }
 
-static void set_vborder(gp_widget *self, uint8_t border)
+static void set_vborder_padd(gp_widget *self, uint8_t border)
 {
 	self->grid->row_padds[0] = border;
 	self->grid->row_padds[self->grid->rows] = border;
 }
 
-static void set_border(gp_widget *self, uint8_t border)
+static void set_border_padd(gp_widget *self, uint8_t border)
 {
-	set_vborder(self, border);
-	set_hborder(self, border);
+	set_vborder_padd(self, border);
+	set_hborder_padd(self, border);
+}
+
+static void set_hborder_fill(gp_widget *self, uint8_t border)
+{
+	self->grid->col_fills[0] = border;
+	self->grid->col_fills[self->grid->cols] = border;
+}
+
+static void set_vborder_fill(gp_widget *self, uint8_t border)
+{
+	self->grid->row_fills[0] = border;
+	self->grid->row_fills[self->grid->rows] = border;
+}
+
+static void set_border_fill(gp_widget *self, uint8_t border)
+{
+	set_vborder_fill(self, border);
+	set_hborder_fill(self, border);
 }
 
 static int get_uint8(const char *str, uint8_t *val, char **end,
@@ -869,18 +886,18 @@ static gp_widget *json_to_grid(json_object *json, void **uids)
 
 	if (border) {
 		if (!strcmp(border, "horiz")) {
-			set_vborder(grid, 0);
+			set_vborder_padd(grid, 0);
 		} else if (!strcmp(border, "vert")) {
-			set_hborder(grid, 0);
+			set_hborder_padd(grid, 0);
 		} else if (!strcmp(border, "none")) {
-			set_border(grid, 0);
+			set_border_padd(grid, 0);
 		} else if (!strcmp(border, "all")) {
 			//default
 		} else {
 			int b = atoi(border);
 
 			if (b > 0)
-				set_border(grid, b);
+				set_border_padd(grid, b);
 			else
 				GP_WARN("Invalid border '%s'", border);
 		}
@@ -1012,11 +1029,6 @@ gp_widget *gp_widget_grid_put(gp_widget *self, unsigned int col, unsigned int ro
 	if (assert_col_row(self, col, row))
 		return NULL;
 
-	if (widget && widget->parent) {
-		//TODO: remove from parent!!!
-		return NULL;
-	}
-
 	ret = widget_grid_put(self, widget, col, row);
 	if (ret)
 		ret->parent = NULL;
@@ -1059,4 +1071,28 @@ gp_widget *gp_widget_grid_get(gp_widget *self, unsigned int col, unsigned int ro
 		return NULL;
 
 	return widget_grid_get(self, col, row);
+}
+
+void gp_widget_grid_border_set(gp_widget *self, unsigned int padd, unsigned int fill)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_GRID, );
+
+	set_border_padd(self, padd);
+	set_border_fill(self, fill);
+}
+
+void gp_widget_grid_hborder_set(gp_widget *self, unsigned int padd, unsigned int fill)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_GRID, );
+
+	set_hborder_padd(self, padd);
+	set_hborder_fill(self, fill);
+}
+
+void gp_widget_grid_vborder_set(gp_widget *self, unsigned int padd, unsigned int fill)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_GRID, );
+
+	set_vborder_padd(self, padd);
+	set_vborder_fill(self, fill);
 }

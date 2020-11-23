@@ -67,4 +67,31 @@ gp_widget *gp_widget_grid_rem(gp_widget *self, unsigned int col, unsigned int ro
  */
 gp_widget *gp_widget_grid_get(gp_widget *self, unsigned int col, unsigned int row);
 
+/*
+ * @brief Sets both horizontal and vertical border padding and filling coeficients.
+ *
+ * @self A grid widget.
+ * @padd Paddin coeficient.
+ * @fill A filling coeficient.
+ */
+void gp_widget_grid_border_set(gp_widget *self, unsigned int padd, unsigned int fill);
+
+/*
+ * @brief Sets horizontal border padding and filling coeficients.
+ *
+ * @self A grid widget.
+ * @padd Paddin coeficient.
+ * @fill A filling coeficient.
+ */
+void gp_widget_grid_hborder_set(gp_widget *self, unsigned int padd, unsigned int fill);
+
+/*
+ * @brief Sets vertical border padding and filling coeficients.
+ *
+ * @self A grid widget.
+ * @padd Paddin coeficient.
+ * @fill A filling coeficient.
+ */
+void gp_widget_grid_vborder_set(gp_widget *self, unsigned int padd, unsigned int fill);
+
 #endif /* GP_WIDGET_GRID_H__ */
