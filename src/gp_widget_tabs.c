@@ -472,8 +472,7 @@ static gp_widget *json_to_tabs(json_object *json, void **uids)
 
 		ret->tabs->widgets[i] = gp_widget_from_json(json_widget, uids);
 
-		if (ret->tabs->widgets[i])
-			ret->tabs->widgets[i]->parent = ret;
+		gp_widget_set_parent(ret->tabs->widgets[i], ret);
 	}
 
 
@@ -542,18 +541,13 @@ gp_widget *gp_widget_tabs_put(gp_widget *self, unsigned int tab,
 		return NULL;
 	}
 
-	if (widget && widget->parent) {
-		//TODO: remove from parent!!!
-		return NULL;
-	}
-
 	ret = self->tabs->widgets[tab];
 	if (ret)
 		ret->parent = NULL;
 
 	self->tabs->widgets[tab] = widget;
-	if (widget)
-		widget->parent = self;
+
+	gp_widget_set_parent(widget, self);
 
 	gp_widget_resize(self);
 	//TODO: Redraw as well?

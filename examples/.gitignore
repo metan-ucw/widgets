@@ -4,9 +4,10 @@ test
 t0
 t1
 t3
-sysinfo
 t4
 t5
+t6
+sysinfo
 imp
 test_login
 test_pixmap

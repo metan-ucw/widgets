@@ -95,6 +95,8 @@ typedef struct gp_widget {
 
 		struct gp_widget_markup *markup;
 
+		struct gp_widget_switch *switch_;
+
 		void *payload;
 	};
 	char buf[];
@@ -116,6 +118,7 @@ enum gp_widget_type {
 	GP_WIDGET_SCROLL_AREA,
 	GP_WIDGET_FRAME,
 	GP_WIDGET_MARKUP,
+	GP_WIDGET_SWITCH,
 	GP_WIDGET_MAX,
 };
 
@@ -154,6 +157,22 @@ gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size);
 			return ret; \
 		} \
 	} while (0)
+
+/*
+ * @brief Sets widget parent.
+ *
+ * @self A widget.
+ * @parent A parent widget.
+ */
+void gp_widget_set_parent(gp_widget *self, gp_widget *parent);
+
+static inline void gp_widget_event_handler_set(gp_widget *self,
+                                               int (*on_event)(struct gp_widget_event *),
+                                               void *priv)
+{
+	self->on_event = on_event;
+	self->priv = priv;
+}
 
 #include <gp_widget_event.h>
 

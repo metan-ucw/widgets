@@ -235,8 +235,7 @@ gp_widget *gp_widget_frame_new(const char *label, int bold, gp_widget *widget)
 		strcpy(ret->frame->label, label);
 	}
 
-	if (widget)
-		widget->parent = ret;
+	gp_widget_set_parent(widget, ret);
 
 	return ret;
 }

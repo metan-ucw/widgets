@@ -517,8 +517,7 @@ static gp_widget *json_to_scroll(json_object *json, void **uids)
 
 	if (widget) {
 		ret->scroll->widget = gp_widget_from_json(widget, uids);
-		if (ret->scroll->widget)
-			ret->scroll->widget->parent = ret;
+		gp_widget_set_parent(ret->scroll->widget, ret);
 	}
 
 	return ret;
@@ -623,7 +622,7 @@ gp_widget *gp_widget_scroll_area_put(gp_widget *self, gp_widget *widget)
 	gp_widget *ret = self->scroll->widget;
 
 	self->scroll->widget = widget;
-	widget->parent = self;
+	gp_widget_set_parent(widget, self);
 
 	gp_widget_resize(self);
 

@@ -29,6 +29,7 @@
 #include <gp_widget_scroll_area.h>
 #include <gp_widget_frame.h>
 #include <gp_widget_markup.h>
+#include <gp_widget_switch.h>
 
 #include <gp_widget_json.h>
 #include <gp_widget_timer.h>

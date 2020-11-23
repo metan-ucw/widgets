@@ -33,3 +33,15 @@ gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size)
 
 	return ret;
 }
+
+void gp_widget_set_parent(gp_widget *self, gp_widget *parent)
+{
+	if (!self)
+		return;
+
+	//TODO: reparent?
+	if (self->parent)
+		GP_WARN("Widget %p has already parent %p!", self, self->parent);
+
+	self->parent = parent;
+}
