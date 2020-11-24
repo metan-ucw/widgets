@@ -102,38 +102,38 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 static gp_widget *json_to_switch(json_object *json, void **uids)
 {
-	const char *label = NULL;
-	int bold = 0;
-	int size = 0;
-	int ralign = 0;
-	int frame = 0;
-
-	(void)uids;
+	json_object *widgets = NULL;
 
 	json_object_object_foreach(json, key, val) {
-		if (!strcmp(key, "text"))
-			label = json_object_get_string(val);
-		else if (!strcmp(key, "bold"))
-			bold = json_object_get_boolean(val);
-		else if (!strcmp(key, "size"))
-			size = json_object_get_int(val);
-		else if (!strcmp(key, "ralign"))
-			ralign = json_object_get_boolean(val);
-		else if (!strcmp(key, "frame"))
-			frame = json_object_get_boolean(val);
+		if (!strcmp(key, "widgets"))
+			widgets = val;
 		else
-			GP_WARN("Invalid label key '%s'", key);
+			GP_WARN("Invalid switch key '%s'", key);
 	}
 
-	if (!label) {
-		GP_WARN("Missing label");
-		label = "Missing label";
+	if (!widgets) {
+		GP_WARN("Missing widgets array!");
+		return NULL;
 	}
 
-	gp_widget *ret = gp_widget_label_new(label, size, bold);
+	if (!json_object_is_type(widgets, json_type_array)) {
+		GP_WARN("Widgets has to be array of strings!");
+		return NULL;
+	}
 
-	ret->label->ralign = ralign;
-	ret->label->frame = frame;
+	unsigned int i, layouts = json_object_array_length(widgets);
+
+	gp_widget *ret = gp_widget_switch_new(layouts);
+	if (!ret)
+		return NULL;
+
+	for (i = 0; i < layouts; i++) {
+		json_object *json_widget = json_object_array_get_idx(widgets, i);
+
+		ret->switch_->layouts[i] = gp_widget_from_json(json_widget, uids);
+
+		gp_widget_set_parent(ret->switch_->layouts[i], ret);
+	}
 
 	return ret;
 }
