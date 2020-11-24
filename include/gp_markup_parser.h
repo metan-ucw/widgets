@@ -34,11 +34,14 @@ enum gp_markup_elem_type {
 enum gp_markup_elem_attr {
 	GP_MARKUP_BOLD = 0x01,
 	GP_MARKUP_BIG = 0x02,
+	GP_MARKUP_INVERSE = 0x04,
+	GP_MARKUP_SUBSCRIPT = 0x08,
+	GP_MARKUP_SUPERSCRIPT = 0x10,
 };
 
 typedef struct gp_markup_elem {
 	int type:4;
-	int attrs:4;
+	int attrs:8;
 
 	const char *str;
 

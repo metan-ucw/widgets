@@ -32,10 +32,19 @@ static int button_callback(gp_widget_event *ev)
 	return 0;
 }
 
+#define MARKUP_STRING \
+	"#Big Text#\n\n"\
+        "Variables: {mmm} {0.0} m/s\n"\
+	"` Second Inverse Line `\n"\
+	"*Bold*_subscript And^superscript\n"\
+	"Escapes: \\_\\`\\{}\\*\\#\n"\
+	"` *H_{2}O N^2 #H_{2}O* `\n"\
+	"*#Big Bold#small*"
+
 int main(int argc, char *argv[])
 {
 	gp_widget *layout = gp_widget_grid_new(1, 3);
-	gp_widget *markup = gp_widget_markup_new("#Big Text#\n\n{mmm} test {0.0} m/s\nSecond Line\n*Bold* \\{}\\*\\#\n*#Big Bold#small*", get);
+	gp_widget *markup = gp_widget_markup_new(MARKUP_STRING, get);
 	gp_widget *button = gp_widget_button_new("Refresh", button_callback, layout);
 
 	gp_widget_grid_put(layout, 0, 0, markup);

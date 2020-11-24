@@ -23,7 +23,8 @@ static char *strcopy(char **buf, const char *str, size_t len)
 	return ret;
 }
 
-static int parse_markup_var(const char *markup, unsigned int attrs, gp_markup_elem **elems, char **buf)
+static int parse_markup_var(const char *markup, unsigned int type,
+                            unsigned int attrs, gp_markup_elem **elems, char **buf)
 {
 	unsigned int i = 1;
 
@@ -35,8 +36,10 @@ static int parse_markup_var(const char *markup, unsigned int attrs, gp_markup_el
 		return -1;
 	}
 
+	printf("VAR %i %i\n", type, i);
+
 	if (*elems) {
-		(*elems)->type = GP_MARKUP_VAR;
+		(*elems)->type = type;
 		(*elems)->str = strcopy(buf, markup + 1, i - 1);
 		(*elems)->attrs = attrs;
 		(*elems)++;
@@ -78,6 +81,7 @@ static int parse_markup(const char *markup, gp_markup_elem *elems, char *buf)
 	int r;
 	char prev_ch = 0;
 	int attrs = 0;
+	unsigned int type;
 
 	for (i = 0; markup[i]; i++) {
 		switch (markup[i]) {
@@ -89,18 +93,21 @@ static int parse_markup(const char *markup, gp_markup_elem *elems, char *buf)
 			}
 
 			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
-			r = parse_markup_var(&markup[i], attrs, &elems, &buf);
+
+			type = GP_MARKUP_VAR;
+
+			if (prev_ch == '_' || prev_ch == '^')
+				type = GP_MARKUP_STR;
+
+			r = parse_markup_var(&markup[i], type, attrs, &elems, &buf);
 			if (r < 0)
 				return -1;
 
+			if (prev_ch == '_' || prev_ch == '^')
+				attrs &= ~(GP_MARKUP_SUBSCRIPT | GP_MARKUP_SUPERSCRIPT);
+
 			i += r;
 			j = i;
-			ret++;
-		break;
-		case '\n':
-			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
-			markup_newline(&elems);
-			j = i + 1;
 			ret++;
 		break;
 		case '*':
@@ -124,6 +131,53 @@ static int parse_markup(const char *markup, gp_markup_elem *elems, char *buf)
 			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
 			attrs ^= GP_MARKUP_BIG;
 			j = i + 1;
+		break;
+		case '`':
+			if (prev_ch == '\\') {
+				ret += parse_markup_string(&markup[j], i - j - 1, attrs, &elems, &buf);
+				j = i;
+				continue;
+			}
+
+			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
+			attrs ^= GP_MARKUP_INVERSE;
+			j = i + 1;
+		break;
+		case '_':
+			if (prev_ch == '\\') {
+				ret += parse_markup_string(&markup[j], i - j - 1, attrs, &elems, &buf);
+				j = i;
+				continue;
+			}
+
+			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
+			attrs &= ~GP_MARKUP_SUPERSCRIPT;
+			attrs |= GP_MARKUP_SUBSCRIPT;
+			j = i + 1;
+		break;
+		case '^':
+			if (prev_ch == '\\') {
+				ret += parse_markup_string(&markup[j], i - j - 1, attrs, &elems, &buf);
+				j = i;
+				continue;
+			}
+
+			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
+			attrs &= ~GP_MARKUP_SUBSCRIPT;
+			attrs |= GP_MARKUP_SUPERSCRIPT;
+			j = i + 1;
+		break;
+		case ' ':
+			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
+			j = i;
+			attrs &= ~(GP_MARKUP_SUBSCRIPT | GP_MARKUP_SUPERSCRIPT);
+		break;
+		case '\n':
+			ret += parse_markup_string(&markup[j], i - j, attrs, &elems, &buf);
+			markup_newline(&elems);
+			j = i + 1;
+			ret++;
+			attrs &= ~(GP_MARKUP_SUBSCRIPT | GP_MARKUP_SUPERSCRIPT);
 		break;
 		}
 

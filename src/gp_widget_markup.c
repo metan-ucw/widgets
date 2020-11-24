@@ -124,13 +124,34 @@ static void render(gp_widget *self, const gp_offset *offset,
 		while (e->type != GP_MARKUP_NEWLINE) {
 			const gp_text_style *font = get_font(ctx, e->attrs);
 			const char *str = gp_markup_elem_str(e);
+			unsigned int cur_y = y + h + ctx->padd;
 
 			if (e->type == GP_MARKUP_END)
 				return;
 
-			cur_x += gp_text(ctx->buf, font, cur_x, y + ctx->padd + h,
+			gp_pixel fg = ctx->text_color;
+			gp_pixel bg = ctx->bg_color;
+
+			if (e->attrs & GP_MARKUP_SUBSCRIPT)
+				cur_y += ctx->padd - gp_text_descent(font);
+
+			if (e->attrs & GP_MARKUP_SUPERSCRIPT)
+				cur_y -= gp_text_descent(font);
+
+			if (e->attrs & GP_MARKUP_INVERSE) {
+				unsigned int str_h = gp_text_ascent(font) + ctx->padd;
+				unsigned int str_w = gp_text_width(font, str);
+				unsigned int str_y = cur_y + ctx->padd - str_h;
+
+				GP_SWAP(fg, bg);
+
+				gp_fill_rect_xywh(ctx->buf, cur_x, str_y,
+				                  str_w, gp_text_height(font), bg);
+			}
+
+			cur_x += gp_text(ctx->buf, font, cur_x, cur_y,
 			                 GP_ALIGN_RIGHT | GP_VALIGN_BASELINE,
-			                 ctx->text_color, ctx->bg_color, str);
+			                 fg, bg, str);
 
 			e++;
 		}
