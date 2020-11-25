@@ -60,4 +60,13 @@ int gp_widget_textbox_printf(gp_widget *self, const char *fmt, ...)
  */
 void gp_widget_textbox_clear(gp_widget *self);
 
+
+/*
+ * @brief Returns a textbox string.
+ *
+ * @self A textbox widget.
+ * @return Texbox widget string.
+ */
+const char *gp_widget_textbox_str(gp_widget *self);
+
 #endif /* GP_WIDGET_TEXT_BOX_H__ */

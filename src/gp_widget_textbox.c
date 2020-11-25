@@ -430,3 +430,10 @@ void gp_widget_textbox_clear(gp_widget *self)
 
 	gp_widget_redraw(self);
 }
+
+const char *gp_widget_textbox_str(gp_widget *self)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_TEXTBOX, NULL);
+
+	return self->tbox->buf;
+}
