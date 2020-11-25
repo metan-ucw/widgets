@@ -38,7 +38,7 @@ static int button_callback(gp_widget_event *ev)
 	"` Second Inverse Line `\n"\
 	"*Bold*_subscript And^superscript\n"\
 	"Escapes: \\_\\`\\{}\\*\\#\n"\
-	"` *H_{2}O N^2 #H_{2}O* `\n"\
+	"` *H_{2}O N^2 #H_{2}O#* `\n"\
 	"*#Big Bold#small*"
 
 int main(int argc, char *argv[])
