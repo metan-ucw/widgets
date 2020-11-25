@@ -1,0 +1,245 @@
+{
+  "type": "tabs",
+  "labels": [
+   "Status",
+   "Satellites",
+   "Connection"
+  ],
+  "widgets": [
+  {
+  "rows": 3,
+  "widgets": [
+    {
+      "type": "frame",
+      "label": "UTC Time",
+      "align": "fill",
+      "bold": "true",
+      "widget": {
+         "type": "label",
+         "text": "0000-00-00T00:00:00.000Z",
+         "uid": "time"
+       }
+    },
+    {
+      "type": "frame",
+      "label": "Position",
+      "align": "fill",
+      "bold": "true",
+      "widget": {
+        "cols": 3,
+        "rows": 3,
+        "rpad": "1, 0, 0, 1",
+        "widgets": [
+          {
+             "type": "label",
+             "text": "Lat:",
+	     "halign": "right",
+             "bold": "true"
+          },
+          {
+             "type": "label",
+             "text": "Lon:",
+	     "halign": "right",
+             "bold": "true"
+          },
+          {
+             "type": "label",
+             "text": "Alt:",
+	     "halign": "right",
+             "bold": "true"
+          },
+          {
+             "type": "label",
+             "text": "??.????? ?",
+             "uid": "lat"
+          },
+          {
+             "type": "label",
+             "text": "??.????? ?",
+             "uid": "lon"
+          },
+          {
+             "type": "markup",
+             "text": "{????.???} m",
+             "uid": "alt"
+          },
+          {
+             "type": "markup",
+             "text": "+- {??.???} m",
+             "uid": "epy",
+	     "halign": "left"
+          },
+          {
+             "type": "markup",
+             "text": "+- {??.???} m",
+             "uid": "epx",
+	     "halign": "left"
+          },
+          {
+             "type": "markup",
+             "text": "+- {??.???} m",
+             "uid": "epv",
+	     "halign": "left"
+          }
+        ]
+     }
+    },
+    {
+      "type": "frame",
+      "label": "Speed",
+      "bold": "true",
+      "align": "fill",
+      "widget": {
+        "cols": 3,
+        "rows": 3,
+        "rpad": "1, 0, 0, 1",
+        "widgets": [
+          {
+             "type": "label",
+             "text": "Speed:",
+             "halign": "right",
+             "bold": "true"
+          },
+          {
+             "type": "label",
+             "text": "Track:",
+             "halign": "right",
+             "bold": "true"
+          },
+          {
+             "type": "label",
+             "text": "Climb:",
+             "halign": "right",
+             "bold": "true"
+          },
+          {
+             "type": "markup",
+             "text": "{???.??} m/s",
+             "uid": "speed"
+          },
+          {
+             "type": "markup",
+             "text": "{??.??}\"",
+             "uid": "track"
+          },
+          {
+             "type": "markup",
+             "text": "{???.??} m/s",
+             "uid": "climb"
+          },
+          {
+             "type": "markup",
+             "text": "+- {??.???} m/s",
+             "uid": "eps",
+	     "halign": "left"
+          },
+          {
+             "type": "markup",
+             "text": "+- {??.???}\"",
+             "uid": "ept",
+	     "halign": "left"
+          },
+          {
+             "type": "markup",
+             "text": "+- {??.???} m/s",
+	     "uid": "epc",
+	     "halign": "left"
+          }
+        ]
+       }
+      }
+     ]
+    },
+    {
+      "type": "table",
+      "uid": "sat_table",
+      "align": "fill",
+      "header": [
+	      {
+		"label": "SRN"
+	      },
+	      {
+	        "label": "Position"
+	      },
+	      {
+	        "label": "Signal",
+		"sortable": "true"
+	      }
+      ],
+      "min_rows": 10,
+      "get_elem": "sats_get_elem",
+      "set_row": "sats_set_row",
+      "sort": "sats_sort"
+    },
+    {
+      "rows": 3,
+      "valign": "fill",
+      "rpad": "2, 2, 1, 2",
+      "rpadf": "0, 0, 1, 0",
+      "rfill": "0, 0, 0",
+      "widgets": [
+        {
+          "type": "frame",
+          "label": "GPSD Server",
+          "bold": "true",
+	  "halign": "fill",
+          "widget": {
+	     "rows": 2,
+	     "cols": 2,
+             "widgets": [
+               {
+	         "type": "label",
+	         "text": "Host:"
+	       },
+	       {
+	         "type": "label",
+	         "text": "Port:"
+	       },
+               {
+                 "type": "textbox",
+	         "text": "localhost",
+		 "uid": "server_host"
+	       },
+	       {
+	         "type": "textbox",
+	         "text": "2947",
+		 "uid": "server_port",
+	         "halign": "fill"
+	       }
+	     ]
+	   }
+	},
+	{
+          "type": "frame",
+          "label": "Server status",
+          "bold": "true",
+	  "halign": "fill",
+          "widget": {
+	     "type": "label",
+	     "text": "Connecting.........",
+	     "uid": "server_status"
+	  }
+	},
+	{
+         "cols": 2,
+	 "halign": "fill",
+	 "border": "none",
+	 "cfill": "0, 0",
+	 "cpadf": "0, 1, 0",
+	 "widgets": [
+	   {
+	     "type": "button",
+	     "label": "disconnect",
+	     "on_event": "disconnect_btn"
+	   },
+	   {
+	     "type": "button",
+	     "label": "connect",
+	     "on_event": "connect_btn"
+	   }
+	 ]
+	}
+      ]
+    }
+  ]
+}
