@@ -384,7 +384,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 		if (ev->code == GP_EV_KEY_UP)
 			return 0;
 
-		switch (ev->val.val) {
+		switch (ev->val) {
 		case GP_KEY_DOWN:
 			if (gp_event_get_key(ev, GP_KEY_LEFT_SHIFT))
 				return move_down(self, ctx, 10);

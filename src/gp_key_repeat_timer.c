@@ -100,15 +100,15 @@ void gp_handle_key_repeat_timer(gp_event *ev)
 	if (ev->type != GP_EV_KEY)
 		return;
 
-	if (key_to_idx(ev->val.key.key) == -1)
+	if (key_to_idx(ev->key.key) == -1)
 		return;
 
 	switch (ev->code) {
 	case GP_EV_KEY_UP:
-		stop_timer(ev->val.key.key);
+		stop_timer(ev->key.key);
 	break;
 	case GP_EV_KEY_DOWN:
-		start_timer(ev->val.key.key);
+		start_timer(ev->key.key);
 	break;
 	}
 }

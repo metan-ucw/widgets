@@ -91,7 +91,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 		if (ev->code != GP_EV_KEY_DOWN)
 			return 0;
 
-		switch (ev->val.val) {
+		switch (ev->val) {
 		case GP_KEY_SPACE:
 		case GP_KEY_ENTER:
 			set(self);

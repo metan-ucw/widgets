@@ -18,8 +18,8 @@ static void draw(gp_widget *pixmap, gp_event *ev)
 {
 	gp_event_dump(ev);
 	if (ev->type != GP_EV_KEY ||
-	    (ev->val.key.key != GP_BTN_LEFT &&
-	     ev->val.key.key != GP_BTN_PEN))
+	    (ev->key.key != GP_BTN_LEFT &&
+	     ev->key.key != GP_BTN_PEN))
 		return;
 
 	gp_coord x = ev->cursor_x - pixmap->x;

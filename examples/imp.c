@@ -212,7 +212,7 @@ static int table_on_event(gp_widget_event *ev)
 		return 0;
 	case GP_WIDGET_EVENT_INPUT:
 		if (ev->input_ev->type == GP_EV_KEY &&
-		    ev->input_ev->val.val == GP_KEY_ESC) {
+		    ev->input_ev->val == GP_KEY_ESC) {
 			gp_widget_textbox_clear(filter);
 			gp_widget_redraw(ev->self);
 			return 1;

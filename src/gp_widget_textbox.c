@@ -260,7 +260,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 		if (ev->code == GP_EV_KEY_UP)
 			return 0;
 
-		switch (ev->val.val) {
+		switch (ev->val) {
 		case GP_KEY_ENTER:
 			if (ev->code == GP_EV_KEY_DOWN)
 				gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);
@@ -285,8 +285,8 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 			return 1;
 		}
 
-		if (ev->val.key.ascii) {
-			ascii_key(self, ev->val.key.ascii);
+		if (ev->key.ascii) {
+			ascii_key(self, ev->key.ascii);
 			return 1;
 		}
 	break;

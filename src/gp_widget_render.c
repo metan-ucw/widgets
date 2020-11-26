@@ -193,11 +193,11 @@ void gp_widget_render_zoom(int zoom_inc)
 
 static void timer_event(gp_event *ev)
 {
-	struct gp_widget *widget = ev->val.tmr->priv;
+	struct gp_widget *widget = ev->tmr->priv;
 
 	gp_widget_ops_event(widget, &ctx, ev);
 
-	ev->val.tmr->priv = NULL;
+	ev->tmr->priv = NULL;
 }
 
 static struct gp_timer timers[10];
@@ -355,7 +355,7 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 	case GP_EV_KEY:
 		if (gp_event_get_key(ev, GP_KEY_LEFT_CTRL) &&
 		    ev->code == GP_EV_KEY_DOWN) {
-			switch (ev->val.val) {
+			switch (ev->val) {
 			case GP_KEY_UP:
 				gp_widget_render_zoom(1);
 				handled = 1;
@@ -369,7 +369,7 @@ int gp_widgets_event(gp_event *ev, gp_widget *layout)
 		if ((gp_event_get_key(ev, GP_KEY_LEFT_ALT) ||
 		     gp_event_get_key(ev, GP_KEY_LEFT_ALT)) &&
 		     ev->code == GP_EV_KEY_DOWN) {
-			switch (ev->val.val) {
+			switch (ev->val) {
 			case GP_KEY_F4:
 				return 1;
 			}

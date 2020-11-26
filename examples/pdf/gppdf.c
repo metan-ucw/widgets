@@ -271,7 +271,7 @@ static int app_ev_callback(gp_event *ev)
 		if (ev->code == GP_EV_KEY_UP)
 			return 0;
 
-		switch (ev->val.key.key) {
+		switch (ev->key.key) {
 		case GP_KEY_RIGHT:
 		case GP_KEY_PAGE_DOWN:
 		case GP_KEY_DOWN:

@@ -438,7 +438,7 @@ static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_ev
 		if (ev->code == GP_EV_KEY_UP)
 			return 0;
 
-		switch (ev->val.val) {
+		switch (ev->val) {
 		case GP_KEY_TAB:
 			if (gp_event_get_key(ev, GP_KEY_LEFT_SHIFT) ||
 			    gp_event_get_key(ev, GP_KEY_RIGHT_SHIFT))
@@ -457,7 +457,7 @@ static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_ev
 		    !gp_event_get_key(ev, GP_KEY_RIGHT_SHIFT))
 			return 0;
 
-		switch (ev->val.val) {
+		switch (ev->val) {
 		case GP_KEY_LEFT:
 			gp_widget_ops_render_select(self, GP_SELECT_LEFT);
 			return 1;

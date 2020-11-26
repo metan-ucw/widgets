@@ -47,7 +47,7 @@ static int keypress_handler(gp_widget_event *ev)
 	if (ev->input_ev->code != 1)
 		return 0;
 
-	switch (ev->input_ev->val.val) {
+	switch (ev->input_ev->val) {
 	case GP_KEY_LEFT:
 		gp_widget_switch_move(ev->self->priv, -1);
 		return 1;
