@@ -593,6 +593,14 @@ static int select_next(gp_widget *self, int sel)
 	}
 }
 
+static int select_in(gp_widget *self, int sel)
+{
+	if (!self->grid->selected)
+		return self->grid->selected = select_next(self, sel);
+
+	return try_select(self, self->grid->selected_col, self->grid->selected_row, sel);
+}
+
 static int select_event(gp_widget *self, int sel)
 {
 	gp_widget *w = widget_grid_selected(self);
@@ -602,7 +610,7 @@ static int select_event(gp_widget *self, int sel)
 
 	switch (sel) {
 	case GP_SELECT_IN:
-		return try_select(self, self->grid->selected_col, self->grid->selected_row, sel);
+		return select_in(self, sel);
 	case GP_SELECT_NEXT:
 		return select_next(self, sel);
 	case GP_SELECT_PREV:
@@ -1057,6 +1065,12 @@ gp_widget *gp_widget_grid_rem(gp_widget *self, unsigned int col, unsigned int ro
 	ret = widget_grid_put(self, NULL, col, row);
 	if (ret)
 		ret->parent = NULL;
+
+	if (self->grid->selected_col == col && self->grid->selected_row == row) {
+		self->grid->selected_col = 0;
+		self->grid->selected_row = 0;
+		self->grid->selected = 0;
+	}
 
 	gp_widget_resize(self);
 
