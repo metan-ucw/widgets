@@ -166,15 +166,14 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	int spy = y + tab_h + ctx->padd;
 
-	/* Fill in after the widget up to the bottom */
 	gp_fill_rect_xyxy(ctx->buf, x + 1, spy + widget->y + widget->h,
 	                  x + self->w - 2, y + self->h-2, ctx->bg_color);
 
-	gp_fill_rect_xywh(ctx->buf, x + widget->x + widget->w, spy + widget->y,
-	                  self->w - widget->x - widget->w - 1, widget->h, ctx->bg_color);
+	gp_fill_rect_xywh(ctx->buf, x + widget->x + widget->w + ctx->padd, spy + widget->y,
+	                  self->w - widget->x - widget->w - ctx->padd - 1, widget->h, ctx->bg_color);
 
 	gp_fill_rect_xywh(ctx->buf, x + 1, spy + widget->y,
-	                  widget->x + ctx->padd, widget->h, ctx->bg_color);
+	                  widget->x + ctx->padd - 1, widget->h, ctx->bg_color);
 
 	if (self->redraw_subtree) {
 		self->redraw_subtree = 0;
