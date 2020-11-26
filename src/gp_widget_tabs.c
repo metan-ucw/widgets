@@ -316,6 +316,7 @@ static int select_next(gp_widget *self)
 			return 0;
 		self->tabs->title_selected = 0;
 		self->tabs->widget_selected = 1;
+		gp_widget_redraw(self);
 		return 1;
 	}
 
