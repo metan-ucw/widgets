@@ -25,7 +25,7 @@ static const char *prn_to_str(int prn)
 {
 	switch (prn) {
 	/* US GPS slots */
-	case 1 ... 32:
+	case 1 ... 64:
 		return "US";
 	/* GLONASS slots */
 	case 65 ... 95:
@@ -57,7 +57,11 @@ const char *sats_get_elem(gp_widget *self, unsigned int col)
 		snprintf(buf, sizeof(buf), "%s %i", prn_to_str(sat->PRN), sat->PRN);
 	break;
 	case 1:
+#if GPSD_API_MAJOR_VERSION >= 10
+		snprintf(buf, sizeof(buf), "%.0f %.0f", sat->elevation, sat->azimuth);
+#else
 		snprintf(buf, sizeof(buf), "%i %i", sat->elevation, sat->azimuth);
+#endif
 	break;
 	case 2:
 		snprintf(buf, sizeof(buf), "%.1f", sat->ss);
@@ -126,12 +130,16 @@ static int event_gps(struct gp_fd *self, struct pollfd *pfd)
 {
 	(void)self;
 	(void)pfd;
+	int ret;
 
 	if (gpsdata.gps_fd == 0)
 		return 1;
 
-	int ret = gps_read(&gpsdata);
-
+#if GPSD_API_MAJOR_VERSION >= 10
+	ret = gps_read(&gpsdata, NULL, 0);
+#else
+	ret = gps_read(&gpsdata);
+#endif
 	if (ret < 0) {
 		if (server_status)
 			gp_widget_label_printf(server_status, "Read %s", strerror(errno));
@@ -147,10 +155,14 @@ static int event_gps(struct gp_fd *self, struct pollfd *pfd)
 	do_sort();
 	gp_widget_redraw(table);
 
+	char tmp[64];
+#if GPSD_API_MAJOR_VERSION >= 10
+	gp_widget_label_set(gps_time, timespec_to_iso8601(gpsdata.fix.time, tmp, sizeof(tmp)));
+#else
 	if (!isnan(gpsdata.fix.time)) {
-		static char tmp[64];
 		gp_widget_label_set(gps_time, unix_to_iso8601(gpsdata.fix.time, tmp, sizeof(tmp)));
 	}
+#endif
 
 	if (gpsdata.fix.mode >= MODE_2D) {
 		if (gps_lat && !isnan(gpsdata.fix.latitude)) {
