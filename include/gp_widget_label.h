@@ -11,17 +11,15 @@
 #include <stdlib.h>
 
 struct gp_widget_label {
+	/* Text buffer */
 	char *text;
 	/* widget size hints */
 	const char *set;
 	unsigned int width:8;
-	/* text buffer size */
-	unsigned int size:8;
 	/* attributes */
 	unsigned int bold:1;
 	unsigned int ralign:1;
 	unsigned int frame:1;
-	char payload[];
 };
 
 /**

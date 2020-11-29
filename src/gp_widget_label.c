@@ -9,6 +9,8 @@
 #include <string.h>
 #include <json-c/json.h>
 
+#include <utils/gp_vec_str.h>
+
 #include <gp_widgets.h>
 #include <gp_widget_ops.h>
 #include <gp_widget_render.h>
@@ -123,13 +125,14 @@ struct gp_widget_ops gp_widget_label_ops = {
 	.id = "label",
 };
 
-static void copy_text(struct gp_widget_label *label, const char *text, size_t len)
+static void try_resize(gp_widget *self)
 {
-	strncpy(label->text, text, len);
+	const gp_widget_render_ctx *ctx = gp_widgets_render_ctx();
 
-	if (label->text[len - 1]) {
-		GP_WARN("Truncating label text '%s'", text);
-		label->text[len - 1] = '\0';
+	if (self->min_w < min_w(self, ctx)) {
+		GP_DEBUG(0, "Resizing widget label (%p) %i -> %i",
+		         self, self->min_w, min_w(self, ctx));
+		gp_widget_resize(self);
 	}
 }
 
@@ -139,50 +142,36 @@ static void copy_text(struct gp_widget_label *label, const char *text, size_t le
  */
 void gp_widget_label_set(gp_widget *self, const char *text)
 {
-	struct gp_widget_label *label = self->label;
-	unsigned int old_min_w = self->min_w;
-	const gp_widget_render_ctx *ctx;
-
 	GP_WIDGET_ASSERT(self, GP_WIDGET_LABEL, );
 
-	char *ret = label->text;
-
 	GP_DEBUG(3, "Setting widget label (%p) text '%s' -> '%s'",
-		 self, ret, text);
+		 self, self->label->text, text);
 
-	copy_text(label, text, label->size);
+	self->label->text = gp_vec_printf(self->label->text, "%s", text);
+
 	gp_widget_redraw(self);
 
 	if (self->label->width)
 		return;
 
-	ctx = gp_widgets_render_ctx();
-	if (old_min_w < min_w(self, ctx)) {
-		GP_DEBUG(0, "Resizing widget label (%p) %i -> %i",
-		         self, old_min_w, min_w(self, ctx));
-		gp_widget_resize(self);
-	}
+	try_resize(self);
 }
 
 gp_widget *gp_widget_label_new(const char *text, unsigned int width, int bold)
 {
-	size_t payload_size = sizeof(struct gp_widget_label);
 	gp_widget *ret;
-	size_t strsize = width ? width + 1 : strlen(text) + 1;
 
-	payload_size += strsize;
-
-	ret = gp_widget_new(GP_WIDGET_LABEL, payload_size);
+	ret = gp_widget_new(GP_WIDGET_LABEL, sizeof(struct gp_widget_label));
 	if (!ret)
 		return NULL;
 
-	ret->label->text = ret->label->payload;
+	if (text)
+		ret->label->text = gp_vec_strdup(text);
+	else
+		ret->label->text = gp_vec_str_new();
+
 	ret->label->bold = !!bold;
 	ret->label->width = width;
-	ret->label->size = strsize;
-
-	if (text)
-		copy_text(ret->label, text, strsize);
 
 	return ret;
 }
@@ -226,15 +215,12 @@ gp_widget *gp_widget_label_printf_new(int bold, const char *fmt, ...)
 int gp_widget_label_printf(gp_widget *self, const char *fmt, ...)
 {
 	va_list ap;
-	char *buf;
 
 	va_start(ap, fmt);
-	buf = vasprintf(fmt, ap);
+	self->label->text = gp_vec_vprintf(self->label->text, fmt, ap);
 	va_end(ap);
 
-	gp_widget_label_set(self, buf);
-
-	free(buf);
+	try_resize(self);
 
 	return 0;
 }
