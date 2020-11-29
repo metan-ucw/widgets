@@ -36,8 +36,6 @@ static int parse_markup_var(const char *markup, unsigned int type,
 		return -1;
 	}
 
-	printf("VAR %i %i\n", type, i);
-
 	if (*elems) {
 		(*elems)->type = type;
 		(*elems)->str = strcopy(buf, markup + 1, i - 1);
