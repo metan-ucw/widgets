@@ -64,18 +64,8 @@ static gp_widget *get_selected_widget(gp_widget *self)
 static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	gp_widget *widget = get_selected_widget(self);
-	int ret;
 
-	if (!widget)
-		return 0;
-
-	ev->cursor_x -= self->x;
-	ev->cursor_y -= self->y;
-	ret = gp_widget_ops_event(widget, ctx, ev);
-	ev->cursor_x += self->x;
-	ev->cursor_y += self->y;
-
-	return ret;
+	return gp_widget_ops_event_offset(widget, ctx, ev, self->x, self->y);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,

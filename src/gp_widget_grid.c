@@ -468,15 +468,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 
 	widget_grid_selected_offset(self, &offset);
 
-	ev->cursor_x -= offset.x;
-	ev->cursor_y -= offset.y;
-
-	int ret = gp_widget_ops_event(w, ctx, ev);
-
-	ev->cursor_x += offset.x;
-	ev->cursor_y += offset.y;
-
-	return ret;
+	return gp_widget_ops_event_offset(w, ctx, ev, offset.x, offset.y);
 }
 
 static int try_select(gp_widget *self, unsigned int col, unsigned int row, int sel)

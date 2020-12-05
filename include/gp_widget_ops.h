@@ -112,7 +112,33 @@ int gp_widget_input_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_e
 void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
                           const gp_widget_render_ctx *ctx, int flags);
 
+/*
+ * Send event to a widget.
+ *
+ * @self A widget to send the event to.
+ * @ctx A render context.
+ * @ev An input event.
+ *
+ * @return Zero if event wasn't handled, non-zero otherwise.
+ */
 int gp_widget_ops_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev);
+
+/*
+ * Send event to a widget with a cursor offset.
+ *
+ * Same as gp_widget_ops_event() but with offset to the absolute coordinates is
+ * applied so that the event is relative to the cursor coordinates.
+ *
+ * @self A widget to send the event to.
+ * @ctx A render context.
+ * @ev An input event.
+ * @off_x X cursor offset.
+ * @off_y Y cursor offset.
+ *
+ * @return Zero if event wasn't handled, non-zero otherwise.
+ */
+int gp_widget_ops_event_offset(gp_widget *self, const gp_widget_render_ctx *ctx,
+                               gp_event *ev, gp_size off_x, gp_size off_y);
 
 int gp_widget_ops_render_select(gp_widget *self, int flag);
 

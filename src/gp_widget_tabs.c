@@ -236,15 +236,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 		unsigned int px = payload_x(self, ctx);
 		unsigned int py = payload_y(self, ctx);
 
-		ev->cursor_x -= px;
-		ev->cursor_y -= py;
-
-		int ret = gp_widget_ops_event(active_tab_widget(self), ctx, ev);
-
-		ev->cursor_x += px;
-		ev->cursor_y += py;
-
-		return ret;
+		return gp_widget_ops_event_offset(active_tab_widget(self), ctx, ev, px, py);
 	}
 
 	if (!self->tabs->title_selected)

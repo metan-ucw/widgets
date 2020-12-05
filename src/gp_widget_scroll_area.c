@@ -368,16 +368,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 		return 0;
 	}
 
-
-	ev->cursor_x += area->x_off;
-	ev->cursor_y += area->y_off;
-
-	int ret = gp_widget_ops_event(area->widget, ctx, ev);
-
-	ev->cursor_x -= area->x_off;
-	ev->cursor_y -= area->y_off;
-
-	return ret;
+	return gp_widget_ops_event_offset(area->widget, ctx, ev, area->x_off, area->y_off);
 }
 
 static int select_scrollbar(gp_widget *self)

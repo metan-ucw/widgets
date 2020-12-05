@@ -500,7 +500,8 @@ int gp_widget_ops_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_eve
 	if (!ops->event)
 		return 0;
 
-	GP_DEBUG(3, "event widget %p (%s)", self, ops->id);
+	GP_DEBUG(3, "Event widget %p (%s) (cursor %ux%u)",
+	         self, ops->id, ev->cursor_x, ev->cursor_y);
 
 	handled = ops->event(self, ctx, ev);
 
@@ -508,6 +509,18 @@ int gp_widget_ops_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_eve
 		handled = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, ctx, ev);
 
 	return handled;
+}
+
+int gp_widget_ops_event_offset(gp_widget *self, const gp_widget_render_ctx *ctx,
+                               gp_event *ev, gp_size off_x, gp_size off_y)
+{
+	ev->cursor_x -= off_x;
+	ev->cursor_y -= off_y;
+	int ret = gp_widget_ops_event(self, ctx, ev);
+	ev->cursor_x += off_x;
+	ev->cursor_y += off_y;
+
+	return ret;
 }
 
 void gp_widget_render(gp_widget *self, const gp_widget_render_ctx *ctx, int new_wh)

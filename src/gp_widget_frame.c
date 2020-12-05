@@ -153,15 +153,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	unsigned int px = payload_off_x(ctx);
 	unsigned int py = payload_off_y(self, ctx);
 
-	ev->cursor_x -= px;
-	ev->cursor_y -= py;
-
-	int ret = gp_widget_ops_event(self->frame->widget, ctx, ev);
-
-	ev->cursor_x += px;
-	ev->cursor_y += py;
-
-	return ret;
+	return gp_widget_ops_event_offset(self->frame->widget, ctx, ev, px, py);
 }
 
 static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,

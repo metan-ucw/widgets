@@ -57,18 +57,8 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	struct gp_widget_switch *s = self->switch_;
 	gp_widget *widget = s->layouts[s->active_layout];
-	int ret;
 
-	if (!widget)
-		return 0;
-
-	ev->cursor_x -= self->x;
-	ev->cursor_y -= self->y;
-	ret = gp_widget_ops_event(widget, ctx, ev);
-	ev->cursor_x += self->x;
-	ev->cursor_y += self->y;
-
-	return ret;
+	return gp_widget_ops_event_offset(widget, ctx, ev, self->x, self->y);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
