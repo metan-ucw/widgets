@@ -97,6 +97,8 @@ typedef struct gp_widget {
 
 		struct gp_widget_switch *switch_;
 
+		struct gp_widget_overlay *overlay;
+
 		void *payload;
 	};
 	char buf[];
@@ -119,6 +121,7 @@ enum gp_widget_type {
 	GP_WIDGET_FRAME,
 	GP_WIDGET_MARKUP,
 	GP_WIDGET_SWITCH,
+	GP_WIDGET_OVERLAY,
 	GP_WIDGET_MAX,
 };
 
