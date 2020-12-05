@@ -58,9 +58,9 @@ typedef struct gp_widget {
 	 */
 	unsigned int redraw_child:1;
 	/*
-	 * Redraw whole subtree if content of a container widget changed.
+	 * Redraw whole subtree, i.e. all children and their children, etc.
 	 */
-	unsigned int redraw_subtree:1;
+	unsigned int redraw_children:1;
 	unsigned int selected:1;
 	unsigned int input_events:1;
 

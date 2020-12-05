@@ -303,6 +303,9 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 {
 	const struct gp_widget_ops *ops;
 
+	if (flags & GP_WIDGET_REDRAW_CHILDREN)
+		flags = GP_WIDGET_REDRAW;
+
 	if (!self->redraw_child && !gp_widget_should_redraw(self, flags))
 		return;
 
@@ -329,6 +332,11 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 	GP_DEBUG(3, "rendering widget %p %s (%u) %ux%u %ux%u-%ux%u flags=%x",
 	         self, ops->id, self->type, x, y, self->x, self->y,
 	         self->w, self->h, flags);
+
+	if (self->redraw_children) {
+		self->redraw_children = 0;
+		flags |= GP_WIDGET_REDRAW_CHILDREN;
+	}
 
 	ops->render(self, offset, ctx, flags);
 
@@ -566,6 +574,15 @@ void gp_widget_redraw(gp_widget *self)
 	self->redraw = 1;
 
 	gp_widget_redraw_child(self->parent);
+}
+
+void gp_widget_redraw_children(gp_widget *self)
+{
+	GP_DEBUG(3, "Widget %p (%s) redraw_children=1", self, gp_widget_type_id(self));
+
+	self->redraw_children = 1;
+
+	gp_widget_redraw_child(self);
 }
 
 void gp_widget_resize(gp_widget *self)

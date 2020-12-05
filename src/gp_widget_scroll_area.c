@@ -218,11 +218,6 @@ static void render(gp_widget *self, const gp_offset *offset,
 	//TODO: Propagate flip
 	child_ctx.flip = NULL;
 
-	if (self->redraw_subtree) {
-		self->redraw_subtree = 0;
-		flags |= 1;
-	}
-
 	gp_widget_ops_render(area->widget, &child_offset, &child_ctx, flags);
 	gp_rect_xywh(ctx->buf, self->x + offset->x, self->y + offset->y, w, h, ctx->text_color);
 }
@@ -268,8 +263,8 @@ static void set_y_off(gp_widget *self, int y_off)
 
 	self->scroll->y_off = y_off;
 
-        gp_widget_redraw(self);
-	self->redraw_subtree = 1;
+	gp_widget_redraw(self);
+	gp_widget_redraw_children(self);
 }
 
 static void set_x_off(gp_widget *self, int x_off)
@@ -289,8 +284,8 @@ static void set_x_off(gp_widget *self, int x_off)
 
 	self->scroll->x_off = x_off;
 
-        gp_widget_redraw(self);
-	self->redraw_subtree = 1;
+	gp_widget_redraw(self);
+	gp_widget_redraw_children(self);
 }
 
 static void scrollbar_event_y(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
@@ -601,7 +596,7 @@ int gp_widget_scroll_area_move(gp_widget *self, gp_coord x_off, gp_coord y_off)
 		return ret;
 
 	gp_widget_redraw(self);
-	self->redraw_subtree = 1;
+	gp_widget_redraw_children(self);
 
 	return 1;
 }

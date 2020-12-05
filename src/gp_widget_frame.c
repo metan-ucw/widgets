@@ -76,8 +76,6 @@ static void render(gp_widget *self, const gp_offset *offset,
 	struct gp_widget_frame *frame = self->frame;
 	struct gp_widget *payload = frame->widget;
 
-	(void)flags;
-
 	if (gp_widget_should_redraw(self, flags)) {
 		gp_widget_ops_blit(ctx, x, y, w, h);
 
@@ -134,11 +132,6 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	if (!self->frame->widget)
 		return;
-
-	if (self->redraw_subtree) {
-		self->redraw_subtree = 0;
-		flags |= 1;
-	}
 
 	gp_offset widget_offset = {
 		.x = x + payload_off_x(ctx),

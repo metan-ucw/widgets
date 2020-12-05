@@ -89,11 +89,6 @@ static void render(gp_widget *self, const gp_offset *offset,
 	gp_fill_rect_xywh(ctx->buf, x + layout->x, y + layout->y + layout->h,
 	                  layout->w, self->h - layout->y - layout->h, ctx->bg_color);
 
-	if (self->redraw_subtree) {
-		flags |= 1;
-		self->redraw_subtree = 0;
-	}
-
 	gp_widget_ops_render(layout, &child_offset, ctx, flags);
 }
 
@@ -257,6 +252,5 @@ void gp_widget_switch_layout(gp_widget *self, unsigned int layout_nr)
 
 	s->active_layout = layout_nr;
 
-	self->redraw_subtree = 1;
-	gp_widget_redraw(self);
+	gp_widget_redraw_children(self);
 }

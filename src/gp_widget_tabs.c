@@ -175,11 +175,6 @@ static void render(gp_widget *self, const gp_offset *offset,
 	gp_fill_rect_xywh(ctx->buf, x + 1, spy + widget->y,
 	                  widget->x + ctx->padd - 1, widget->h, ctx->bg_color);
 
-	if (self->redraw_subtree) {
-		self->redraw_subtree = 0;
-		flags |= 1;
-	}
-
 	gp_coord px = payload_x(self, ctx) + offset->x;
 	gp_coord py = payload_y(self, ctx) + offset->y;
 
@@ -197,8 +192,8 @@ static void set_tab(gp_widget *self, unsigned int tab)
 		return;
 
 	self->tabs->active_tab = tab;
-	self->redraw_subtree = 1;
 	gp_widget_redraw(self);
+	gp_widget_redraw_children(self);
 }
 
 static gp_widget *active_tab_widget(gp_widget *self)

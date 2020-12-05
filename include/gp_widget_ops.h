@@ -32,6 +32,11 @@ typedef struct gp_offset {
 	gp_coord y;
 } gp_offset;
 
+enum gp_widget_render_flags {
+	GP_WIDGET_REDRAW = 0x01,
+	GP_WIDGET_REDRAW_CHILDREN = 0x02,
+};
+
 struct gp_widget_ops {
 	void (*free)(gp_widget *self);
 
@@ -148,6 +153,7 @@ int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *
 void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx,
                                    unsigned int w, unsigned int h, int new_wh);
 
+
 /**
  * @brief Marks an area to be blit on the screen from a buffer.
  *
@@ -168,9 +174,17 @@ static inline void gp_widget_ops_blit(const gp_widget_render_ctx *ctx,
 		*ctx->flip = gp_bbox_merge(*ctx->flip, gp_bbox_pack(x, y, w, h));
 }
 
+/**
+ * @brief Returns true if widget should be repainted.
+ *
+ * @self A widget.
+ * @flags Render flags passed down to the widget->render() function.
+ *
+ * @return Non-zero if widget should be repainted.
+ */
 static inline int gp_widget_should_redraw(gp_widget *self, int flags)
 {
-	return self->redraw || flags;
+	return self->redraw || (flags & GP_WIDGET_REDRAW);
 }
 
 /**
@@ -188,11 +202,34 @@ static inline int gp_widget_should_redraw(gp_widget *self, int flags)
 void gp_widget_calc_size(gp_widget *layout, const gp_widget_render_ctx *ctx,
                          unsigned int w, unsigned int h, int new_wh);
 
-/*
- * Marks widget to be resized, redrawn on next render event.
+/**
+ * @brief Redraw widget.
+ *
+ * Marks widget to be repainted on next update.
+ *
+ * @self A widget.
  */
 void gp_widget_redraw(gp_widget *self);
+
+/**
+ * @brief Resize widget.
+ *
+ * Marks widget to be resized on next update. The resize is propagated in the
+ * layout to the top. E.g. if widget has to grow, the whole layout will.
+ *
+ * @self A widget.
+ */
 void gp_widget_resize(gp_widget *self);
+
+/**
+ * @brief Redraw all child widgets.
+ *
+ * Marks all children to be repainted on next update. This is used internally
+ * by container widgets when layout has changed, e.g. tab has changed.
+ *
+ * @self A container widget.
+ */
+void gp_widget_redraw_children(gp_widget *self);
 
 /*
  * Resizes and redraws changed widgets.

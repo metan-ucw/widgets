@@ -87,11 +87,6 @@ static void render(gp_widget *self, const gp_offset *offset,
 		.y = y,
 	};
 
-	if (self->redraw_subtree) {
-		flags |= 1;
-		self->redraw_subtree = 0;
-	}
-
 	for (i = 0; i < gp_widget_overlay_widgets(self); i++) {
 		gp_widget *widget = self->overlay->stack[i].widget;
 
@@ -278,8 +273,7 @@ void gp_widget_overlay_hide(gp_widget *self, unsigned int stack_pos)
 
 	o->stack[stack_pos].hidden = 1;
 
-	self->redraw_subtree = 1;
-	gp_widget_redraw(self);
+	gp_widget_redraw_children(self);
 }
 
 void gp_widget_overlay_show(gp_widget *self, unsigned int stack_pos)
@@ -296,8 +290,7 @@ void gp_widget_overlay_show(gp_widget *self, unsigned int stack_pos)
 
 	o->stack[stack_pos].hidden = 0;
 
-	self->redraw_subtree = 1;
-	gp_widget_redraw(self);
+	gp_widget_redraw_children(self);
 }
 
 gp_widget *gp_widget_overlay_set(gp_widget *self, unsigned int stack_pos,
