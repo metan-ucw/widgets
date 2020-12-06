@@ -90,12 +90,11 @@ static void toggle(gp_widget *self)
 
 static void click(gp_widget *self, unsigned int padd, gp_event *ev)
 {
-	unsigned int min_x = self->x;
-	unsigned int max_x = self->x + self->w;
-	unsigned int min_y = self->y + padd;
-	unsigned int max_y = self->y + self->h - padd;
+	unsigned int max_x = self->w;
+	unsigned int min_y = padd;
+	unsigned int max_y = self->h - padd;
 
-	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
+	if (ev->cursor_x > max_x)
 		return;
 
 	if (ev->cursor_y < min_y || ev->cursor_y > max_y)

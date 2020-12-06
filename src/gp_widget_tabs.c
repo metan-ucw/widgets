@@ -228,8 +228,8 @@ static void tab_right(gp_widget *self)
 static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	if (self->tabs->widget_selected) {
-		unsigned int px = payload_x(self, ctx);
-		unsigned int py = payload_y(self, ctx);
+		unsigned int px = payload_x(self, ctx) - self->x;
+		unsigned int py = payload_y(self, ctx) - self->y;
 
 		return gp_widget_ops_event_offset(active_tab_widget(self), ctx, ev, px, py);
 	}

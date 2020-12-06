@@ -112,10 +112,10 @@ static void key_down(gp_widget *self)
 
 static void radio_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	unsigned int min_x = self->x;
-	unsigned int max_x = self->x + self->w;
-	unsigned int min_y = self->y + ctx->padd;
-	unsigned int max_y = self->y + self->h - ctx->padd;
+	unsigned int min_x = 0;
+	unsigned int max_x = self->w;
+	unsigned int min_y = ctx->padd;
+	unsigned int max_y = self->h - ctx->padd;
 	unsigned int text_h = gp_text_ascent(ctx->font) + ctx->padd;
 
 	if (ev->cursor_x < min_x || ev->cursor_x > max_x)

@@ -68,15 +68,10 @@ static void set(gp_widget *self)
 
 static void click(gp_widget *self, gp_event *ev)
 {
-	unsigned int min_x = self->x;
-	unsigned int max_x = self->x + self->w;
-	unsigned int min_y = self->y;
-	unsigned int max_y = self->y + self->h;
-
-	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
+	if (ev->cursor_x > self->w)
 		return;
 
-	if (ev->cursor_y < min_y || ev->cursor_y > max_y)
+	if (ev->cursor_y > self->h)
 		return;
 
 	set(self);

@@ -247,16 +247,15 @@ static void spin_dec(gp_widget *self)
 static void spin_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	unsigned int s = gp_text_max_width(ctx->font, 1);
-	unsigned int min_x = self->x + self->w - s;
-	unsigned int max_x = self->x + self->w;
-	unsigned int min_y = self->y;
-	unsigned int max_y = self->y + self->h;
-	unsigned int mid_y = (min_y + max_y) / 2;
+	unsigned int min_x = self->w - s;
+	unsigned int max_x = self->w;
+	unsigned int max_y = self->h;
+	unsigned int mid_y = max_y / 2;
 
 	if (ev->cursor_x < min_x || ev->cursor_x > max_x)
 		return;
 
-	if (ev->cursor_y < min_y || ev->cursor_y > max_y)
+	if (ev->cursor_y > max_y)
 		return;
 
 	if (ev->cursor_y < mid_y)
@@ -419,8 +418,6 @@ static int coord_to_val(gp_widget *self, int coord,
 	return ((coord - 2 - ascent/2) * steps + div/2) / div;
 }
 
-#define IS_IN_RANGE(i, min, len) ((i) >= (min) && (i) <= ((min) + (len)))
-
 static void slider_set_val(gp_widget *self, unsigned int ascent, gp_event *ev)
 {
 	int val = 0;
@@ -429,20 +426,20 @@ static void slider_set_val(gp_widget *self, unsigned int ascent, gp_event *ev)
 	if (ev->type == GP_EV_REL && !gp_event_get_key(ev, GP_BTN_LEFT))
 		return;
 
-	if (!IS_IN_RANGE(ev->cursor_x, self->x, self->w))
+	if (ev->cursor_x > self->w)
 		return;
 
-	if (!IS_IN_RANGE(ev->cursor_y, self->y, self->h))
+	if (ev->cursor_y > self->h)
 		return;
 
 	switch (self->slider->dir) {
 	case GP_WIDGET_HORIZ:
-		coord = (int)ev->cursor_x - (int)self->x;
+		coord = (int)ev->cursor_x;
 		val = coord_to_val(self, coord, ascent, self->w);
 	break;
 	case GP_WIDGET_VERT:
-		coord = (int)self->h - ((int)ev->cursor_y - (int)self->y);
-		val = coord_to_val(self, coord, ascent,self->h);
+		coord = (int)self->h - ((int)ev->cursor_y);
+		val = coord_to_val(self, coord, ascent, self->h);
 	break;
 	}
 

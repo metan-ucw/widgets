@@ -22,8 +22,8 @@ static void draw(gp_widget *pixmap, gp_event *ev)
 	     ev->key.key != GP_BTN_PEN))
 		return;
 
-	gp_coord x = ev->cursor_x - pixmap->x;
-	gp_coord y = ev->cursor_y - pixmap->y;
+	gp_coord x = ev->cursor_x;
+	gp_coord y = ev->cursor_y;
 
 	gp_pixmap *p = pixmap->pixmap->pixmap;
 

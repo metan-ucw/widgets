@@ -313,7 +313,7 @@ redraw:
 static int header_click(gp_widget *self, const gp_widget_render_ctx *ctx, unsigned int x)
 {
 	gp_widget_table *tbl = self->tbl;
-	unsigned int i, cx = self->x;
+	unsigned int i, cx = 0;
 
 	//TODO: inverval division?
 	for (i = 0; i < tbl->cols-1; i++) {
@@ -345,7 +345,7 @@ static int header_click(gp_widget *self, const gp_widget_render_ctx *ctx, unsign
 static int row_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	gp_widget_table *tbl = self->tbl;
-	unsigned int row = ev->cursor_y - self->y - header_h(self, ctx);
+	unsigned int row = ev->cursor_y - header_h(self, ctx);
 
 	row /= row_h(ctx) + tbl->start_row;
 	tbl->selected_row = row;
@@ -359,7 +359,7 @@ static int row_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event 
 
 static int click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	if (ev->cursor_y <= self->y + header_h(self, ctx))
+	if (ev->cursor_y <= header_h(self, ctx))
 		return header_click(self, ctx, ev->cursor_x);
 
 	return row_click(self, ctx, ev);

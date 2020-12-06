@@ -511,7 +511,13 @@ int gp_widget_ops_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_eve
 	GP_DEBUG(3, "Event widget %p (%s) (cursor %ux%u)",
 	         self, ops->id, ev->cursor_x, ev->cursor_y);
 
+	ev->cursor_x -= self->x;
+	ev->cursor_y -= self->y;
+
 	handled = ops->event(self, ctx, ev);
+
+	ev->cursor_x += self->x;
+	ev->cursor_y += self->y;
 
 	if (!handled)
 		handled = gp_widget_send_event(self, GP_WIDGET_EVENT_INPUT, ctx, ev);

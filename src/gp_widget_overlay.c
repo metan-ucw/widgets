@@ -65,7 +65,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	gp_widget *widget = get_selected_widget(self);
 
-	return gp_widget_ops_event_offset(widget, ctx, ev, self->x, self->y);
+	return gp_widget_ops_event_offset(widget, ctx, ev, 0, 0);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,

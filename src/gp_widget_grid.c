@@ -468,6 +468,9 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 
 	widget_grid_selected_offset(self, &offset);
 
+	offset.x -= self->x;
+	offset.y -= self->y;
+
 	return gp_widget_ops_event_offset(w, ctx, ev, offset.x, offset.y);
 }
 

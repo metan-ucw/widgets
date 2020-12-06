@@ -292,7 +292,7 @@ static void scrollbar_event_y(gp_widget *self, const gp_widget_render_ctx *ctx, 
 {
 	gp_size asc = gp_text_ascent(ctx->font);
 	gp_size gh = scrollbar_h(self, ctx) - asc;
-	gp_coord y = ev->cursor_y - self->y - asc/2;
+	gp_coord y = ev->cursor_y - asc/2;
 
 	if (y < 0)
 		y = 0;
@@ -307,7 +307,7 @@ static void scrollbar_event_x(gp_widget *self, const gp_widget_render_ctx *ctx, 
 {
 	gp_size asc = gp_text_ascent(ctx->font);
 	gp_size gw = scrollbar_w(self, ctx) - asc;
-	gp_coord x = ev->cursor_x - self->x - asc/2;
+	gp_coord x = ev->cursor_x - asc/2;
 
 	if (x < 0)
 		x = 0;
