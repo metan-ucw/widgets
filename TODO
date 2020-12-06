@@ -9,8 +9,6 @@
 * Shall we filter mouse clicks & touch events if the coordinates are outside of
   the widget? Many widgets do that in their event handlers anyways
 
-* Key Repeat events for buttons?
-
 * Scroll arrea handle scrolling input events
 
 * Textbox clicks

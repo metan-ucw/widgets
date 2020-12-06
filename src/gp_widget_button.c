@@ -83,7 +83,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 
 	switch (ev->type) {
 	case GP_EV_KEY:
-		if (ev->code != GP_EV_KEY_DOWN)
+		if (ev->code == GP_EV_KEY_UP)
 			return 0;
 
 		switch (ev->val) {
