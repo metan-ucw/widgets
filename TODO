@@ -10,3 +10,7 @@
   the widget? Many widgets do that in their event handlers anyways
 
 * Key Repeat events for buttons?
+
+* Scroll arrea handle scrolling input events
+
+* Textbox clicks
