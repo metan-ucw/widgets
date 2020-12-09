@@ -226,13 +226,58 @@ static gp_widget *gp_widgets_from_json(json_object *json, void **uids)
 	return ret;
 }
 
+static void print_err(const char *path, const char *err, size_t bytes_consumed)
+{
+	FILE *f;
+	char line[2048];
+	size_t off = 0, lineno = 0, errlineno = 0;
+
+	f = fopen(path, "r");
+	if (!f)
+		goto err;
+
+	for (;;) {
+		if (!fgets(line, sizeof(line), f))
+			goto err;
+
+		off += strlen(line);
+		errlineno++;
+
+		if (off >= bytes_consumed)
+			break;
+	}
+
+	rewind(f);
+
+	fprintf(stderr, "%s:\n\n", path);
+
+	for (;;) {
+		if (!fgets(line, sizeof(line), f))
+			goto err;
+
+		lineno++;
+
+		if (lineno + 5 > errlineno)
+			fprintf(stderr, "%3zu: %s", lineno, line);
+
+		if (lineno == errlineno)
+			break;
+	}
+
+	fprintf(stderr, "\nerror: %zu: %s\n\n", errlineno, err);
+	return;
+err:
+	fclose(f);
+	GP_WARN("json_tokener_parse_ex(): %s: %zu", err, bytes_consumed);
+}
+
 gp_widget *gp_widget_layout_json(const char *path, void **uids)
 {
 	struct json_tokener *tok;
 	int fd;
 	json_object *json = NULL;
 	char buf[2048];
-	size_t size;
+	size_t size, bytes_consumed = 0;
 	gp_widget *ret = NULL;
 
 	if (uids)
@@ -255,14 +300,20 @@ gp_widget *gp_widget_layout_json(const char *path, void **uids)
 		json = json_tokener_parse_ex(tok, buf, size);
 		err = json_tokener_get_error(tok);
 
+		bytes_consumed += tok->char_offset;
+
 		switch (err) {
 		case json_tokener_continue:
 		break;
 		case json_tokener_success:
+			if ((size_t)tok->char_offset != size) {
+				print_err(path, "garbage after end", bytes_consumed + 1);
+				goto err2;
+			}
+
 			goto done;
 		default:
-			GP_WARN("json_tokener_parse_ex(): %s: %i",
-				json_tokener_error_desc(err), tok->char_offset);
+			print_err(path, json_tokener_error_desc(err), bytes_consumed);
 			goto err2;
 		}
 	}
