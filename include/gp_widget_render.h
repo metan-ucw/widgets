@@ -66,32 +66,77 @@ extern struct gp_fds *gp_widgets_fds;
 void gp_widget_render_timer(gp_widget *self, int flags, unsigned int timeout_ms);
 void gp_widget_render_timer_cancel(gp_widget *self);
 
+/**
+ * @brief Returns a pointer to the current render context.
+ *
+ * @return A render context.
+ */
 const gp_widget_render_ctx *gp_widgets_render_ctx(void);
 
-/*
- * Parses options, returns positional arguments, e.g. paths.
+/**
+ * @brief Parses options, returns positional arguments, e.g. paths.
+ *
+ * @argc A pointer to main() arguments count.
+ * @argv A pointer to an main() arguments array.
  */
 void gp_widgets_getopt(int *argc, char **argv[]);
 
-/*
- * Register application event callback.
+/**
+ * @brief Register application event callback.
  *
  * All input events that are not handled by the widget library are passed to
  * the callback registered by this function.
+ *
+ * @on_event An event callback.
  */
-void gp_widgets_register_callback(int (*event_callback)(gp_event *));
+void gp_widgets_register_callback(int (*on_event)(gp_event *));
 
+/**
+ * @brief Widgets main loop.
+ *
+ * Renders a widget layout on a screen or into an window, handles input events,
+ * etc. This function does not return.
+ *
+ * @layout A widget layout to show.
+ * @label Application label.
+ * @init An init function.
+ * @argc A main() argc.
+ * @argv A main() argv.
+ */
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
-                        void (*init)(void), int argc, char *argv[]);
+                          void (*init)(void), int argc, char *argv[]);
 
-int gp_widgets_process_events(gp_widget *layout);
-
-void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle);
-
+/**
+ * @brief Replace a application layout.
+ *
+ * @layout New application widget layout.
+ *
+ * @return An old application layout.
+ */
 gp_widget *gp_widget_layout_replace(gp_widget *layout);
 
+/*
+ * TODO: Obsolete?
+ */
 void gp_widgets_redraw(gp_widget *layout);
 
+/*
+ * TODO: Obsolete?
+ */
+int gp_widgets_process_events(gp_widget *layout);
+
+/*
+ * TODO: Obsolete?
+ */
+void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle);
+
+/**
+ * @brief Increases/decreases font sizes, etc.
+ *
+ * TODO: Broken.
+ *
+ * @zoom_inc A zoom increment.
+ */
 void gp_widget_render_zoom(int zoom_inc);
 
 #endif /* GP_WIDGET_RENDER_H__ */
