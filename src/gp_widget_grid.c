@@ -647,14 +647,14 @@ static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
 	int col, row;
 	struct gp_widget_grid *grid = self->grid;
 
-	col = coord_search(x, grid->cols_w, grid->cols_off, grid->cols);
-	row = coord_search(y, grid->rows_h, grid->rows_off, grid->rows);
+	col = coord_search(x + self->x, grid->cols_w, grid->cols_off, grid->cols);
+	row = coord_search(y + self->y, grid->rows_h, grid->rows_off, grid->rows);
 
 	if (col < 0 || row < 0)
 		return 0;
 
-	x -= self->grid->cols_off[col];
-	y -= self->grid->rows_off[row];
+	x -= self->grid->cols_off[col] - self->x;
+	y -= self->grid->rows_off[row] - self->y;
 
 	if (!gp_widget_ops_render_select_xy(widget_grid_get(self, col, row), ctx, x, y))
 		return 0;

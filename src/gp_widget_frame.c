@@ -153,8 +153,8 @@ static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                      unsigned int x, unsigned int y)
 {
 	return gp_widget_ops_render_select_xy(self->frame->widget, ctx,
-	                                      x - payload_off_x(ctx) - self->x,
-	                                      y - payload_off_y(self, ctx) - self->y);
+	                                      x - payload_off_x(ctx),
+	                                      y - payload_off_y(self, ctx));
 }
 
 static int select_ev(gp_widget *self, int sel)

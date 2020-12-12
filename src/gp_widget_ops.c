@@ -401,8 +401,11 @@ int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *
 	if (!ops->event)
 		return 0;
 
-	if (ops->select_xy)
+	if (ops->select_xy) {
+		x -= self->x;
+		y -= self->y;
 		return ops->select_xy(self, ctx, x, y);
+	}
 
 	if (self->selected)
 		return 0;

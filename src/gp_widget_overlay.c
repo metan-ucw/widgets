@@ -194,19 +194,12 @@ static int select_ev(gp_widget *self, int sel)
 static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                      unsigned int x, unsigned int y)
 {
-	int ret;
 	gp_widget *widget = select_widget_by_xy(self, x, y);
 
 	if (!widget)
 		return 0;
 
-	x -= self->x;
-	y -= self->y;
-	ret = gp_widget_ops_render_select_xy(widget, ctx, x, y);
-	x += self->x;
-	y += self->y;
-
-	return ret;
+	return gp_widget_ops_render_select_xy(widget, ctx, x, y);
 }
 
 struct gp_widget_ops gp_widget_overlay_ops = {
