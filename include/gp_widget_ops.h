@@ -14,15 +14,15 @@
 #include <gp_bbox.h>
 #include <gp_widget_render.h>
 
-enum gp_widget_select_flag {
-	GP_SELECT_OUT,
-	GP_SELECT_IN,
-	GP_SELECT_LEFT,
-	GP_SELECT_RIGHT,
-	GP_SELECT_UP,
-	GP_SELECT_DOWN,
-	GP_SELECT_NEXT,
-	GP_SELECT_PREV,
+enum gp_widget_focus_flag {
+	GP_FOCUS_OUT,
+	GP_FOCUS_IN,
+	GP_FOCUS_LEFT,
+	GP_FOCUS_RIGHT,
+	GP_FOCUS_UP,
+	GP_FOCUS_DOWN,
+	GP_FOCUS_NEXT,
+	GP_FOCUS_PREV,
 };
 
 struct json_object;
@@ -60,12 +60,12 @@ struct gp_widget_ops {
 	/*
 	 * Moves to focused widget.
 	 */
-	int (*select)(gp_widget *self, int select);
+	int (*focus)(gp_widget *self, int focus_dir);
 
 	/*
 	 * Moves focus to widget on x, y coordinates.
 	 */
-	int (*select_xy)(gp_widget *self, const gp_widget_render_ctx *ctx,
+	int (*focus_xy)(gp_widget *self, const gp_widget_render_ctx *ctx,
 	                 unsigned int x, unsigned int y);
 
 	/*
@@ -145,10 +145,28 @@ int gp_widget_ops_event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_eve
 int gp_widget_ops_event_offset(gp_widget *self, const gp_widget_render_ctx *ctx,
                                gp_event *ev, gp_size off_x, gp_size off_y);
 
-int gp_widget_ops_render_select(gp_widget *self, int flag);
+/**
+ * @brief Moves focus, if possible, in the direction requested by the focus_dir.
+ *
+ * @self A widget layout.
+ * @focus_dir Direction to move the focus to.
+ *
+ * @return Zero if focus couldn't be moved, non-zero otherwise.
+ */
+int gp_widget_ops_render_focus(gp_widget *self, int focus_dir);
 
-int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
-                                   unsigned int x, unsigned int y);
+/**
+ * @brief Tries to focus a widget on a given coordinates in a layout.
+ *
+ * @self A widget layout.
+ * @ctx A render context.
+ * @x X coordinate.
+ * @y Y coordinate.
+ *
+ * @return Zero if focus wasn't changed, non-zero otherwise.
+ */
+int gp_widget_ops_render_focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+                                  unsigned int x, unsigned int y);
 
 void gp_widget_ops_distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx,
                                    unsigned int w, unsigned int h, int new_wh);

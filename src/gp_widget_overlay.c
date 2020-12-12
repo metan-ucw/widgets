@@ -53,17 +53,17 @@ static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx,
 	}
 }
 
-static gp_widget *get_selected_widget(gp_widget *self)
+static gp_widget *get_focused_widget(gp_widget *self)
 {
-	if (self->overlay->selected < 0)
+	if (self->overlay->focused < 0)
 		return NULL;
 
-	return self->overlay->stack[self->overlay->selected].widget;
+	return self->overlay->stack[self->overlay->focused].widget;
 }
 
 static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	gp_widget *widget = get_selected_widget(self);
+	gp_widget *widget = get_focused_widget(self);
 
 	return gp_widget_ops_event_offset(widget, ctx, ev, 0, 0);
 }
@@ -135,7 +135,7 @@ static gp_widget *json_to_overlay(json_object *json, void **uids)
 	return ret;
 }
 
-static gp_widget *select_widget_by_xy(gp_widget *self, unsigned int x, unsigned int y)
+static gp_widget *focus_widget_by_xy(gp_widget *self, unsigned int x, unsigned int y)
 {
 	int i;
 
@@ -148,7 +148,7 @@ static gp_widget *select_widget_by_xy(gp_widget *self, unsigned int x, unsigned 
 		if (x >= widget->x && y >= widget->y &&
 		    x < widget->x + widget->w &&
 		    y < widget->y + widget->w) {
-			self->overlay->selected = i;
+			self->overlay->focused = i;
 			return widget;
 		}
 	}
@@ -167,19 +167,19 @@ static void free_(gp_widget *self)
 	gp_vec_free(o->stack);
 }
 
-static int select_ev(gp_widget *self, int sel)
+static int focus(gp_widget *self, int sel)
 {
 	int i;
 
-	if (self->overlay->selected < 0) {
+	if (self->overlay->focused < 0) {
 		for (i = gp_widget_overlay_widgets(self) - 1; i > 0; i--) {
 			gp_widget *widget = self->overlay->stack[i].widget;
 
 			if (self->overlay->stack[i].hidden)
 				continue;
 
-			if (gp_widget_ops_render_select(widget, sel)) {
-				self->overlay->selected = i;
+			if (gp_widget_ops_render_focus(widget, sel)) {
+				self->overlay->focused = i;
 				return 1;
 			}
 
@@ -188,18 +188,18 @@ static int select_ev(gp_widget *self, int sel)
 		return 0;
 	}
 
-	return gp_widget_ops_render_select(get_selected_widget(self), sel);
+	return gp_widget_ops_render_focus(get_focused_widget(self), sel);
 }
 
-static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
-                     unsigned int x, unsigned int y)
+static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+                    unsigned int x, unsigned int y)
 {
-	gp_widget *widget = select_widget_by_xy(self, x, y);
+	gp_widget *widget = focus_widget_by_xy(self, x, y);
 
 	if (!widget)
 		return 0;
 
-	return gp_widget_ops_render_select_xy(widget, ctx, x, y);
+	return gp_widget_ops_render_focus_xy(widget, ctx, x, y);
 }
 
 struct gp_widget_ops gp_widget_overlay_ops = {
@@ -207,8 +207,8 @@ struct gp_widget_ops gp_widget_overlay_ops = {
 	.min_h = min_h,
 	.distribute_size = distribute_size,
 	.event = event,
-	.select = select_ev,
-	.select_xy = select_xy,
+	.focus = focus,
+	.focus_xy = focus_xy,
 	.free = free_,
 	.render = render,
 	.from_json = json_to_overlay,
@@ -230,7 +230,7 @@ gp_widget *gp_widget_overlay_new(unsigned int stack_size)
 		return NULL;
 	}
 
-	ret->overlay->selected = -1;
+	ret->overlay->focused = -1;
 
 	return ret;
 }

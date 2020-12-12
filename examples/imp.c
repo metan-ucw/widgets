@@ -178,7 +178,7 @@ static const char *get_elem(gp_widget *self, unsigned int col)
 
 static void table_event(gp_widget_table *tbl)
 {
-	gp_dir_entry *entry = gp_dir_cache_get_filtered(tbl->priv, tbl->selected_row);
+	gp_dir_entry *entry = gp_dir_cache_get_filtered(tbl->priv, tbl->focused_row);
 
 	if (!entry) {
 		GP_BUG("Empty entry!");

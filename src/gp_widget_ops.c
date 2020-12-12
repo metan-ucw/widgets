@@ -349,49 +349,49 @@ void gp_widget_ops_render(gp_widget *self, const gp_offset *offset,
 	//gp_rect_xywh(render->buf, x, y, self->w, self->h, 0x00ff00);
 }
 
-static void select_widget(gp_widget *self, int sel)
+static void focus_widget(gp_widget *self, int sel)
 {
 	if (!self)
 		return;
 
-	if (self->selected == sel)
+	if (self->focused == sel)
 		return;
 
-	self->selected = sel;
+	self->focused = sel;
 
 	gp_widget_redraw(self);
 }
 
-static const char *select_to_str(int flag)
+static const char *focus_to_str(int flag)
 {
 	switch (flag) {
-	case GP_SELECT_OUT:
-		return "select_out";
-	case GP_SELECT_IN:
-		return "select_in";
-	case GP_SELECT_NEXT:
-		return "select_next";
-	case GP_SELECT_PREV:
-		return "select_prev";
-	case GP_SELECT_LEFT:
-		return "select_left";
-	case GP_SELECT_RIGHT:
-		return "select_right";
-	case GP_SELECT_UP:
-		return "select_up";
-	case GP_SELECT_DOWN:
-		return "select_down";
+	case GP_FOCUS_OUT:
+		return "focus_out";
+	case GP_FOCUS_IN:
+		return "focus_in";
+	case GP_FOCUS_NEXT:
+		return "focus_next";
+	case GP_FOCUS_PREV:
+		return "focus_prev";
+	case GP_FOCUS_LEFT:
+		return "focus_left";
+	case GP_FOCUS_RIGHT:
+		return "focus_right";
+	case GP_FOCUS_UP:
+		return "focus_up";
+	case GP_FOCUS_DOWN:
+		return "focus_down";
 	}
 
 	return "???";
 }
 
-int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
-                                   unsigned int x, unsigned int y)
+int gp_widget_ops_render_focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+                                  unsigned int x, unsigned int y)
 {
 	const struct gp_widget_ops *ops;
 
-	GP_DEBUG(3, "select event %p (%s) %ux%u",
+	GP_DEBUG(3, "focus event %p (%s) %ux%u",
 		 self, gp_widget_type_id(self), x, y);
 
 	if (!self)
@@ -401,25 +401,25 @@ int gp_widget_ops_render_select_xy(gp_widget *self, const gp_widget_render_ctx *
 	if (!ops->event)
 		return 0;
 
-	if (ops->select_xy) {
+	if (ops->focus_xy) {
 		x -= self->x;
 		y -= self->y;
-		return ops->select_xy(self, ctx, x, y);
+		return ops->focus_xy(self, ctx, x, y);
 	}
 
-	if (self->selected)
+	if (self->focused)
 		return 0;
 
-	select_widget(self, 1);
+	focus_widget(self, 1);
 	return 1;
 }
 
-int gp_widget_ops_render_select(gp_widget *self, int flag)
+int gp_widget_ops_render_focus(gp_widget *self, int focus_dir)
 {
 	const struct gp_widget_ops *ops;
 
-	GP_DEBUG(3, "select event %p (%s) %s",
-		 self, gp_widget_type_id(self), select_to_str(flag));
+	GP_DEBUG(3, "focus event %p (%s) %s",
+		 self, gp_widget_type_id(self), focus_to_str(focus_dir));
 
 	if (!self)
 		return 0;
@@ -429,22 +429,22 @@ int gp_widget_ops_render_select(gp_widget *self, int flag)
 	if (!ops->event)
 		return 0;
 
-	if (ops->select)
-		return ops->select(self, flag);
+	if (ops->focus)
+		return ops->focus(self, focus_dir);
 
-	if (flag) {
-		if (self->selected)
+	if (focus_dir) {
+		if (self->focused)
 			return 0;
 
-		select_widget(self, 1);
+		focus_widget(self, 1);
 		return 1;
 	}
 
-	select_widget(self, 0);
+	focus_widget(self, 0);
 	return 1;
 }
 
-static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
+static int handle_focus(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
 	switch (ev->type) {
 	case GP_EV_KEY:
@@ -455,14 +455,14 @@ static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_ev
 		case GP_KEY_TAB:
 			if (gp_event_get_key(ev, GP_KEY_LEFT_SHIFT) ||
 			    gp_event_get_key(ev, GP_KEY_RIGHT_SHIFT))
-				gp_widget_ops_render_select(self, GP_SELECT_PREV);
+				gp_widget_ops_render_focus(self, GP_FOCUS_PREV);
 			else
-				gp_widget_ops_render_select(self, GP_SELECT_NEXT);
+				gp_widget_ops_render_focus(self, GP_FOCUS_NEXT);
 
 			return 1;
 		case GP_BTN_PEN:
 		case GP_BTN_LEFT:
-			gp_widget_ops_render_select_xy(self, ctx, ev->cursor_x, ev->cursor_y);
+			gp_widget_ops_render_focus_xy(self, ctx, ev->cursor_x, ev->cursor_y);
 			return 0;
 		}
 
@@ -472,16 +472,16 @@ static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_ev
 
 		switch (ev->val) {
 		case GP_KEY_LEFT:
-			gp_widget_ops_render_select(self, GP_SELECT_LEFT);
+			gp_widget_ops_render_focus(self, GP_FOCUS_LEFT);
 			return 1;
 		case GP_KEY_RIGHT:
-			gp_widget_ops_render_select(self, GP_SELECT_RIGHT);
+			gp_widget_ops_render_focus(self, GP_FOCUS_RIGHT);
 			return 1;
 		case GP_KEY_UP:
-			gp_widget_ops_render_select(self, GP_SELECT_UP);
+			gp_widget_ops_render_focus(self, GP_FOCUS_UP);
 			return 1;
 		case GP_KEY_DOWN:
-			gp_widget_ops_render_select(self, GP_SELECT_DOWN);
+			gp_widget_ops_render_focus(self, GP_FOCUS_DOWN);
 			return 1;
 		}
 	break;
@@ -493,7 +493,7 @@ static int handle_select(gp_widget *self, const gp_widget_render_ctx *ctx, gp_ev
 int gp_widget_input_event(gp_widget *self, const gp_widget_render_ctx *ctx,
                           gp_event *ev)
 {
-	if (handle_select(self, ctx, ev))
+	if (handle_focus(self, ctx, ev))
 		return 1;
 
 	return gp_widget_ops_event(self, ctx, ev);

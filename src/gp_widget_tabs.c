@@ -137,7 +137,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 			act_w = w;
 		}
 
-		if (is_active && self->tabs->title_selected) {
+		if (is_active && self->tabs->title_focused) {
 			gp_hline_xyw(ctx->buf,
 				    cur_x + ctx->padd/2,
 				    y + tab_h - ctx->padd,
@@ -227,14 +227,14 @@ static void tab_right(gp_widget *self)
 
 static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	if (self->tabs->widget_selected) {
+	if (self->tabs->widget_focused) {
 		unsigned int px = payload_x(self, ctx) - self->x;
 		unsigned int py = payload_y(self, ctx) - self->y;
 
 		return gp_widget_ops_event_offset(active_tab_widget(self), ctx, ev, px, py);
 	}
 
-	if (!self->tabs->title_selected)
+	if (!self->tabs->title_focused)
 		return 0;
 
 	switch (ev->type) {
@@ -258,91 +258,91 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	return 0;
 }
 
-static int select_out(gp_widget *self)
+static int focus_out(gp_widget *self)
 {
-	if (self->tabs->widget_selected)
-		return gp_widget_ops_render_select(active_tab_widget(self), GP_SELECT_OUT);
+	if (self->tabs->widget_focused)
+		return gp_widget_ops_render_focus(active_tab_widget(self), GP_FOCUS_OUT);
 
-	if (self->tabs->title_selected) {
-		self->tabs->title_selected = 0;
+	if (self->tabs->title_focused) {
+		self->tabs->title_focused = 0;
 		gp_widget_redraw(self);
 	}
 
 	return 0;
 }
 
-static int select_prev(gp_widget *self)
+static int focus_prev(gp_widget *self)
 {
 	gp_widget *w = active_tab_widget(self);
 
-	if (self->tabs->title_selected)
+	if (self->tabs->title_focused)
 		return 0;
 
-	if (self->tabs->widget_selected) {
-		gp_widget_ops_render_select(w, GP_SELECT_OUT);
-		self->tabs->widget_selected = 0;
-		self->tabs->title_selected = 1;
+	if (self->tabs->widget_focused) {
+		gp_widget_ops_render_focus(w, GP_FOCUS_OUT);
+		self->tabs->widget_focused = 0;
+		self->tabs->title_focused = 1;
 		gp_widget_redraw(self);
 		return 1;
 	}
 
-	if (gp_widget_ops_render_select(w, GP_SELECT_IN))
+	if (gp_widget_ops_render_focus(w, GP_FOCUS_IN))
 		return 1;
 
-	self->tabs->title_selected = 1;
+	self->tabs->title_focused = 1;
 	gp_widget_redraw(self);
 	return 1;
 }
 
-static int select_next(gp_widget *self)
+static int focus_next(gp_widget *self)
 {
 	gp_widget *w = active_tab_widget(self);
 
-	if (self->tabs->title_selected) {
-		if (!gp_widget_ops_render_select(w, GP_SELECT_IN))
+	if (self->tabs->title_focused) {
+		if (!gp_widget_ops_render_focus(w, GP_FOCUS_IN))
 			return 0;
-		self->tabs->title_selected = 0;
-		self->tabs->widget_selected = 1;
+		self->tabs->title_focused = 0;
+		self->tabs->widget_focused = 1;
 		gp_widget_redraw(self);
 		return 1;
 	}
 
-	if (self->tabs->widget_selected)
+	if (self->tabs->widget_focused)
 		return 0;
 
-	self->tabs->title_selected = 1;
+	self->tabs->title_focused = 1;
 	gp_widget_redraw(self);
 	return 1;
 }
 
-static int select_event(gp_widget *self, int sel)
+static int focus(gp_widget *self, int sel)
 {
 	gp_widget *w = active_tab_widget(self);
 
-	if (self->tabs->widget_selected) {
-		if (gp_widget_ops_render_select(w, sel))
+	if (self->tabs->widget_focused) {
+		if (gp_widget_ops_render_focus(w, sel))
 			return 1;
 	}
 
 	switch (sel) {
-	case GP_SELECT_OUT:
-		return select_out(self);
-	case GP_SELECT_LEFT:
+	case GP_FOCUS_OUT:
+		return focus_out(self);
+	case GP_FOCUS_LEFT:
 		return 0;
-	case GP_SELECT_RIGHT:
+	case GP_FOCUS_RIGHT:
 		return 0;
-	case GP_SELECT_UP:
-	case GP_SELECT_PREV:
-		return select_prev(self);
-	case GP_SELECT_DOWN:
-	case GP_SELECT_NEXT:
-		return select_next(self);
+	case GP_FOCUS_UP:
+	case GP_FOCUS_PREV:
+		return focus_prev(self);
+	case GP_FOCUS_DOWN:
+	case GP_FOCUS_NEXT:
+		return focus_next(self);
 	}
 
 	return 0;
 }
 
-static void select_tab(gp_widget *self, const gp_widget_render_ctx *ctx,
+static void focus_tab(gp_widget *self, const gp_widget_render_ctx *ctx,
                        unsigned int x)
 {
 	unsigned int i, cx = self->x;
@@ -363,43 +363,43 @@ static void select_tab(gp_widget *self, const gp_widget_render_ctx *ctx,
 }
 
 
-static int select_title(gp_widget *self, const gp_widget_render_ctx *ctx,
+static int focus_title(gp_widget *self, const gp_widget_render_ctx *ctx,
                         unsigned int x)
 {
-	self->tabs->title_selected = 1;
+	self->tabs->title_focused = 1;
 
-	if (self->tabs->widget_selected) {
-		gp_widget_ops_render_select(active_tab_widget(self), GP_SELECT_OUT);
-		self->tabs->widget_selected = 0;
+	if (self->tabs->widget_focused) {
+		gp_widget_ops_render_focus(active_tab_widget(self), GP_FOCUS_OUT);
+		self->tabs->widget_focused = 0;
 	}
 
-	select_tab(self, ctx, x);
+	focus_tab(self, ctx, x);
 
 	return 1;
 }
 
-static int select_widget(gp_widget *self, const gp_widget_render_ctx *ctx,
+static int focus_widget(gp_widget *self, const gp_widget_render_ctx *ctx,
                          unsigned int x, unsigned int y)
 {
-	if (!gp_widget_ops_render_select_xy(active_tab_widget(self), ctx, x, y))
+	if (!gp_widget_ops_render_focus_xy(active_tab_widget(self), ctx, x, y))
 		return 0;
 
-	if (self->tabs->title_selected) {
-		self->tabs->title_selected = 0;
+	if (self->tabs->title_focused) {
+		self->tabs->title_focused = 0;
 		gp_widget_redraw(self);
 	}
 
-	self->tabs->widget_selected = 1;
+	self->tabs->widget_focused = 1;
 	return 1;
 }
 
-static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
-                     unsigned int x, unsigned int y)
+static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+                    unsigned int x, unsigned int y)
 {
 	if (y > self->y + title_h(self, ctx))
-		return select_widget(self, ctx, x - payload_x(self, ctx), y - payload_y(self, ctx));
+		return focus_widget(self, ctx, x - payload_x(self, ctx), y - payload_y(self, ctx));
 
-	return select_title(self, ctx, x);
+	return focus_title(self, ctx, x);
 }
 
 static gp_widget *json_to_tabs(json_object *json, void **uids)
@@ -480,8 +480,8 @@ struct gp_widget_ops gp_widget_tabs_ops = {
 	.render = render,
 	.event = event,
 	.free = free_,
-	.select = select_event,
-	.select_xy = select_xy,
+	.focus = focus,
+	.focus_xy = focus_xy,
 	.distribute_size = distribute_size,
 	.from_json = json_to_tabs,
 	.id = "tabs",

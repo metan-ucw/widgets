@@ -65,7 +65,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 	else
 		str = self->tbox->buf;
 
-	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel color = self->focused ? ctx->sel_color : ctx->text_color;
 
 	if (self->tbox->alert) {
 		color = ctx->alert_color;
@@ -103,7 +103,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 		gp_line(ctx->buf, cx+s, cy, cx, cy+s, ctx->text_color);
 	}
 
-	if (self->selected) {
+	if (self->focused) {
 		unsigned int cursor_x = x + ctx->padd;
 		cursor_x += gp_text_width_len(ctx->font, str + left,
 		                              self->tbox->cur_pos - left);

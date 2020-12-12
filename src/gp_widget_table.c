@@ -145,7 +145,7 @@ static void header_render(gp_widget *self, gp_coord x, gp_coord y,
 
 	cy += text_a + ctx->padd;
 
-	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel color = self->focused ? ctx->sel_color : ctx->text_color;
 
 	gp_hline_xyw(ctx->buf, x, cy, self->w, color);
 }
@@ -176,7 +176,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	gp_widget_ops_blit(ctx, x, y, w, h);
 
-	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel color = self->focused ? ctx->sel_color : ctx->text_color;
 	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color, ctx->fg_color, color);
 
 	if (tbl->headers) {
@@ -203,8 +203,8 @@ static void render(gp_widget *self, const gp_offset *offset,
 		cx = x + ctx->padd;
 		gp_pixel bg_col = ctx->fg_color;
 
-		if (tbl->row_selected && cur_row == tbl->selected_row) {
-			bg_col = self->selected ? ctx->sel_color : ctx->bg_color;
+		if (tbl->row_focused && cur_row == tbl->focused_row) {
+			bg_col = self->focused ? ctx->sel_color : ctx->bg_color;
 
 			gp_fill_rect_xywh(ctx->buf, x+1, cy - ctx->padd/2+1,
 					self->w - 2,
@@ -240,10 +240,10 @@ static void render(gp_widget *self, const gp_offset *offset,
 	tbl->last_max_row = cur_row;
 }
 
-static void fix_selected_row(gp_widget_table *tbl)
+static void fix_focused_row(gp_widget_table *tbl)
 {
-	if (tbl->selected_row >= tbl->last_max_row)
-		tbl->selected_row = tbl->last_max_row - 1;
+	if (tbl->focused_row >= tbl->last_max_row)
+		tbl->focused_row = tbl->last_max_row - 1;
 }
 
 static int move_down(gp_widget *self, const gp_widget_render_ctx *ctx,
@@ -251,19 +251,19 @@ static int move_down(gp_widget *self, const gp_widget_render_ctx *ctx,
 {
 	gp_widget_table *tbl = self->tbl;
 
-	if (!tbl->row_selected) {
-		tbl->row_selected = 1;
-		tbl->selected_row = tbl->start_row;
+	if (!tbl->row_focused) {
+		tbl->row_focused = 1;
+		tbl->focused_row = tbl->start_row;
 
-		fix_selected_row(tbl);
+		fix_focused_row(tbl);
 
 		goto redraw;
 	}
 
-	if (tbl->selected_row < tbl->last_max_row) {
-		tbl->selected_row += rows;
+	if (tbl->focused_row < tbl->last_max_row) {
+		tbl->focused_row += rows;
 
-		fix_selected_row(tbl);
+		fix_focused_row(tbl);
 
 		goto redraw;
 	}
@@ -273,8 +273,8 @@ static int move_down(gp_widget *self, const gp_widget_render_ctx *ctx,
 redraw:
 	rows = display_rows(self, ctx);
 
-	if (tbl->selected_row > tbl->start_row + rows)
-		tbl->start_row = tbl->selected_row - rows + 1;
+	if (tbl->focused_row > tbl->start_row + rows)
+		tbl->start_row = tbl->focused_row - rows + 1;
 
 	gp_widget_redraw(self);
 	return 1;
@@ -284,18 +284,18 @@ static int move_up(gp_widget *self, const gp_widget_render_ctx *ctx, unsigned in
 {
 	gp_widget_table *tbl = self->tbl;
 
-	if (!tbl->row_selected) {
-		tbl->row_selected = 1;
-		tbl->selected_row = tbl->start_row + display_rows(self, ctx) - 1;
+	if (!tbl->row_focused) {
+		tbl->row_focused = 1;
+		tbl->focused_row = tbl->start_row + display_rows(self, ctx) - 1;
 
 		goto redraw;
 	}
 
-	if (tbl->selected_row > 0) {
-		if (tbl->selected_row > rows)
-			tbl->selected_row -= rows;
+	if (tbl->focused_row > 0) {
+		if (tbl->focused_row > rows)
+			tbl->focused_row -= rows;
 		else
-			tbl->selected_row = 0;
+			tbl->focused_row = 0;
 
 		goto redraw;
 	}
@@ -303,8 +303,8 @@ static int move_up(gp_widget *self, const gp_widget_render_ctx *ctx, unsigned in
 	return 0;
 
 redraw:
-	if (tbl->selected_row < tbl->start_row)
-		tbl->start_row = tbl->selected_row;
+	if (tbl->focused_row < tbl->start_row)
+		tbl->start_row = tbl->focused_row;
 
 	gp_widget_redraw(self);
 	return 1;
@@ -348,10 +348,10 @@ static int row_click(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event 
 	unsigned int row = ev->cursor_y - header_h(self, ctx);
 
 	row /= row_h(ctx) + tbl->start_row;
-	tbl->selected_row = row;
+	tbl->focused_row = row;
 
-	if (!tbl->row_selected)
-		tbl->row_selected = 1;
+	if (!tbl->row_focused)
+		tbl->row_focused = 1;
 
 	gp_widget_redraw(self);
 	return 1;
@@ -369,7 +369,7 @@ static int enter(gp_widget *self)
 {
 	gp_widget_table *tbl = self->tbl;
 
-	if (!tbl->row_selected)
+	if (!tbl->row_focused)
 		return 0;
 
 	gp_widget_send_event(self, GP_WIDGET_EVENT_ACTION);

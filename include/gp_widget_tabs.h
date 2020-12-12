@@ -13,8 +13,8 @@ struct gp_widget_tabs {
 	unsigned int active_tab;
 	unsigned int count;
 
-	int title_selected:1;
-	int widget_selected:1;
+	int title_focused:1;
+	int widget_focused:1;
 
 	char **labels;
 	struct gp_widget **widgets;

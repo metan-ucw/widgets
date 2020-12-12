@@ -58,7 +58,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 		unsigned int cx = x + r;
 
 		gp_fill_circle(ctx->buf, cx, cy, r, ctx->fg_color);
-		gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+		gp_pixel color = self->focused ? ctx->sel_color : ctx->text_color;
 		gp_circle(ctx->buf, cx, cy, r, color);
 
 		if (i == self->choice->sel) {

@@ -152,7 +152,7 @@ static void draw_vert_scroll_bar(gp_widget *self, const gp_widget_render_ctx *ct
 	gp_size max_off = max_y_off(self);
 	gp_coord pos = ((sh - asc) * area->y_off + max_off/2) / max_off;
 
-	gp_pixel col = area->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel col = area->area_focused ? ctx->sel_color : ctx->text_color;
 
 	gp_fill_rrect_xywh(ctx->buf, x + ctx->padd, y + pos, asc, asc, ctx->bg_color, ctx->fg_color, col);
 }
@@ -172,7 +172,7 @@ static void draw_horiz_scroll_bar(gp_widget *self, const gp_widget_render_ctx *c
 	gp_size max_off = max_x_off(self);
 	gp_coord pos = ((sw - asc) * area->x_off + max_off/2) / max_off;
 
-	gp_pixel col = area->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel col = area->area_focused ? ctx->sel_color : ctx->text_color;
 
 	gp_fill_rrect_xywh(ctx->buf, x + pos, y + ctx->padd, asc, asc, ctx->bg_color, ctx->fg_color, col);
 }
@@ -338,7 +338,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 		}
 	}
 
-	if (area->selected) {
+	if (area->area_focused) {
 		if (ev->type != GP_EV_KEY)
 			return 0;
 
@@ -366,66 +366,66 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	return gp_widget_ops_event_offset(area->widget, ctx, ev, area->x_off, area->y_off);
 }
 
-static int select_scrollbar(gp_widget *self)
+static int focus_scrollbar(gp_widget *self)
 {
 	struct gp_widget_scroll_area *area = self->scroll;
 
-	if (area->selected)
+	if (area->area_focused)
 		return 1;
 
-	area->selected = 1;
-        gp_widget_ops_render_select(area->widget, GP_SELECT_OUT);
-	area->widget_selected = 0;
+	area->area_focused = 1;
+        gp_widget_ops_render_focus(area->widget, GP_FOCUS_OUT);
+	area->widget_focused = 0;
 
 	gp_widget_redraw(self);
 
 	return 1;
 }
 
-static void select_out(gp_widget *self)
+static void focus_out(gp_widget *self)
 {
 	struct gp_widget_scroll_area *area = self->scroll;
 
-	if (area->selected) {
-		area->selected = 0;
+	if (area->area_focused) {
+		area->area_focused = 0;
 		gp_widget_redraw(self);
 	}
 }
 
-static int select_widget(gp_widget *self, const gp_widget_render_ctx *ctx,
+static int focus_widget(gp_widget *self, const gp_widget_render_ctx *ctx,
                          unsigned int x, unsigned int y)
 {
 	struct gp_widget_scroll_area *area = self->scroll;
 
-	if (!gp_widget_ops_render_select_xy(area->widget, ctx, x + area->x_off, y + area->y_off))
+	if (!gp_widget_ops_render_focus_xy(area->widget, ctx, x + area->x_off, y + area->y_off))
 		return 0;
 
-	select_out(self);
+	focus_out(self);
 
-	area->widget_selected = 1;
+	area->widget_focused = 1;
 	return 1;
 }
 
-static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                      unsigned int x, unsigned int y)
 {
 	if (is_in_scrollbar_x(self, ctx, x) ||
 	    is_in_scrollbar_y(self, ctx, y))
-		return select_scrollbar(self);
+		return focus_scrollbar(self);
 
-	return select_widget(self, ctx, x, y);
+	return focus_widget(self, ctx, x, y);
 }
 
-static int select_event(gp_widget *self, int sel)
+static int focus(gp_widget *self, int sel)
 {
-	if (self->scroll->widget_selected) {
-		if (gp_widget_ops_render_select(self->scroll->widget, sel))
+	if (self->scroll->widget_focused) {
+		if (gp_widget_ops_render_focus(self->scroll->widget, sel))
 			return 1;
 	}
 
 	switch (sel) {
-	case GP_SELECT_OUT:
-		select_out(self);
+	case GP_FOCUS_OUT:
+		focus_out(self);
 	break;
 	}
 
@@ -514,8 +514,8 @@ struct gp_widget_ops gp_widget_scroll_area_ops = {
 	.min_h = min_h,
 	.render = render,
 	.event = event,
-	.select_xy = select_xy,
-	.select = select_event,
+	.focus_xy = focus_xy,
+	.focus = focus,
 	.distribute_size = distribute_size,
 	.from_json = json_to_scroll,
 	.id = "scroll area",

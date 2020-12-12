@@ -61,7 +61,7 @@ typedef struct gp_widget {
 	 * Redraw whole subtree, i.e. all children and their children, etc.
 	 */
 	unsigned int redraw_children:1;
-	unsigned int selected:1;
+	unsigned int focused:1;
 	unsigned int input_events:1;
 
 	uint32_t event_mask;

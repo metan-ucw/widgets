@@ -188,7 +188,7 @@ static void spin_render(gp_widget *self, const gp_offset *offset,
 
 	gp_widget_ops_blit(ctx, x, y, w, h);
 
-	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel color = self->focused ? ctx->sel_color : ctx->text_color;
 
 	if (self->spin->alert) {
 		color = ctx->alert_color;
@@ -385,7 +385,7 @@ static void slider_render(gp_widget *self, const gp_offset *offset,
 
 	gp_widget_ops_blit(ctx, x, y, w, h);
 
-	gp_pixel fr_color = self->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel fr_color = self->focused ? ctx->sel_color : ctx->text_color;
 
 	gp_fill_rrect_xywh(ctx->buf, x, y, w, h, ctx->bg_color, ctx->fg_color, fr_color);
 

@@ -24,8 +24,8 @@ struct gp_widget_scroll_area {
 	/* Internal do not touch */
 	int scrollbar_x:1;
 	int scrollbar_y:1;
-	int selected:1;
-	int widget_selected:1;
+	int area_focused:1;
+	int widget_focused:1;
 
 	gp_widget *widget;
 };

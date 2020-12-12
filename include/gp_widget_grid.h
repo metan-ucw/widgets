@@ -14,11 +14,11 @@
 struct gp_widget_grid {
 	unsigned int cols, rows;
 
-	unsigned int selected_col;
-	unsigned int selected_row;
+	unsigned int focused_col;
+	unsigned int focused_row;
 
-	/* if set a widget in a grid is selected */
-	int selected:1;
+	/* if set a widget in a grid is focused */
+	int focused:1;
 	/* if set frame is rendered around the grid */
 	int frame:1;
 	/* if set the grid all columns and all rows have the same size */

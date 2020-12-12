@@ -149,17 +149,17 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	return gp_widget_ops_event_offset(self->frame->widget, ctx, ev, px, py);
 }
 
-static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                      unsigned int x, unsigned int y)
 {
-	return gp_widget_ops_render_select_xy(self->frame->widget, ctx,
-	                                      x - payload_off_x(ctx),
-	                                      y - payload_off_y(self, ctx));
+	return gp_widget_ops_render_focus_xy(self->frame->widget, ctx,
+	                                     x - payload_off_x(ctx),
+	                                     y - payload_off_y(self, ctx));
 }
 
-static int select_ev(gp_widget *self, int sel)
+static int focus(gp_widget *self, int sel)
 {
-	return gp_widget_ops_render_select(self->frame->widget, sel);
+	return gp_widget_ops_render_focus(self->frame->widget, sel);
 }
 
 static gp_widget *json_to_frame(json_object *json, void **uids)
@@ -190,8 +190,8 @@ struct gp_widget_ops gp_widget_frame_ops = {
 	.min_h = min_h,
 	.render = render,
 	.event = event,
-	.select_xy = select_xy,
-	.select = select_ev,
+	.focus_xy = focus_xy,
+	.focus = focus,
 	.distribute_size = distribute_size,
 	.from_json = json_to_frame,
 	.id = "frame",

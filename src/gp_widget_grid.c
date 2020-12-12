@@ -30,18 +30,18 @@ static gp_widget *widget_grid_get(gp_widget *self,
 	return widget_grid_grid_get(self->grid, col, row);
 }
 
-static gp_widget *widget_grid_selected(gp_widget *self)
+static gp_widget *widget_grid_focused(gp_widget *self)
 {
 	return widget_grid_get(self,
-	                       self->grid->selected_col,
-	                       self->grid->selected_row);
+	                       self->grid->focused_col,
+	                       self->grid->focused_row);
 }
 
-static void widget_grid_selected_offset(gp_widget *self,
+static void widget_grid_focused_offset(gp_widget *self,
                                         gp_offset *offset)
 {
-	offset->x = self->grid->cols_off[self->grid->selected_col];
-	offset->y = self->grid->rows_off[self->grid->selected_row];
+	offset->x = self->grid->cols_off[self->grid->focused_col];
+	offset->y = self->grid->rows_off[self->grid->focused_row];
 }
 
 static struct gp_widget *widget_grid_put(gp_widget *self, gp_widget *new,
@@ -460,13 +460,13 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 {
-	struct gp_widget *w = widget_grid_selected(self);
+	struct gp_widget *w = widget_grid_focused(self);
 
 	GP_DEBUG(3, "event widget %p (%s)", w, gp_widget_type_id(w));
 
 	gp_offset offset;
 
-	widget_grid_selected_offset(self, &offset);
+	widget_grid_focused_offset(self, &offset);
 
 	offset.x -= self->x;
 	offset.y -= self->y;
@@ -474,84 +474,84 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	return gp_widget_ops_event_offset(w, ctx, ev, offset.x, offset.y);
 }
 
-static int try_select(gp_widget *self, unsigned int col, unsigned int row, int sel)
+static int try_focus(gp_widget *self, unsigned int col, unsigned int row, int sel)
 {
 	gp_widget *w = widget_grid_get(self, col, row);
 
-	GP_DEBUG(4, "Trying to select widget %p (%s) %ux%u",
+	GP_DEBUG(4, "Trying to focus widget %p (%s) %ux%u",
 		 w, gp_widget_type_id(w), col, row);
 
-	if (!gp_widget_ops_render_select(widget_grid_get(self, col, row), sel))
+	if (!gp_widget_ops_render_focus(widget_grid_get(self, col, row), sel))
 		return 0;
 
-	gp_widget_ops_render_select(widget_grid_selected(self), GP_SELECT_OUT);
+	gp_widget_ops_render_focus(widget_grid_focused(self), GP_FOCUS_OUT);
 
-	self->grid->selected_col = col;
-	self->grid->selected_row = row;
+	self->grid->focused_col = col;
+	self->grid->focused_row = row;
 
 	return 1;
 }
 
-static int select_left(gp_widget *self, int sel)
+static int focus_left(gp_widget *self, int sel)
 {
-	unsigned int col = self->grid->selected_col;
-	unsigned int row = self->grid->selected_row;
+	unsigned int col = self->grid->focused_col;
+	unsigned int row = self->grid->focused_row;
 
 	for (;;) {
 		if (col == 0)
 			return 0;
 
-		if (try_select(self, --col, row, sel))
+		if (try_focus(self, --col, row, sel))
 			return 1;
 	}
 }
 
-static int select_right(gp_widget *self, int sel)
+static int focus_right(gp_widget *self, int sel)
 {
-	unsigned int col = self->grid->selected_col;
-	unsigned int row = self->grid->selected_row;
+	unsigned int col = self->grid->focused_col;
+	unsigned int row = self->grid->focused_row;
 
 	for (;;) {
 		if (++col >= self->grid->cols)
 			return 0;
 
-		if (try_select(self, col, row, sel))
+		if (try_focus(self, col, row, sel))
 			return 1;
 	}
 }
 
-static int select_up(gp_widget *self, int sel)
+static int focus_up(gp_widget *self, int sel)
 {
-	unsigned int col = self->grid->selected_col;
-	unsigned int row = self->grid->selected_row;
+	unsigned int col = self->grid->focused_col;
+	unsigned int row = self->grid->focused_row;
 
 	for (;;) {
 		if (row == 0)
 			return 0;
 
-		if (try_select(self, col, --row, sel))
+		if (try_focus(self, col, --row, sel))
 			return 1;
 	}
 }
 
-static int select_down(gp_widget *self, int sel)
+static int focus_down(gp_widget *self, int sel)
 {
-	unsigned int col = self->grid->selected_col;
-	unsigned int row = self->grid->selected_row;
+	unsigned int col = self->grid->focused_col;
+	unsigned int row = self->grid->focused_row;
 
 	for (;;) {
 		if (++row >= self->grid->rows)
 			return 0;
 
-		if (try_select(self, col, row, sel))
+		if (try_focus(self, col, row, sel))
 			return 1;
 	}
 }
 
-static int select_prev(gp_widget *self, int sel)
+static int focus_prev(gp_widget *self, int sel)
 {
-	unsigned int col = self->grid->selected_col;
-	unsigned int row = self->grid->selected_row;
+	unsigned int col = self->grid->focused_col;
+	unsigned int row = self->grid->focused_row;
 
 	for (;;) {
 		if (col > 0) {
@@ -563,15 +563,15 @@ static int select_prev(gp_widget *self, int sel)
 			return 0;
 		}
 
-		if (try_select(self, col, row, sel))
+		if (try_focus(self, col, row, sel))
 			return 1;
 	}
 }
 
-static int select_next(gp_widget *self, int sel)
+static int focus_next(gp_widget *self, int sel)
 {
-	unsigned int col = self->grid->selected_col;
-	unsigned int row = self->grid->selected_row;
+	unsigned int col = self->grid->focused_col;
+	unsigned int row = self->grid->focused_row;
 
 	for (;;) {
 		if (col + 1 < self->grid->cols) {
@@ -583,41 +583,41 @@ static int select_next(gp_widget *self, int sel)
 			return 0;
 		}
 
-		if (try_select(self, col, row, sel))
+		if (try_focus(self, col, row, sel))
 			return 1;
 	}
 }
 
-static int select_in(gp_widget *self, int sel)
+static int focus_in(gp_widget *self, int sel)
 {
-	if (!self->grid->selected)
-		return self->grid->selected = select_next(self, sel);
+	if (!self->grid->focused)
+		return self->grid->focused = focus_next(self, sel);
 
-	return try_select(self, self->grid->selected_col, self->grid->selected_row, sel);
+	return try_focus(self, self->grid->focused_col, self->grid->focused_row, sel);
 }
 
-static int select_event(gp_widget *self, int sel)
+static int focus(gp_widget *self, int sel)
 {
-	gp_widget *w = widget_grid_selected(self);
+	gp_widget *w = widget_grid_focused(self);
 
-	if (gp_widget_ops_render_select(w, sel))
+	if (gp_widget_ops_render_focus(w, sel))
 		return 1;
 
 	switch (sel) {
-	case GP_SELECT_IN:
-		return select_in(self, sel);
-	case GP_SELECT_NEXT:
-		return select_next(self, sel);
-	case GP_SELECT_PREV:
-		return select_prev(self, sel);
-	case GP_SELECT_UP:
-		return select_up(self, sel);
-	case GP_SELECT_DOWN:
-		return select_down(self, sel);
-	case GP_SELECT_LEFT:
-		return select_left(self, sel);
-	case GP_SELECT_RIGHT:
-		return select_right(self, sel);
+	case GP_FOCUS_IN:
+		return focus_in(self, sel);
+	case GP_FOCUS_NEXT:
+		return focus_next(self, sel);
+	case GP_FOCUS_PREV:
+		return focus_prev(self, sel);
+	case GP_FOCUS_UP:
+		return focus_up(self, sel);
+	case GP_FOCUS_DOWN:
+		return focus_down(self, sel);
+	case GP_FOCUS_LEFT:
+		return focus_left(self, sel);
+	case GP_FOCUS_RIGHT:
+		return focus_right(self, sel);
 	}
 
 	return 0;
@@ -641,8 +641,8 @@ static int coord_search(unsigned int coord,
 	return -1;
 }
 
-static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
-                     unsigned int x, unsigned int y)
+static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+                    unsigned int x, unsigned int y)
 {
 	int col, row;
 	struct gp_widget_grid *grid = self->grid;
@@ -656,14 +656,14 @@ static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
 	x -= self->grid->cols_off[col] - self->x;
 	y -= self->grid->rows_off[row] - self->y;
 
-	if (!gp_widget_ops_render_select_xy(widget_grid_get(self, col, row), ctx, x, y))
+	if (!gp_widget_ops_render_focus_xy(widget_grid_get(self, col, row), ctx, x, y))
 		return 0;
 
-	if (grid->selected_col != (unsigned int)col || grid->selected_row != (unsigned int)row)
-		gp_widget_ops_render_select(widget_grid_selected(self), GP_SELECT_OUT);
+	if (grid->focused_col != (unsigned int)col || grid->focused_row != (unsigned int)row)
+		gp_widget_ops_render_focus(widget_grid_focused(self), GP_FOCUS_OUT);
 
-	grid->selected_col = col;
-	grid->selected_row = row;
+	grid->focused_col = col;
+	grid->focused_row = row;
 
 	return 1;
 }
@@ -959,8 +959,8 @@ struct gp_widget_ops gp_widget_grid_ops = {
 	.render = render,
 	.event = event,
 	.free = free_,
-	.select = select_event,
-	.select_xy = select_xy,
+	.focus = focus,
+	.focus_xy = focus_xy,
 	.distribute_size = distribute_size,
 	.from_json = json_to_grid,
 	.id = "grid",
@@ -1061,10 +1061,10 @@ gp_widget *gp_widget_grid_rem(gp_widget *self, unsigned int col, unsigned int ro
 	if (ret)
 		ret->parent = NULL;
 
-	if (self->grid->selected_col == col && self->grid->selected_row == row) {
-		self->grid->selected_col = 0;
-		self->grid->selected_row = 0;
-		self->grid->selected = 0;
+	if (self->grid->focused_col == col && self->grid->focused_row == row) {
+		self->grid->focused_col = 0;
+		self->grid->focused_row = 0;
+		self->grid->focused = 0;
 	}
 
 	gp_widget_resize(self);

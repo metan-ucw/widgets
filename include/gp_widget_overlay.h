@@ -14,7 +14,7 @@ struct gp_widget_overlay_elem {
 };
 
 struct gp_widget_overlay {
-	int selected;
+	int focused;
 	struct gp_widget_overlay_elem *stack;
 };
 

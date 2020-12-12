@@ -55,7 +55,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 
 	y += ctx->padd;
 
-	gp_pixel color = self->selected ? ctx->sel_color : ctx->text_color;
+	gp_pixel color = self->focused ? ctx->sel_color : ctx->text_color;
 
 	gp_fill_rrect_xywh(ctx->buf, x, y, text_a, text_a, ctx->bg_color, ctx->fg_color, color);
 

@@ -141,15 +141,15 @@ static void free_(gp_widget *self)
 	gp_vec_free(s->layouts);
 }
 
-static int select_ev(gp_widget *self, int sel)
+static int focus(gp_widget *self, int sel)
 {
-	return gp_widget_ops_render_select(gp_widget_switch_active(self), sel);
+	return gp_widget_ops_render_focus(gp_widget_switch_active(self), sel);
 }
 
-static int select_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
+static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                      unsigned int x, unsigned int y)
 {
-	return gp_widget_ops_render_select_xy(gp_widget_switch_active(self), ctx, x, y);
+	return gp_widget_ops_render_focus_xy(gp_widget_switch_active(self), ctx, x, y);
 }
 
 struct gp_widget_ops gp_widget_switch_ops = {
@@ -157,8 +157,8 @@ struct gp_widget_ops gp_widget_switch_ops = {
 	.min_h = min_h,
 	.distribute_size = distribute_size,
 	.event = event,
-	.select = select_ev,
-	.select_xy = select_xy,
+	.focus = focus,
+	.focus_xy = focus_xy,
 	.free = free_,
 	.render = render,
 	.from_json = json_to_switch,
