@@ -145,8 +145,13 @@ enum gp_widget_alignment {
 #define GP_HALIGN_MASK 0x0f
 #define GP_VALIGN_MASK 0xf0
 
-/*
- * Allocates widget structure and initializes the payload pointer.
+/**
+ * @brief Internal function to allocate a widget.
+ *
+ * @type A widget type.
+ * @payload_size A widet payload size.
+ *
+ * @return Newly allocated and initialized widget.
  */
 gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size);
 
@@ -161,7 +166,7 @@ gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size);
 		} \
 	} while (0)
 
-/*
+/**
  * @brief Sets widget parent.
  *
  * @self A widget.
@@ -169,6 +174,16 @@ gp_widget *gp_widget_new(enum gp_widget_type type, size_t payload_size);
  */
 void gp_widget_set_parent(gp_widget *self, gp_widget *parent);
 
+/**
+ * @brief Sets widget event handler.
+ *
+ * Note that even after setting event handler certain widget events has to be
+ * unmasked in order to receive them.
+ *
+ * @self A widget.
+ * @on_event An widget event handler.
+ * @priv An user pointer stored in the widget.
+ */
 static inline void gp_widget_event_handler_set(gp_widget *self,
                                                int (*on_event)(struct gp_widget_event *),
                                                void *priv)
