@@ -128,7 +128,7 @@ static gp_widget *create_label(snd_mixer_elem_t *elem)
 
 static int enum_playback_callback(gp_widget_event *ev)
 {
-	unsigned int sel = ev->self->choice->sel;
+	unsigned int sel = gp_widget_choice_get(ev->self);
 
 	if (ev->type != GP_WIDGET_EVENT_ACTION)
 		return 0;

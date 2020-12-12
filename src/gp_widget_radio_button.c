@@ -162,9 +162,7 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 static gp_widget *json_to_radiobutton(json_object *json, void **uids)
 {
 	json_object *labels = NULL;
-	const char *on_event = NULL;
 	int sel_label = 0;
-	void *on_event_fn = NULL;
 
 	(void)uids;
 
@@ -173,8 +171,6 @@ static gp_widget *json_to_radiobutton(json_object *json, void **uids)
 			labels = val;
 		else if (!strcmp(key, "selected"))
 			sel_label = json_object_get_int(val);
-		else if (!strcmp(key, "on_event"))
-			on_event = json_object_get_string(val);
 		else
 			GP_WARN("Invalid radiobutton key '%s'", key);
 	}
@@ -205,14 +201,7 @@ static gp_widget *json_to_radiobutton(json_object *json, void **uids)
 			GP_WARN("Button %i must be string!", i);
 	}
 
-	if (on_event) {
-		on_event_fn = gp_widget_callback_addr(on_event);
-
-		if (!on_event_fn)
-			GP_WARN("No on_event function '%s' defined", on_event);
-	}
-
-	return gp_widget_choice_new(labels_arr, label_cnt, sel_label, on_event_fn, NULL);
+	return gp_widget_choice_new(labels_arr, label_cnt, sel_label, NULL, NULL);
 }
 
 struct gp_widget_ops gp_widget_radio_button_ops = {
@@ -237,12 +226,11 @@ struct gp_widget *gp_widget_choice_new(const char *choices[],
 	if (!ret)
 		return NULL;
 
-
 	ret->choice->sel = selected;
 	ret->choice->choices = gp_string_arr_copy(choices, choice_cnt, ret->choice->payload);
 	ret->choice->max = choice_cnt;
-	ret->on_event = on_event;
-	ret->priv = priv;
+
+	gp_widget_event_handler_set(ret, on_event, priv);
 
 	return ret;
 }
@@ -257,4 +245,11 @@ void gp_widget_choice_set(gp_widget *self, unsigned int sel)
 	self->choice->sel = sel;
 
 	gp_widget_redraw(self);
+}
+
+unsigned int gp_widget_choice_get(gp_widget *self)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_RADIOBUTTON, 0);
+
+	return self->choice->sel;
 }

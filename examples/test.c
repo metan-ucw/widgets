@@ -50,7 +50,7 @@ int radiobutton_callback(gp_widget_event *ev)
 	if (ev->type == GP_WIDGET_EVENT_NEW)
 		return 0;
 
-	printf("selected choice %i\n", ev->self->choice->sel);
+	printf("selected choice %i\n", gp_widget_choice_get(ev->self));
 
 	return 0;
 }
