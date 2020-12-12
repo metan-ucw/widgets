@@ -286,8 +286,8 @@ void gp_widget_overlay_show(gp_widget *self, unsigned int stack_pos)
 	gp_widget_redraw_children(self);
 }
 
-gp_widget *gp_widget_overlay_set(gp_widget *self, unsigned int stack_pos,
-                                 gp_widget *widget)
+gp_widget *gp_widget_overlay_put(gp_widget *self, unsigned int stack_pos,
+                                 gp_widget *child)
 {
 	gp_widget *ret;
 
@@ -297,9 +297,9 @@ gp_widget *gp_widget_overlay_set(gp_widget *self, unsigned int stack_pos,
 		return NULL;
 
 	ret = self->overlay->stack[stack_pos].widget;
-	self->overlay->stack[stack_pos].widget = widget;
+	self->overlay->stack[stack_pos].widget = child;
 
-	gp_widget_set_parent(widget, self);
+	gp_widget_set_parent(child, self);
 
 	gp_widget_resize(self);
 
