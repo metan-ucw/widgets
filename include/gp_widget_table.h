@@ -54,12 +54,12 @@ typedef struct gp_widget_table {
 	char buf[];
 } gp_widget_table;
 
-struct gp_widget *gp_widget_table_new(unsigned int cols, unsigned int min_rows,
-                                    const gp_widget_table_header *headers,
-				    int (*row)(struct gp_widget *self,
-                                               int op, unsigned int pos),
-				    const char *(get)(struct gp_widget *self,
-					              unsigned int col));
+gp_widget *gp_widget_table_new(unsigned int cols, unsigned int min_rows,
+                               const gp_widget_table_header *headers,
+                               int (*row)(struct gp_widget *self,
+                                          int op, unsigned int pos),
+                               const char *(get)(struct gp_widget *self,
+                                                 unsigned int col));
 
 /*
  * Called when table content has changed and table needs to be rerendered.

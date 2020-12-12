@@ -534,12 +534,12 @@ struct gp_widget_ops gp_widget_table_ops = {
 	.id = "table",
 };
 
-struct gp_widget *gp_widget_table_new(unsigned int cols, unsigned int min_rows,
-                                    const gp_widget_table_header *headers,
-				    int (*row)(struct gp_widget *self,
-                                               int op, unsigned int pos),
-				    const char *(get)(struct gp_widget *self,
-					              unsigned int col))
+gp_widget *gp_widget_table_new(unsigned int cols, unsigned int min_rows,
+                               const gp_widget_table_header *headers,
+                               int (*row)(struct gp_widget *self,
+                                          int op, unsigned int pos),
+                               const char *(get)(struct gp_widget *self,
+                                                 unsigned int col))
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_table);
