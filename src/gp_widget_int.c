@@ -531,3 +531,10 @@ void gp_widget_slider_set(gp_widget *self, int val)
 
 	gp_widget_int_set(self, val);
 }
+
+int gp_widget_slider_get(gp_widget *self)
+{
+	GP_WIDGET_ASSERT(self, GP_WIDGET_SLIDER, 0);
+
+	return self->i->val;
+}
