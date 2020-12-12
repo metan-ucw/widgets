@@ -64,7 +64,7 @@ gp_widget *gp_widget_switch_active(gp_widget *self);
  *
  * @return Previous child occupying the slot or NULL if it was empty.
  */
-gp_widget *gp_widget_switch_set(gp_widget *self, unsigned int layout_nr,
+gp_widget *gp_widget_switch_put(gp_widget *self, unsigned int layout_nr,
                                 gp_widget *child);
 
 #endif /* GP_WIDGET_SWITCH_H__ */
