@@ -18,8 +18,8 @@ struct gp_widget_pixmap {
 	gp_pixmap *pixmap;
 };
 
-/*
- * Pixmap widget.
+/**
+ * @brief Allocate and initialize a pixmap widget.
  *
  * If pixmap widget has align set to fill the widget will grow into available
  * space, otherwise it will be always precisely min_w x min_h in size.
@@ -36,15 +36,20 @@ struct gp_widget_pixmap {
  *
  * @min_w Minimal pixmap width
  * @min_h Minimal pixmap height
- * @return Newly allocated pixmap widget
+ *
+ * @return A pixmap widget
  */
 struct gp_widget *gp_widget_pixmap_new(unsigned int min_w, unsigned int min_h,
                                        int (*on_event)(gp_widget_event *ev),
                                        void *priv);
 
-/*
+/**
+ * @brief Sets a bitmap widget to unbuffered mode.
+ *
  * When called GP_WIDGET_EVENT_REDRAW is send before pixmap is blit on the
  * screen for the buffered case.
+ *
+ * @self A pixmap widget.
  */
 static inline void gp_widget_pixmap_update(gp_widget *self)
 {
