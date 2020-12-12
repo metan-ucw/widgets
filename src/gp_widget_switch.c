@@ -212,7 +212,7 @@ void gp_widget_switch_move(gp_widget *self, int where)
 }
 
 gp_widget *gp_widget_switch_set(gp_widget *self, unsigned int layout_nr,
-                                gp_widget *layout)
+                                gp_widget *child)
 {
 	gp_widget *ret;
 
@@ -222,9 +222,9 @@ gp_widget *gp_widget_switch_set(gp_widget *self, unsigned int layout_nr,
 		return NULL;
 
 	ret = self->switch_->layouts[layout_nr];
-	self->switch_->layouts[layout_nr] = layout;
+	self->switch_->layouts[layout_nr] = child;
 
-	gp_widget_set_parent(layout, self);
+	gp_widget_set_parent(child, self);
 
 	gp_widget_resize(self);
 

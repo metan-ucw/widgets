@@ -13,37 +13,41 @@ struct gp_widget_switch {
 	gp_widget **layouts;
 };
 
-/*
- * @brief Allocates a switch widget.
+/**
+ * @brief Allocates a initializes a switch widget.
  *
  * @layouts Number of layouts to switch between.
- * @return Newly allocated switch widget.
+ *
+ * @return A switch widget.
  */
 gp_widget *gp_widget_switch_new(unsigned int layouts);
 
-/*
+/**
  * @brief Returns number of switch layouts.
  *
  * @self A switch widget.
+ *
  * @return Number of switch layouts.
  */
 unsigned int gp_widget_switch_layouts(gp_widget *self);
 
-/* @brief Switches to a different layout.
+/**
+ * @brief Switches to a different layout.
  *
  * @self A switch widget.
  * @layout_nr Number of layout to switch to.
  */
 void gp_widget_switch_layout(gp_widget *self, unsigned int layout_nr);
 
-/* @brief Moves layout by where.
+/**
+ * @brief Moves layout by where.
  *
  * @self A switch widget.
  * @where How much we should move.
  */
 void gp_widget_switch_move(gp_widget *self, int where);
 
-/*
+/**
  * @brief Returns a pointer to active layout.
  *
  * @self A switch widget.
@@ -51,14 +55,16 @@ void gp_widget_switch_move(gp_widget *self, int where);
  */
 gp_widget *gp_widget_switch_active(gp_widget *self);
 
-/* @brief Sets a switch layout.
+/**
+ * @brief Sets a switch layout.
  *
  * @self A switch widget.
  * @layout_nr Number of layout to set.
- * @layout A layout to set.
- * @return Previous layout occupying the slot.
+ * @child A child widget to set.
+ *
+ * @return Previous child occupying the slot or NULL if it was empty.
  */
 gp_widget *gp_widget_switch_set(gp_widget *self, unsigned int layout_nr,
-                                gp_widget *layout);
+                                gp_widget *child);
 
 #endif /* GP_WIDGET_SWITCH_H__ */
