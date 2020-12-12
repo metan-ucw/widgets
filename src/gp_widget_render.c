@@ -426,11 +426,6 @@ int gp_widgets_process_events(gp_widget *layout)
 	return 0;
 }
 
-int gp_widgets_fd(void)
-{
-	return backend->fd;
-}
-
 static void print_options(int exit_val)
 {
 	printf("Options:\n--------\n");

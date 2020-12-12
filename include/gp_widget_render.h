@@ -84,8 +84,6 @@ void gp_widgets_register_callback(int (*event_callback)(gp_event *));
 void gp_widgets_main_loop(struct gp_widget *layout, const char *label,
                         void (*init)(void), int argc, char *argv[]);
 
-int gp_widgets_fd(void);
-
 int gp_widgets_process_events(gp_widget *layout);
 
 void gp_widgets_layout_init(gp_widget *layout, const char *win_tittle);
