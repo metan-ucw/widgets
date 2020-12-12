@@ -47,14 +47,14 @@ static unsigned int payload_off_y(gp_widget *self, const gp_widget_render_ctx *c
 static unsigned int min_w(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
 	unsigned int min_w = GP_MAX(gp_text_width(ctx->font, self->frame->label) + 2 * ctx->padd,
-		                    gp_widget_min_w(self->frame->widget, ctx));
+		                    gp_widget_min_w(self->frame->child, ctx));
 
 	return frame_w(ctx) + min_w;
 }
 
 static unsigned int min_h(gp_widget *self, const gp_widget_render_ctx *ctx)
 {
-	return frame_h(self, ctx) + gp_widget_min_h(self->frame->widget, ctx);
+	return frame_h(self, ctx) + gp_widget_min_h(self->frame->child, ctx);
 }
 
 static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx, int new_wh)
@@ -62,8 +62,8 @@ static void distribute_size(gp_widget *self, const gp_widget_render_ctx *ctx, in
 	unsigned int w = self->w - frame_w(ctx);
 	unsigned int h = self->h - frame_h(self, ctx);
 
-	if (self->frame->widget)
-		gp_widget_ops_distribute_size(self->frame->widget, ctx, w, h, new_wh);
+	if (self->frame->child)
+		gp_widget_ops_distribute_size(self->frame->child, ctx, w, h, new_wh);
 }
 
 static void render(gp_widget *self, const gp_offset *offset,
@@ -74,7 +74,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 	unsigned int w = self->w;
 	unsigned int h = self->h;
 	struct gp_widget_frame *frame = self->frame;
-	struct gp_widget *payload = frame->widget;
+	struct gp_widget *payload = frame->child;
 
 	if (gp_widget_should_redraw(self, flags)) {
 		gp_widget_ops_blit(ctx, x, y, w, h);
@@ -130,7 +130,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 		}
 	}
 
-	if (!self->frame->widget)
+	if (!self->frame->child)
 		return;
 
 	gp_offset widget_offset = {
@@ -138,7 +138,7 @@ static void render(gp_widget *self, const gp_offset *offset,
 		.y = y + payload_off_y(self, ctx),
 	};
 
-	gp_widget_ops_render(self->frame->widget, &widget_offset, ctx, flags);
+	gp_widget_ops_render(self->frame->child, &widget_offset, ctx, flags);
 }
 
 static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
@@ -146,20 +146,20 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 	unsigned int px = payload_off_x(ctx);
 	unsigned int py = payload_off_y(self, ctx);
 
-	return gp_widget_ops_event_offset(self->frame->widget, ctx, ev, px, py);
+	return gp_widget_ops_event_offset(self->frame->child, ctx, ev, px, py);
 }
 
 static int focus_xy(gp_widget *self, const gp_widget_render_ctx *ctx,
                      unsigned int x, unsigned int y)
 {
-	return gp_widget_ops_render_focus_xy(self->frame->widget, ctx,
+	return gp_widget_ops_render_focus_xy(self->frame->child, ctx,
 	                                     x - payload_off_x(ctx),
 	                                     y - payload_off_y(self, ctx));
 }
 
 static int focus(gp_widget *self, int sel)
 {
-	return gp_widget_ops_render_focus(self->frame->widget, sel);
+	return gp_widget_ops_render_focus(self->frame->child, sel);
 }
 
 static gp_widget *json_to_frame(json_object *json, void **uids)
@@ -179,8 +179,11 @@ static gp_widget *json_to_frame(json_object *json, void **uids)
 			GP_WARN("Invalid frame key '%s'", key);
 	}
 
-	gp_widget *widget = gp_widget_from_json(jwidget, uids);
-	gp_widget *ret = gp_widget_frame_new(label, bold, widget);
+	gp_widget *child = gp_widget_from_json(jwidget, uids);
+	gp_widget *ret = gp_widget_frame_new(label, bold, child);
+
+	if (!ret)
+		gp_widget_free(child);
 
 	return ret;
 }
@@ -197,7 +200,7 @@ struct gp_widget_ops gp_widget_frame_ops = {
 	.id = "frame",
 };
 
-gp_widget *gp_widget_frame_new(const char *label, int bold, gp_widget *widget)
+gp_widget *gp_widget_frame_new(const char *label, int bold, gp_widget *child)
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_frame);
@@ -212,7 +215,7 @@ gp_widget *gp_widget_frame_new(const char *label, int bold, gp_widget *widget)
 	if (!ret)
 		return NULL;
 
-	ret->frame->widget = widget;
+	ret->frame->child = child;
 	ret->frame->bold = bold;
 
 	if (label) {
@@ -220,7 +223,23 @@ gp_widget *gp_widget_frame_new(const char *label, int bold, gp_widget *widget)
 		strcpy(ret->frame->label, label);
 	}
 
-	gp_widget_set_parent(widget, ret);
+	gp_widget_set_parent(child, ret);
+
+	return ret;
+}
+
+gp_widget *gp_widget_frame_put(gp_widget *self, gp_widget *child)
+{
+	gp_widget *ret;
+
+	GP_WIDGET_ASSERT(self, GP_WIDGET_FRAME, NULL);
+
+	ret = self->frame->child;
+	self->frame->child = child;
+
+	gp_widget_set_parent(child, self);
+
+	gp_widget_resize(self);
 
 	return ret;
 }
