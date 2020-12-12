@@ -517,7 +517,7 @@ gp_widget *gp_widget_tabs_new(unsigned int tabs, unsigned int active_tab,
 }
 
 gp_widget *gp_widget_tabs_put(gp_widget *self, unsigned int tab,
-                              gp_widget *widget)
+                              gp_widget *child)
 {
 	gp_widget *ret;
 
@@ -532,9 +532,9 @@ gp_widget *gp_widget_tabs_put(gp_widget *self, unsigned int tab,
 	if (ret)
 		ret->parent = NULL;
 
-	self->tabs->widgets[tab] = widget;
+	self->tabs->widgets[tab] = child;
 
-	gp_widget_set_parent(widget, self);
+	gp_widget_set_parent(child, self);
 
 	gp_widget_resize(self);
 	//TODO: Redraw as well?
