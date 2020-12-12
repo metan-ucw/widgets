@@ -129,8 +129,6 @@ static int event(gp_widget *self, const gp_widget_render_ctx *ctx, gp_event *ev)
 static gp_widget *json_to_checkbox(json_object *json, void **uids)
 {
 	const char *label = NULL;
-	const char *on_event = NULL;
-	void *on_event_fn = NULL;
 	int set = 0;
 
 	(void)uids;
@@ -138,22 +136,13 @@ static gp_widget *json_to_checkbox(json_object *json, void **uids)
 	json_object_object_foreach(json, key, val) {
 		if (!strcmp(key, "label"))
 			label = json_object_get_string(val);
-		else if (!strcmp(key, "on_event"))
-			on_event = json_object_get_string(val);
 		else if (!strcmp(key, "set"))
 			set = json_object_get_boolean(val);
 		else
 			GP_WARN("Invalid checkbox key '%s'", key);
 	}
 
-	if (on_event) {
-		on_event_fn = gp_widget_callback_addr(on_event);
-
-		if (!on_event_fn)
-			GP_WARN("No on_event function '%s' defined", on_event);
-	}
-
-	return gp_widget_checkbox_new(label, set, on_event_fn, NULL);
+	return gp_widget_checkbox_new(label, set, NULL, NULL);
 }
 
 struct gp_widget_ops gp_widget_check_box_ops = {
@@ -184,10 +173,9 @@ void gp_widget_checkbox_toggle(gp_widget *self)
 	toggle(self);
 }
 
-struct gp_widget *gp_widget_checkbox_new(const char *label,
-                                         int set,
-                                         int (*on_event)(gp_widget_event *),
-                                         void *priv)
+gp_widget *gp_widget_checkbox_new(const char *label, int val,
+                                  int on_event(gp_widget_event *ev),
+                                  void *priv)
 {
 	gp_widget *ret;
 	size_t size = sizeof(struct gp_widget_bool);
@@ -203,9 +191,9 @@ struct gp_widget *gp_widget_checkbox_new(const char *label,
 		strcpy(ret->b->payload, label);
 	}
 
-	ret->on_event = on_event;
-	ret->priv = priv;
-	ret->b->val = !!set;
+	ret->b->val = !!val;
+
+	gp_widget_event_handler_set(ret, on_event, priv);
 
 	return ret;
 }
