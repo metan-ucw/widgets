@@ -11,8 +11,17 @@
 
 #include <gp_widget_bool.h>
 
-struct gp_widget *gp_widget_button_new(const char *label,
-                                       int (*on_event)(gp_widget_event *ev),
-                                       void *priv);
+/**
+ * @brief Allocates a initialize new button widget.
+ *
+ * @label A button label.
+ * @on_event An widget event handler.
+ * @priv User private data.
+ *
+ * @return A button widget.
+ */
+gp_widget *gp_widget_button_new(const char *label,
+                                int (*on_event)(gp_widget_event *ev),
+                                void *priv);
 
 #endif /* GP_WIDGET_BUTTON_H__ */
